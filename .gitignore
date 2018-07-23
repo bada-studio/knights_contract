@@ -1,0 +1,13 @@
+*.abi
+*.wast
+*.wasm
+
+.vscode
+
+# CMake
+cmake-build-debug/
+cmake-build-release/
+unlock.sh
+deploy_rules.sh
+truncate_all_rule.sh
+init.sh
