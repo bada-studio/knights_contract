@@ -197,7 +197,7 @@ public:
 
         action(permission_level{ self, N(active) },
                N(eosio.token), N(transfer),
-               std::make_tuple(self, saleitem->player, price, std::string("eosknights: material sale"))
+               std::make_tuple(self, saleitem->player, price, std::string("eosknights:item-sale"))
         ).send();
 
         return tax;
@@ -298,7 +298,7 @@ public:
 
         action(permission_level{ self, N(active) },
                N(eosio.token), N(transfer),
-               std::make_tuple(self, salemat->player, price, std::string("eosknights: material sale"))
+               std::make_tuple(self, salemat->player, price, std::string("eosknights:material-sale"))
         ).send();
 
         return tax;

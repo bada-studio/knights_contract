@@ -92,7 +92,7 @@ public:
                 // eg) unstake, sellram, etc
                 // add to the revenue for these.
                 if (is_system_account(transfer_data.from)) {
-                    admin_controller.add_revenue(transfer_data.quantity);
+                    admin_controller.add_revenue(transfer_data.quantity, rv_system);
                 } else {
                     assert_true(false, "sign up first!");
                 }

@@ -37,6 +37,7 @@ using eosio::name;
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/admin/adminstate.hpp"
+#include "table/admin/revenuedt.hpp"
 #include "table/admin/stockholder.hpp"
 #include "table/admin/dividendlog.hpp"
 #include "table/admin/expenseslog.hpp"
@@ -80,6 +81,8 @@ private:
     const char* ta_ivn = "ivn";
     const char* tp_item = "item";
     const char* tp_mat = "mat";
+    const char* ta_eosknights = "eosknights";
+    const char* tp_mat_sale = "material-sale";
 
 public:
     knights(account_name self)
@@ -340,6 +343,7 @@ public:
     // mat:{cid}
     // ivn:item
     // ivn:mat
+    // eosknights:material-sale
     //-------------------------------------------------------------------------
     void transfer(uint64_t sender, uint64_t receiver) {
         player_controller.eosiotoken_transfer(sender, receiver, [&](const auto &ad) {
@@ -350,29 +354,33 @@ public:
             if (ad.action == ta_knt) {
                 int type = atoi(ad.param.c_str());
                 knight_controller.hireknight(ad.from, type, ad.quantity);
-                admin_controller.add_revenue(ad.quantity);
+                admin_controller.add_revenue(ad.quantity, rv_knight);
             } else if (ad.action == ta_mw) {
                 int pid = atoi(ad.param.c_str());
                 powder_controller.buymp(ad.from, pid, ad.quantity);
-                admin_controller.add_revenue(ad.quantity);
+                admin_controller.add_revenue(ad.quantity, rv_mp);
             } else if (ad.action == ta_item) {
                 uint64_t saleid = atoll(ad.param.c_str());
                 asset tax = market_controller.buyitem(ad.from, saleid, ad.quantity);
-                admin_controller.add_revenue(tax);
+                admin_controller.add_revenue(tax, rv_item_tax);
             } else if (ad.action == ta_mat) {
                 uint64_t saleid = atoll(ad.param.c_str());
                 asset tax = market_controller.buymat(ad.from, saleid, ad.quantity);
-                admin_controller.add_revenue(tax);
+                admin_controller.add_revenue(tax, rv_material_tax);
             } else if (ad.action == ta_ivn) {
                 if (ad.param == tp_item) {
                     player_controller.itemivnup(ad.from, ad.quantity);
+                    admin_controller.add_revenue(ad.quantity, rv_item_iventory_up);
                 } else if (ad.param == tp_mat) {
                     player_controller.mativnup(ad.from, ad.quantity);
+                    admin_controller.add_revenue(ad.quantity, rv_mat_iventory_up);
                 } else {
                     assert_true(false, "invalid inventory");
                 }
                 
-                admin_controller.add_revenue(ad.quantity);
+            } else if (ad.action == ta_eosknights && ad.param == tp_mat_sale) {
+                // coo material sales revenue
+                admin_controller.add_revenue(ad.quantity, rv_coo_mat);
             } else {
                 assert_true(false, "invalid transfer");
             }
