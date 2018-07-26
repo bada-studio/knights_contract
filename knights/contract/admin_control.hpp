@@ -52,7 +52,7 @@ public:
         });
     }
 
-    void add_revenue(const asset& revenue) {
+    void add_revenue(const asset& revenue, rv_type type) {
         if (revenue.amount == 0) {
             return;
         }
@@ -60,6 +60,24 @@ public:
         assert_true(adminvalues.cbegin() != adminvalues.cend(), "there is no user admin value");
         adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
             target.revenue += revenue;
+        });
+
+        revenuedt_table revenues(self, self);
+        if (revenues.cbegin() == revenues.cend()) {
+            revenues.emplace(self, [&](auto &target) {});
+        }
+
+        revenues.modify(revenues.begin(), self, [&](auto &target) {
+            switch (type) {
+                case rv_knight: target.knight += revenue;
+                case rv_material_tax: target.material_tax += revenue;
+                case rv_item_tax: target.item_tax += revenue;
+                case rv_mp: target.mp += revenue;
+                case rv_mat_iventory_up: target.mat_iventory_up += revenue;
+                case rv_item_iventory_up: target.item_iventory_up += revenue;
+                case rv_coo_mat: target.coo_mat += revenue;
+                case rv_system: target.system += revenue;
+            }
         });
     }
 
