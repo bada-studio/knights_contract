@@ -16,13 +16,20 @@ const int kv_pet_gacha_high_price = 1000;
 const int kv_pet_max_up = 7;
 const int kv_max_knight_level = 16;
 const int kv_kill_powder_rate = 50;
-const int kv_min_market_price = 100;
-const int kv_max_market_price = 1000000;
+const int kv_min_market_price =      100;
+const int kv_max_market_price = 100'0000;
 const int kv_init_powder = 100;
 const int kv_min_rebirth = 120;
 const int kv_floor_bonus_1000 = 20;
 const int kv_max_sales_log_size = 5;
 const int kv_available_sale_per_knight = 1;
+const int kv_airgrab_level1 = 1;
+const int kv_airgrab_level2 = 4;
+const int kv_airgrab_level3 = 7;
+const int kv_airgrab_amount1 =  4000'0000;
+const int kv_airgrab_amount2 =  6000'0000;
+const int kv_airgrab_amount3 = 10000'0000;
+const int kv_bada_payment_cooltime = 24 * 60 * 60; // 1 day 
 
 //@abi table rvariable i64
 struct rvariable {

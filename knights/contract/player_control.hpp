@@ -10,13 +10,6 @@ private:
     rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
-
-    struct st_transfer {
-        account_name from;
-        account_name to;
-        asset        quantity;
-        std::string  memo;
-    };
     
 public:
     // constructor
@@ -62,12 +55,7 @@ public:
     }
 
     template<typename T>
-    void eosiotoken_transfer(uint64_t sender, uint64_t receiver, T func) {
-        auto transfer_data = eosio::unpack_action_data<st_transfer>();
-        eosio_assert(transfer_data.quantity.symbol == S(4, EOS), "only accepts EOS for deposits");
-        eosio_assert(transfer_data.quantity.is_valid(), "Invalid token transfer");
-        eosio_assert(transfer_data.quantity.amount > 0, "Quantity must be positive");
-
+    void eos_transfer(const st_transfer& transfer_data , T func) {
         if (transfer_data.from == self) {
             auto to = to_name(transfer_data.to);
             auto to_player = players.find(to);
@@ -106,6 +94,109 @@ public:
                 res.quantity = transfer_data.quantity;       
                 func(res);
             }
+        }
+    }
+
+    template<typename T>
+    void bada_transfer(const st_transfer& transfer_data , T func) {
+        if (transfer_data.from == self) {
+            // do nothing
+        } else if (transfer_data.to == self) {
+            auto from = to_name(transfer_data.from);
+            auto from_player = players.find(from);
+            if (from_player == players.end()) {
+                assert_true(false, "sign up first!");
+            } 
+            
+            // player's deposit action
+            transfer_action res;
+            size_t center = transfer_data.memo.find(':');
+            res.from = from;
+            res.action = transfer_data.memo.substr(0, center);
+            res.param = transfer_data.memo.substr(center + 1);
+            res.quantity = transfer_data.quantity;       
+            func(res);
+        }
+    }
+
+    void claimbada(account_name from, uint8_t index, const std::vector<knightrow>& knights) {
+        airgrab_table airgrabs(self, self);
+
+        int max_level = 0;
+        for (int index = 0; index < knights.size(); index++) {
+            if (max_level < knights[index].level) {
+                max_level = knights[index].level;
+            }
+        }
+
+        int last_grab = 0;
+        auto iter = airgrabs.find(from);
+        if (iter != airgrabs.end()) {
+            last_grab = iter->grab;
+        }
+
+        assert_true(last_grab + 1 == index, "invalid airgrab index");
+        assert_true(index <= 3, "you already have full airgrab");
+        asset quantity(0, S(4, BADA));
+        int required_level = 0;
+        switch (index) {
+            case 1: 
+                quantity.amount = kv_airgrab_amount1;
+                required_level = kv_airgrab_level1;
+                break;
+            case 2:
+                quantity.amount = kv_airgrab_amount2;
+                required_level = kv_airgrab_level2;
+                break;
+            case 3:
+                quantity.amount = kv_airgrab_amount3;
+                required_level = kv_airgrab_level3;
+                break;
+        }
+        
+        assert_true(required_level <= max_level, "insufficient level to grab bada");
+        assert_true(admin_controller.has_enough_bada_for(quantity), "airgrab is done");
+
+        // send airgrab
+        action(permission_level{ self, N(active) },
+               N(badatokenbnk), N(transfer),
+               std::make_tuple(self, from, quantity, std::string("eosknights:airgrab"))
+        ).send();
+
+        // write airgrab log
+        if (iter == airgrabs.end()) {
+            airgrabs.emplace(self, [&](auto &target) {
+                target.owner = to_name(from);
+                target.grab = index;
+            });
+        } else {
+            airgrabs.modify(iter, self, [&](auto &target) {
+                target.owner = to_name(from);
+                target.grab = index;
+            });
+        }
+
+        admin_controller.report_grab(quantity);
+    }
+
+    void report_bada_payment(account_name from) {
+        airgrab_table airgrabs(self, self);
+        auto iter = airgrabs.find(from);
+        auto current = time_util::getnow();
+
+        if (iter == airgrabs.end()) {
+            airgrabs.emplace(self, [&](auto &target) {
+                target.owner = to_name(from);
+                target.last_payment = current;
+            });
+        } else {
+            auto diff = current - iter->last_payment;
+            assert_true(diff > kv_bada_payment_cooltime, "Can not use BADA token yet.");
+
+            airgrabs.modify(iter, self, [&](auto &target) {
+                target.owner = to_name(from);
+                target.last_payment = current;
+            });
         }
     }
 

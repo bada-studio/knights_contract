@@ -36,7 +36,10 @@ using eosio::name;
 #include "table/rule/rmpgoods.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
+#include "table/token/st_transfer.hpp"
+#include "table/token/airgrab.hpp"
 #include "table/admin/adminstate.hpp"
+#include "table/admin/airgrabstate.hpp"
 #include "table/admin/revenuedt.hpp"
 #include "table/admin/stockholder.hpp"
 #include "table/admin/dividendlog.hpp"
@@ -326,6 +329,11 @@ public:
     }
 
     /// @abi action
+    void setairgrab(asset total) {
+        admin_controller.setairgrab(total);
+    }
+
+    /// @abi action
     void regsholder(name holder, uint16_t share) {
         admin_controller.regsholder(holder, share);
     }
@@ -346,7 +354,33 @@ public:
     // eosknights:material-sale
     //-------------------------------------------------------------------------
     void transfer(uint64_t sender, uint64_t receiver) {
-        player_controller.eosiotoken_transfer(sender, receiver, [&](const auto &ad) {
+        auto transfer_data = eosio::unpack_action_data<st_transfer>();
+        eosio_assert(transfer_data.quantity.is_valid(), "Invalid token transfer");
+        eosio_assert(transfer_data.quantity.amount > 0, "Quantity must be positive");
+
+        if (transfer_data.quantity.symbol == S(4, EOS)) {
+            process_eos_transfer(transfer_data);
+        } else if (transfer_data.quantity.symbol == S(4, BADA)) {
+            process_bada_transfer(transfer_data);
+        } else {
+            assert_true(false, "only accepts EOS or BADA for transfer");
+        }
+    }
+
+    void process_bada_transfer(const st_transfer &transfer_data) {
+        player_controller.bada_transfer(transfer_data, [&](const auto &ad) {
+            if (ad.action == ta_mw) {
+                int pid = atoi(ad.param.c_str());
+                powder_controller.buymp(ad.from, pid, ad.quantity);
+                admin_controller.add_bada_revenue(transfer_data.quantity);
+            } else {
+                assert_true(false, "invalid transfer");
+            }
+        });
+    }
+
+    void process_eos_transfer(const st_transfer &transfer_data) {
+        player_controller.eos_transfer(transfer_data, [&](const auto &ad) {
             if (ad.action.size() == 0) {
                 return;
             }
@@ -385,6 +419,11 @@ public:
                 assert_true(false, "invalid transfer");
             }
         });
+    }
+
+    /// @abi action
+    void claimbada(name from, uint8_t index) {
+        player_controller.claimbada(from, index, knight_controller.get_knights(from));
     }
 
     // Temporary implementation
@@ -457,7 +496,7 @@ extern "C" { \
          eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \
       } \
       auto self = receiver; \
-      if( code == self || code == N(eosio.token) || action == N(onerror) ) { \
+      if( code == self || code == N(eosio.token) || code == N(badatokenbnk) || action == N(onerror) ) { \
          TYPE thiscontract( self ); \
          switch( action ) { \
             EOSIO_API( TYPE, MEMBERS ) \
@@ -468,4 +507,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer)       (clrall) (rmmat4sale) (rmplayer) (setadmasset) (rmdivid))
+EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (setairgrab) (regsholder) (dividend) (claimbada) (transfer)       (clrall) (rmmat4sale) (rmplayer) (setadmasset) (rmdivid))

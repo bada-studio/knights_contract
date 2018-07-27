@@ -116,6 +116,33 @@ public:
         return sh != stockholders.cend();
     }
 
+    void report_grab(asset quantity) {
+        airgrabstate_table table(self, self);
+        assert_true(table.cbegin() != table.cend(), "not initialized");
+        assert_true(table.cbegin()->grabbed.amount >= quantity.amount, "airgrab is over");
+
+        table.modify(table.cbegin(), self, [&](auto &target) {
+            target.grabbed += quantity;
+        });
+    }
+
+    bool has_enough_bada_for(asset quantity) {
+        airgrabstate_table table(self, self);
+        assert_true(table.cbegin() != table.cend(), "not initialized");
+        auto iter = table.cbegin();
+        return iter->grabbed.amount + quantity.amount <= iter->total.amount;
+    }
+
+    void add_bada_revenue(const asset& revenue) {
+        airgrabstate_table table(self, self);
+        assert_true(table.cbegin() != table.cend(), "not initialized");
+
+        table.modify(table.cbegin(), self, [&](auto &target) {
+            target.revenue += revenue;
+        });
+    }
+
+
     // actions
     //-------------------------------------------------------------------------
     /// @brief
@@ -138,7 +165,26 @@ public:
             });
         }
     }
-    
+
+    /// @brief
+    /// Set airgrab total amount
+    /// @param name
+    /// total total bada coin amount
+    void setairgrab(asset total) {
+        require_auth(self);
+
+        airgrabstate_table table(self, self);
+        if (table.cbegin() == table.cend()) {
+            table.emplace(self, [&](auto &target) {
+                target.total = total;
+            });
+        } else {
+            table.modify(table.cbegin(), self, [&](auto &target) {
+                target.total = total;
+            });
+        }
+    }
+
     /// @brief
     /// Pause game
     /// User can not play this game until to pause valse is set to false.
