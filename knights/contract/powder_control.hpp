@@ -47,7 +47,7 @@ public:
         // pay the cost
         asset price = rule->price;
         assert_true(quantity.amount == price.amount, "mw price does not match");
-        // player_controller.transfer(from, to_name(self), price);
+        assert_true(quantity.symbol.value == price.symbol.value, "mw symbol does not match");
         player_controller.increase_powder(player, rule->powder);
 
         name seller;

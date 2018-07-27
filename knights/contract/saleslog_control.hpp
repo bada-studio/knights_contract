@@ -37,29 +37,33 @@ public:
         if (iter == revenues.cend()) {
             revenues.emplace(self, [&](auto& target) {
                 target.owner = from;
-                if (log.type == ct_material || log.type == ct_item) {
-                    target.buying += log.price;
-                    target.buying_count = 1;
-                } else {
-                    target.spending += log.price;
-                    target.spending_count = 1;
-                }
                 target.buylogs.push_back(log);
+                calculate_spent(target, log);
             });
         } else {
             revenues.modify(iter, self, [&](auto& target) {
                 if (target.buylogs.size() >= kv_max_sales_log_size) {
                     target.buylogs.erase(target.buylogs.begin());
                 }
-                if (log.type == ct_material || log.type == ct_item) {
-                    target.buying += log.price;
-                    target.buying_count = 1;
-                } else {
-                    target.spending += log.price;
-                    target.spending_count = 1;
-                }
+                
                 target.buylogs.push_back(log);
+                calculate_spent(target, log);
             });
+        }
+    }
+
+private:
+    void calculate_spent(revenue &target, const buylog &log) {
+        if (log.price.symbol != S(4, EOS)) {
+            return;
+        }
+
+        if (log.type == ct_material || log.type == ct_item) {
+            target.buying += log.price;
+            target.buying_count++;
+        } else {
+            target.spending += log.price;
+            target.spending_count++;
         }
     }
 };
