@@ -29,6 +29,7 @@ const int kv_airgrab_level3 = 7;
 const int kv_airgrab_amount1 =  4000'0000;
 const int kv_airgrab_amount2 =  6000'0000;
 const int kv_airgrab_amount3 = 10000'0000;
+const int kv_bada_payment_cooltime = 24 * 60 * 60; // 1 day 
 
 //@abi table rvariable i64
 struct rvariable {

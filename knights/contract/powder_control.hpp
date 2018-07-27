@@ -48,6 +48,12 @@ public:
         asset price = rule->price;
         assert_true(quantity.amount == price.amount, "mw price does not match");
         assert_true(quantity.symbol.value == price.symbol.value, "mw symbol does not match");
+
+        // report BADA token payment
+        if (quantity.symbol == S(4, BADA)) {
+            player_controller.report_bada_payment(from);
+        }
+
         player_controller.increase_powder(player, rule->powder);
 
         name seller;

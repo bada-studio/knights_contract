@@ -3,7 +3,7 @@
 struct airgrab {
     name owner;  // 8
     uint8_t grab = 0;
-    uint32_t last_use = 0;
+    uint32_t last_payment = 0;
 
     airgrab(name o = name())
     : owner(o) {
@@ -17,7 +17,7 @@ struct airgrab {
                      airgrab,
                      (owner)
                      (grab)
-                     (last_use)
+                     (last_payment)
                      )
 };
 

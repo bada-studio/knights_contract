@@ -179,6 +179,27 @@ public:
         admin_controller.report_grab(quantity);
     }
 
+    void report_bada_payment(account_name from) {
+        airgrab_table airgrabs(self, self);
+        auto iter = airgrabs.find(from);
+        auto current = time_util::getnow();
+
+        if (iter == airgrabs.end()) {
+            airgrabs.emplace(self, [&](auto &target) {
+                target.owner = to_name(from);
+                target.last_payment = current;
+            });
+        } else {
+            auto diff = current - iter->last_payment;
+            assert_true(diff > kv_bada_payment_cooltime, "Can not use BADA token yet.");
+
+            airgrabs.modify(iter, self, [&](auto &target) {
+                target.owner = to_name(from);
+                target.last_payment = current;
+            });
+        }
+    }
+
     bool is_system_account(account_name name) {
         if (name == N(eosio.bpay) || 
             name == N(eosio.msig) ||
