@@ -102,8 +102,8 @@ public:
     // player related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void signup(name user) {
-        player_controller.signup(user);
+    void signup(name from) {
+        player_controller.signup(from);
     }
 
     // knight related actions
