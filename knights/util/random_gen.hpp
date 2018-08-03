@@ -12,7 +12,7 @@ private:
 public:
     static random_gen& get_instance(account_name player) {
         if (instance.seed == 0) {
-            instance.seed = current_time() + player;
+            instance.seed = tapos_block_prefix() + player;
         }
         return instance;
     }
