@@ -8,7 +8,7 @@ public:
 
 public:
     static uint32_t getnow() {
-        return now() - origin;
+        return current_time() / 1'000'000 - origin;
     }
 };
 
