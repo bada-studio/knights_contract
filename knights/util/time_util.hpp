@@ -8,7 +8,7 @@ public:
 
 public:
     static uint32_t getnow() {
-        return current_time() / 1'000'000 - origin;
+        return publication_time() / 1'000'000 - origin;
     }
 };
 
