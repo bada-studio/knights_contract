@@ -23,6 +23,7 @@ const int kv_min_rebirth = 120;
 const int kv_floor_bonus_1000 = 20;
 const int kv_max_sales_log_size = 5;
 const int kv_available_sale_per_knight = 1;
+const int kv_droprate_per_kill = 30;
 
 //@abi table rvariable i64
 struct rvariable {

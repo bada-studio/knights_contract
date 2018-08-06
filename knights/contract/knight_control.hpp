@@ -304,7 +304,8 @@ public:
         int floor = (total_kill_count / 10) + 1;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
-                int mat_code = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
+                int drop_kill = kv_droprate_per_kill * kill_counts[index] / 100;
+                int mat_code = get_botties(*player, floor, lucks[index], drop_kill, *stagerule);
                 material_controller.add_material(from, mat_code);
             }
         }
@@ -486,17 +487,17 @@ private:
         // be careful for the data sync with material rule
         const int drop_rates_length = 11;
         const double drop_rates[drop_rates_length] = {
-            0.5254608286, // 0
-            0.2627304143, // 1
-            0.1313652071, // 2
-            0.06568260357, // 3
-            0.008210325446, // 4
-            0.004105162723, // 5
-            0.002052581362, // 6
-            0.0002565726702, // 7
-            0.0001282863351, // 8
-            0.000008017895944, // 9
-            0.0000009621475132, // 10
+            0.525460323, // 0
+            0.2627301615, // 1
+            0.1313650807, // 2
+            0.06568254037, // 3
+            0.008210317547, // 4
+            0.004105158773, // 5
+            0.002052579387, // 6
+            0.0002565724233, // 7
+            0.0001282862117, // 8
+            0.000008017888229, // 9
+            0.0000009621465875, // 10
         };
 
         int best = 0;
