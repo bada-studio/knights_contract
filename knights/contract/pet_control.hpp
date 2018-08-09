@@ -249,7 +249,7 @@ public:
             assert_true(pet.level < kv_pet_normal_max_up, "already max up");
         } else if (rule->grade == ig_rare) {
             assert_true(pet.level < kv_pet_rare_max_up, "already max up");
-        } else if (rule->grade == unique) {
+        } else if (rule->grade == ig_unique) {
             assert_true(pet.level < kv_pet_unique_max_up, "already max up");
         } else if (rule->grade == ig_legendary) {
             assert_true(pet.level < kv_pet_legendary_max_up, "already max up");
