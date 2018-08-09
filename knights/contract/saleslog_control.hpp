@@ -53,10 +53,10 @@ public:
                 }
                 if (log.type == ct_material || log.type == ct_item) {
                     target.buying += log.price;
-                    target.buying_count = 1;
+                    target.buying_count++;
                 } else {
                     target.spending += log.price;
-                    target.spending_count = 1;
+                    target.spending_count++;
                 }
                 target.buylogs.push_back(log);
             });
