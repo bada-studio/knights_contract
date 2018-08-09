@@ -4,10 +4,10 @@
 class random_gen {
 private:
     static random_gen instance;
-
-    const uint32_t a = 1103515245;
-    const uint32_t c = 12345;
     uint64_t seed = 0;
+
+    //const uint32_t a = 1103515245;
+    //const uint32_t c = 12345;
 
 public:
     static random_gen& get_instance(account_name player) {

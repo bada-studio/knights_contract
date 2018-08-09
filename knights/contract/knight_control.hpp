@@ -304,8 +304,7 @@ public:
         int floor = (total_kill_count / 10) + 1;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
-                int drop_kill = kv_droprate_per_kill * kill_counts[index] / 100;
-                int mat_code = get_botties(*player, floor, lucks[index], drop_kill, *stagerule);
+                int mat_code = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
                 material_controller.add_material(from, mat_code);
             }
         }
@@ -487,25 +486,36 @@ private:
         // be careful for the data sync with material rule
         const int drop_rates_length = 11;
         const double drop_rates[drop_rates_length] = {
-            0.525460323, // 0
-            0.2627301615, // 1
-            0.1313650807, // 2
-            0.06568254037, // 3
-            0.008210317547, // 4
-            0.004105158773, // 5
-            0.002052579387, // 6
-            0.0002565724233, // 7
-            0.0001282862117, // 8
-            0.000008017888229, // 9
-            0.0000009621465875, // 10
+            0.525581917, // 0
+            0.2627909585, // 1
+            0.1313954792, // 2
+            0.06569773962, // 3
+            0.008212217453, // 4
+            0.004106108726, // 5
+            0.002053054363, // 6
+            0.0001283158977, // 7
+            0.00003207897443, // 8
+            0.000002004935902, // 9
+            0.0000001253084938, // 10
         };
-
+        
         int best = 0;
-        int drscale = 10000000;
-        for (int index = drop_rates_length - 1; index >= 1; --index) {
+        int drscale = 1000000000;
+        int rand_value = random.range(drscale);
+
+        int start_index = drop_rates_length - 1;
+        if (kill_count < kv_required_floor_for_unique * 10) {
+            start_index = 6;
+        } else if (kill_count < kv_required_floor_for_legendary * 10) {
+            start_index = 8;
+        } else if (kill_count < kv_required_floor_for_ancient * 10) {
+            start_index = 9;
+        }
+
+        for (int index = start_index; index >= 1; --index) {
             double dr = drop_rates[index] * (drop_rate / 100.0);
             double mdr = 1.0 - pow(1.0 - dr, kill_count);
-            if (random.range(drscale) < int(mdr * drscale)) {
+            if (rand_value < int(mdr * drscale)) {
                 best = index;
                 break;
             }
