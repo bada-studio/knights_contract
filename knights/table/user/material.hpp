@@ -8,6 +8,7 @@ struct matrow {
 //@abi table material i64
 struct material {
     name owner;
+    uint32_t last_id;
     std::vector<matrow> rows;
 
     uint64_t primary_key() const {
@@ -17,6 +18,7 @@ struct material {
     EOSLIB_SERIALIZE(
             material,
             (owner)
+            (last_id)
             (rows)
     )
 };

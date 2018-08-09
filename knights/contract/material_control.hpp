@@ -36,24 +36,22 @@ public:
 
     void add_material(name from, int code) {
         matrow row;
-        row.id = 1;
         row.code = code;
         row.saleid = 0;
 
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
+                row.id = 1;
+                mat.last_id = row.id;
                 mat.owner = from;
                 mat.rows.push_back(row);
             });
         } else {
             materials.modify(iter, self, [&](auto& mat){
-                int size = mat.rows.size();
-                if (size > 0) {
-                    row.id = mat.rows[size - 1].id + 1;
-                }
-
+                row.id = mat.last_id + 1;
                 mat.owner = from;
+                mat.last_id = row.id;
                 mat.rows.push_back(row);
             });
         }

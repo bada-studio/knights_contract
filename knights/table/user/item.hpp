@@ -12,6 +12,7 @@ struct itemrow {
 //@abi table item i64
 struct item {
     name owner;
+    uint32_t last_id;
     std::vector<itemrow> rows;
 
     uint64_t primary_key() const {
@@ -21,6 +22,7 @@ struct item {
     EOSLIB_SERIALIZE(
             item,
             (owner)
+            (last_id)
             (rows)
     )
 };

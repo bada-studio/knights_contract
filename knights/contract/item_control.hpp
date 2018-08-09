@@ -88,7 +88,6 @@ public:
 
     void add_item(name from, int code, int dna, int level, int exp) {
         itemrow row;
-        row.id = 1;
         row.dna = dna;
         row.code = code;
         row.level = level;
@@ -97,17 +96,16 @@ public:
         auto iter = items.find(from);
         if (iter == items.cend()) {
             items.emplace(self, [&](auto& item){
+                row.id = 1;
                 item.owner = from;
+                item.last_id = row.id;
                 item.rows.push_back(row);
             });
         } else {
             items.modify(iter, self, [&](auto& item){
-                int size = item.rows.size();
-                if (size > 0) {
-                    row.id = item.rows[size - 1].id + 1;
-                }
-
+                row.id = item.last_id + 1;
                 item.owner = from;
+                item.last_id = row.id;
                 item.rows.push_back(row);
             });
         }
