@@ -427,6 +427,7 @@ public:
             case ig_rare: powder = lvrule->powder2; break;
             case ig_unique: powder = lvrule->powder3; break;
             case ig_legendary: powder = lvrule->powder4; break;
+            case ig_ancient: powder = lvrule->powder5; break;
         }
 
         auto player = player_controller.get_player(from);

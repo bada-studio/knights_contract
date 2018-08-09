@@ -7,6 +7,7 @@ struct ritemlv {
     uint16_t powder2 = 0;
     uint16_t powder3 = 0;
     uint16_t powder4 = 0;
+    uint16_t powder5 = 0;
 
     ritemlv() {
     }
@@ -24,6 +25,7 @@ struct ritemlv {
             (powder2)
             (powder3)
             (powder4)
+            (powder5)
     )
 };
 

@@ -6,6 +6,7 @@ struct rpetlv {
     uint16_t powder2 = 0;
     uint16_t powder3 = 0;
     uint16_t powder4 = 0;
+    uint16_t powder5 = 0;
 
     rpetlv() {
     }
@@ -22,6 +23,7 @@ struct rpetlv {
             (powder2)
             (powder3)
             (powder4)
+            (powder5)
     )
 };
 

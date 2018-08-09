@@ -235,9 +235,7 @@ public:
         assert_true(index < rows.size(), "could not find pet");
         auto &pet = rows[index];
         
-        assert_true(pet.level < kv_pet_max_up, "already max up");
         int8_t knight = pet.knight;
-
         auto &petlv_rule = rpetlv_controller.get_table();
         auto lvrule = petlv_rule.find(pet.level + 1);
         assert_true(lvrule != petlv_rule.cend(), "could not find pet level rule");
@@ -246,6 +244,18 @@ public:
         auto &pet_rule = rpet_controller.get_table();
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
+
+        if (rule->grade == ig_normal) {
+            assert_true(pet.level < kv_pet_normal_max_up, "already max up");
+        } else if (rule->grade == ig_rare) {
+            assert_true(pet.level < kv_pet_rare_max_up, "already max up");
+        } else if (rule->grade == unique) {
+            assert_true(pet.level < kv_pet_unique_max_up, "already max up");
+        } else if (rule->grade == ig_legendary) {
+            assert_true(pet.level < kv_pet_legendary_max_up, "already max up");
+        } else if (rule->grade == ig_ancient) {
+            assert_true(pet.level < kv_pet_ancient_max_up, "already max up");
+        }
 
         auto player = player_controller.get_player(from);
         assert_true(!player_controller.is_empty_player(player), "could not find player");
@@ -256,6 +266,7 @@ public:
             case ig_rare: powder = lvrule->powder2; break;
             case ig_unique: powder = lvrule->powder3; break;
             case ig_legendary: powder = lvrule->powder4; break;
+            case ig_ancient: powder = lvrule->powder5; break;
         }
 
         assert_true(powder <= player->powder, "not enough powder");
