@@ -1,6 +1,6 @@
 if [ "$1" = "real" ]
 then
-  url=https://api.eosnewyork.io:443
+  url=https://rpc.eosys.io:443
 elif [ "$1" = "beta" ]
 then
   url=http://121.168.149.101:8888
