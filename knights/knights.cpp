@@ -363,10 +363,12 @@ public:
                 uint64_t saleid = atoll(ad.param.c_str());
                 asset tax = market_controller.buyitem(ad.from, saleid, ad.quantity);
                 admin_controller.add_revenue(tax, rv_item_tax);
+                admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat) {
                 uint64_t saleid = atoll(ad.param.c_str());
                 asset tax = market_controller.buymat(ad.from, saleid, ad.quantity);
                 admin_controller.add_revenue(tax, rv_material_tax);
+                admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_ivn) {
                 if (ad.param == tp_item) {
                     player_controller.itemivnup(ad.from, ad.quantity);
@@ -387,6 +389,7 @@ public:
         });
     }
 
+    /*
     // Temporary implementation
     // Delete all data form chain. When table scheme is changed, all data 
     // should be cleaned. It's temporary api for development. And this method 
@@ -403,36 +406,10 @@ public:
         clr<item4sale_table>(to_name(_self));
         clr<mat4sale_table>(to_name(_self));
         clr<revenue_table>(to_name(_self));
+        clr<revenuedt_table>(to_name(_self));
         clr<stockholder_table>(to_name(_self));
         clr<dividendlog_table>(to_name(_self));
         clr<expenseslog_table>(to_name(_self));
-    }
-
-    /// @abi action
-    void rmdivid() {
-        clr<dividendlog_table>(to_name(_self));
-    }
-
-    /// @abi action
-    void rmmat4sale(uint32_t id) {
-        mat4sale_table table(_self, _self);
-        table.erase(table.find(id));
-    }
-
-    /// @abi action
-    void rmplayer(name id) {
-        player_table table(_self, _self);
-        table.erase(table.find(id));
-    }
-
-    /// @abi action
-    void setadmasset(asset revenue, asset dividend, asset expenses) {
-        adminstate_table table(_self, _self);
-        table.modify(table.begin(), _self, [&](auto &target) {
-            target.revenue = revenue;
-            target.dividend = dividend;
-            target.expenses = expenses;
-        });
     }
 
     template<typename T>
@@ -445,6 +422,7 @@ public:
             iter = table.erase(iter);
         }
     }
+    */
 };
 
 #undef EOSIO_ABI
@@ -468,4 +446,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer)       (clrall) (rmmat4sale) (rmplayer) (setadmasset) (rmdivid))
+EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

@@ -87,14 +87,15 @@ public:
         } else if (transfer_data.to == self) {
             auto from = to_name(transfer_data.from);
             auto from_player = players.find(from);
-            if (from_player == players.end()) {
+            
+            if (transfer_data.memo == "investment") {
+                admin_controller.add_investment(transfer_data.quantity);
+            } else if (from_player == players.end()) {
                 // system account could transfer eos to contract
                 // eg) unstake, sellram, etc
                 // add to the revenue for these.
                 if (is_system_account(transfer_data.from)) {
                     admin_controller.add_revenue(transfer_data.quantity, rv_system);
-                } else if (transfer_data.memo == "investment") {
-                    admin_controller.add_investment(transfer_data.quantity);
                 } else {
                     assert_true(false, "sign up first!");
                 }

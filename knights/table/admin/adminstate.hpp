@@ -6,6 +6,7 @@ struct adminstate {
     asset dividend;
     asset expenses;
     asset investment;
+    asset tradingvol;
     uint32_t player_count = 0;
     name coo;
 
@@ -13,7 +14,8 @@ struct adminstate {
         : revenue(0, S(4, EOS))
         , expenses(0, S(4, EOS))
         , dividend(0, S(4, EOS))
-        , investment(0, S(4, EOS)) {
+        , investment(0, S(4, EOS))
+        , tradingvol(0, S(4, EOS)) {
     }
 
     uint64_t primary_key() const {
@@ -28,6 +30,7 @@ struct adminstate {
             (dividend)
             (expenses)
             (investment)
+            (tradingvol)
             (player_count)
             (coo)
     )

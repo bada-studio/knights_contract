@@ -59,6 +59,13 @@ public:
         });
     }
 
+    void add_tradingvol(const asset& quantity) {
+        assert_true(adminvalues.cbegin() != adminvalues.cend(), "there is no user admin value");
+        adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
+            target.tradingvol += quantity;
+        });
+    }
+
     void add_revenue(const asset& revenue, rv_type type) {
         if (revenue.amount == 0) {
             return;
