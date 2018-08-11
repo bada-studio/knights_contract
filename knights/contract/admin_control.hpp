@@ -52,6 +52,13 @@ public:
         });
     }
 
+    void add_investment(const asset& quantity) {
+        assert_true(adminvalues.cbegin() != adminvalues.cend(), "no admin values yet");
+        adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
+            target.investment += quantity;
+        });
+    }
+
     void add_revenue(const asset& revenue, rv_type type) {
         if (revenue.amount == 0) {
             return;
