@@ -301,14 +301,15 @@ public:
             powder = 1;
         }
 
+        int botties[kt_count] = {0, };
         int floor = (total_kill_count / 10) + 1;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
-                int mat_code = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
-                material_controller.add_material(from, mat_code);
+                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
             }
         }
 
+        material_controller.add_materials(from, botties);
         players.modify(player, self, [&](auto& target) {
             target.last_rebirth = current;
             target.powder += powder;

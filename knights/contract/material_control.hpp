@@ -57,6 +57,49 @@ public:
         }
     }
 
+    void add_materials(name from, int mats[]) {
+        auto iter = materials.find(from);
+        if (iter == materials.cend()) {
+            materials.emplace(self, [&](auto& mat){
+                int id = 0;
+                for (int index = 1; index < kt_count; index++) {
+                    int code = mats[index];
+                    if (code == 0) {
+                        continue;
+                    }
+
+                    matrow row;
+                    row.code = code;
+                    row.saleid = 0;
+                    row.id = ++id;
+                    mat.rows.push_back(row);
+                }
+
+                mat.last_id = id;
+                mat.owner = from;
+            });
+        } else {
+            materials.modify(iter, self, [&](auto& mat){
+                int id = mat.last_id;
+                for (int index = 1; index < kt_count; index++) {
+                    int code = mats[index];
+                    if (code == 0) {
+                        continue;
+                    }
+
+                    matrow row;
+                    row.code = code;
+                    row.saleid = 0;
+                    row.id = ++id;
+                    mat.rows.push_back(row);
+                }
+
+                mat.last_id = id;
+                mat.owner = from;
+            });
+        }
+    }
+
     const std::vector<matrow>& get_materials(name from) {
         auto iter = materials.find(from);
         if (iter != materials.cend()) {
