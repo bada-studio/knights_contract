@@ -224,74 +224,93 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void civnprice(const std::vector<rivnprice> &rules) {
-        player_controller.get_inventory_price_rule().truncate_rules();
         player_controller.get_inventory_price_rule().create_rules(rules);
     }
 
     /// @abi action
     void cknt(const std::vector<rknt> &rules) {
-        knight_controller.get_knight_rule_controller().truncate_rules();
         knight_controller.get_knight_rule_controller().create_rules(rules);
     }
 
     /// @abi action
     void ckntlv(const std::vector<rkntlv> &rules) {
-        knight_controller.get_knight_level_rule_controller().truncate_rules();
         knight_controller.get_knight_level_rule_controller().create_rules(rules);
     }
 
     /// @abi action
     void ckntprice(const std::vector<rkntprice> &rules) {
-        knight_controller.get_knight_price_rule_controller().truncate_rules();
         knight_controller.get_knight_price_rule_controller().create_rules(rules);
     }
 
     /// @abi action
     void cstage(const std::vector<rstage> &rules) {
-        knight_controller.get_stage_rule_controller().truncate_rules();
         knight_controller.get_stage_rule_controller().create_rules(rules);
     }
 
     /// @abi action
     void cvariable(const std::vector<rvariable> &rules) {
-        variable_controller.get_rvariable_rule().truncate_rules();
         variable_controller.get_rvariable_rule().create_rules(rules);
     }
 
     /// @abi action
     void citem(const std::vector<ritem> &rules) {
-        item_controller.get_ritem_rule().truncate_rules();
         item_controller.get_ritem_rule().create_rules(rules);
     }
 
     /// @abi action
     void citemlv(const std::vector<ritemlv> &rules) {
-        item_controller.get_ritemlv_rule().truncate_rules();
         item_controller.get_ritemlv_rule().create_rules(rules);
     }
 
     /// @abi action
     void cmaterial(const std::vector<rmaterial> &rules) {
-        material_controller.get_rmaterial_rule().truncate_rules();
         material_controller.get_rmaterial_rule().create_rules(rules);
     }
 
     /// @abi action
     void cpet(const std::vector<rpet> &rules) {
-        pet_controller.get_pet_rule().truncate_rules();
         pet_controller.get_pet_rule().create_rules(rules);
     }
 
     /// @abi action
     void cpetlv(const std::vector<rpetlv> &rules) {
-        pet_controller.get_pet_level_rule().truncate_rules();
         pet_controller.get_pet_level_rule().create_rules(rules);
     }
 
     /// @abi action
     void cmpgoods(const std::vector<rmpgoods> &rules) {
-        powder_controller.get_mpgoods_rule().truncate_rules();
         powder_controller.get_mpgoods_rule().create_rules(rules);
+    }
+
+    /// @abi action
+    void trule(name table) {
+        if (table == N(ivnprice)) {
+            player_controller.get_inventory_price_rule().truncate_rules();
+        } else if (table == N(knt)) {
+            knight_controller.get_knight_rule_controller().truncate_rules();
+        } else if (table == N(kntlv)) {
+            knight_controller.get_knight_level_rule_controller().truncate_rules();
+        } else if (table == N(kntprice)) {
+            knight_controller.get_knight_price_rule_controller().truncate_rules();
+        } else if (table == N(stage)) {
+            knight_controller.get_stage_rule_controller().truncate_rules();
+        } else if (table == N(variable)) {
+            variable_controller.get_rvariable_rule().truncate_rules();
+        } else if (table == N(item)) {
+            item_controller.get_ritem_rule().truncate_rules();
+        } else if (table == N(itemlv)) {
+            item_controller.get_ritemlv_rule().truncate_rules();
+        } else if (table == N(material)) {
+            material_controller.get_rmaterial_rule().truncate_rules();
+        } else if (table == N(pet)) {
+            pet_controller.get_pet_rule().truncate_rules();
+        } else if (table == N(petlv)) {
+            pet_controller.get_pet_level_rule().truncate_rules();
+        } else if (table == N(mpgoods)) {
+            powder_controller.get_mpgoods_rule().truncate_rules();
+        } else {
+            eosio_assert(0, "could not find table");
+        }
     }
 
     // admin related actions
@@ -428,4 +447,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
