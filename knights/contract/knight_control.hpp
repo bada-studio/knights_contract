@@ -153,12 +153,6 @@ public:
         asset price = price_itr->price;
         assert_true(quantity.amount == price.amount, "knight price does not match");
 
-        /*
-        if (price.amount > 0) {
-            player_controller.transfer(from, to_name(self), price);
-        }
-        */
-
         name seller;
         seller.value = self;
 

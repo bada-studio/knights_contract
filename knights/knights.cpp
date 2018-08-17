@@ -90,7 +90,7 @@ public:
     , admin_controller(self)
     , variable_controller(_self)
     , saleslog_controller(_self)
-    , player_controller(_self, saleslog_controller, admin_controller)
+    , player_controller(_self, saleslog_controller, admin_controller, variable_controller)
     , material_controller(_self, player_controller)
     , item_controller(_self, material_controller, player_controller, saleslog_controller)
     , pet_controller(_self, player_controller, saleslog_controller)
@@ -223,63 +223,63 @@ public:
     // rule ralated actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void civnprice(const std::vector<rivnprice> &rules) {
-        player_controller.get_inventory_price_rule().create_rules(rules);
+    void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
+        player_controller.get_inventory_price_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cknt(const std::vector<rknt> &rules) {
-        knight_controller.get_knight_rule_controller().create_rules(rules);
+    void cknt(const std::vector<rknt> &rules, bool truncate) {
+        knight_controller.get_knight_rule_controller().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void ckntlv(const std::vector<rkntlv> &rules) {
-        knight_controller.get_knight_level_rule_controller().create_rules(rules);
+    void ckntlv(const std::vector<rkntlv> &rules, bool truncate) {
+        knight_controller.get_knight_level_rule_controller().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void ckntprice(const std::vector<rkntprice> &rules) {
-        knight_controller.get_knight_price_rule_controller().create_rules(rules);
+    void ckntprice(const std::vector<rkntprice> &rules, bool truncate) {
+        knight_controller.get_knight_price_rule_controller().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cstage(const std::vector<rstage> &rules) {
-        knight_controller.get_stage_rule_controller().create_rules(rules);
+    void cstage(const std::vector<rstage> &rules, bool truncate) {
+        knight_controller.get_stage_rule_controller().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cvariable(const std::vector<rvariable> &rules) {
-        variable_controller.get_rvariable_rule().create_rules(rules);
+    void cvariable(const std::vector<rvariable> &rules, bool truncate) {
+        variable_controller.get_rvariable_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void citem(const std::vector<ritem> &rules) {
-        item_controller.get_ritem_rule().create_rules(rules);
+    void citem(const std::vector<ritem> &rules, bool truncate) {
+        item_controller.get_ritem_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void citemlv(const std::vector<ritemlv> &rules) {
-        item_controller.get_ritemlv_rule().create_rules(rules);
+    void citemlv(const std::vector<ritemlv> &rules, bool truncate) {
+        item_controller.get_ritemlv_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cmaterial(const std::vector<rmaterial> &rules) {
-        material_controller.get_rmaterial_rule().create_rules(rules);
+    void cmaterial(const std::vector<rmaterial> &rules, bool truncate) {
+        material_controller.get_rmaterial_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cpet(const std::vector<rpet> &rules) {
-        pet_controller.get_pet_rule().create_rules(rules);
+    void cpet(const std::vector<rpet> &rules, bool truncate) {
+        pet_controller.get_pet_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cpetlv(const std::vector<rpetlv> &rules) {
-        pet_controller.get_pet_level_rule().create_rules(rules);
+    void cpetlv(const std::vector<rpetlv> &rules, bool truncate) {
+        pet_controller.get_pet_level_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
-    void cmpgoods(const std::vector<rmpgoods> &rules) {
-        powder_controller.get_mpgoods_rule().create_rules(rules);
+    void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
+        powder_controller.get_mpgoods_rule().create_rules(rules, truncate);
     }
 
     /// @abi action

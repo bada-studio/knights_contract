@@ -14,8 +14,12 @@ public:
         rule_name.value = _rule_name;
     }
 
-    void create_rules(const std::vector<DataType> &data) {
+    void create_rules(const std::vector<DataType> &data, bool truncate) {
         require_auth(self);
+
+        if (truncate) {
+            truncate_rules();
+        }
 
         for (auto iter = data.begin(); iter != data.end(); ++iter) {
             table.emplace(self, [&](auto &rule) {

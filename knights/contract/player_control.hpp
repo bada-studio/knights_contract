@@ -10,6 +10,7 @@ private:
     rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
+    variable_control &variable_controller;
 
     struct st_transfer {
         account_name from;
@@ -23,12 +24,14 @@ public:
     //-------------------------------------------------------------------------
     player_control(account_name _self,
                    saleslog_control &_saleslog_controller,
-                   admin_control &_admin_controller)
+                   admin_control &_admin_controller,
+                   variable_control &_variable_controller)
         : self(_self)
         , players(_self, _self)
         , rivnprice_controller(_self, N(ivnprice))
         , saleslog_controller(_saleslog_controller)
-        , admin_controller(_admin_controller) {
+        , admin_controller(_admin_controller)
+        , variable_controller(_variable_controller) {
     }
 
     // internal apis
@@ -128,9 +131,14 @@ public:
     }
 
     void new_player(name from) {
+        auto& variables = variable_controller.get_rvariable_rule();
+        auto& rules = variables.get_table();
+        auto rule = rules.find(vt_init_powder);
+        eosio_assert(rule != rules.end(), "can not found powder rule" );
+
         auto itr = players.emplace(self, [&](auto& target) {
             target.owner = from;
-            target.powder = kv_init_powder;
+            target.powder = rule->value;
             target.current_stage = 1;
         });
 
