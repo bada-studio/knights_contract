@@ -97,7 +97,7 @@ public:
 
     void add_expenses(const asset& amount, name to, const std::string &memo) {
         assert_true(adminvalues.cbegin() != adminvalues.cend(), "there is no admin value");
-        assert_true(adminvalues.cbegin()->revenue.amount >= amount.amount, "overdrawn expenses");
+        //assert_true(adminvalues.cbegin()->revenue.amount >= amount.amount, "overdrawn expenses");
 
         adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
             target.revenue -= amount;
