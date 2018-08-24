@@ -156,7 +156,7 @@ public:
         if (iter != playervs.cend()) {
             seed = iter->seed;
         } else {
-            seed = tapos_block_prefix();
+            seed = tapos_block_prefix() ^ from;
         }
 
         return random_val(seed, 0);
