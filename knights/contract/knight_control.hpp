@@ -498,6 +498,7 @@ private:
         int drscale = 1000000000;
         int rand_value = random.range(drscale);
 
+        // fix #16 reported by Jinhyeon Hong
         int start_index = drop_rates_length - 1;
         if (floor < kv_required_floor_for_unique) {
             start_index = 6;
