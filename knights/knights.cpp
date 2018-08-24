@@ -119,6 +119,11 @@ public:
     }
 
     /// @abi action
+    void rebirth2(name from, int32_t checksum) {
+        knight_controller.rebirth2(from, checksum);
+    }
+
+    /// @abi action
     void setkntstage(name from, uint8_t stage) {
         knight_controller.setkntstage(from, stage);
     }
@@ -447,4 +452,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (rebirth2) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

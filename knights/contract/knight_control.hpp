@@ -230,87 +230,33 @@ public:
     /// Rebirth all knights.
     /// @param from
     /// Player who requested rebirth
-    void rebirth(name from) {
-        require_auth(from);
-
-        auto iter = knights.find(from);
-        assert_true(iter != knights.cend(), "can not found knight");
-        auto &rows = iter->rows;
-
-        int old_total_kill;
-        for (int index = 0; index < rows.size(); index++) {
-            old_total_kill += rows[index].kill_count;
-        }
-
+    void rebirth2(name from, int32_t checksum) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-
-        int total_kill_count = 0;
-        auto &mats = material_controller.get_materials(from);
         
-        int exp_mat_count = mats.size() + rows.size();
-        int max_mat_count = material_controller.get_max_inventory_size(*player);
-        assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
-
-        auto stagerule = stage_rule_controller.get_table().find(player->current_stage);
-        assert_true(stagerule != stage_rule_controller.get_table().cend(), "no stage rule");
-
-        time current = time_util::getnow();
-        int elapsed_sec = (int)(current - player->last_rebirth);
-        if (old_total_kill > 0) {
-            assert_true(elapsed_sec >= kv_min_rebirth, "too short to get rebirth");
+        const int32_t k = 458767;
+        uint64_t a = k >> 16;
+        uint64_t b = k & 0xFF;
+        uint64_t c = checksum / (player->last_rebirth % k);
+        uint64_t d = 1;
+        for (int index = 0; index < a; index++) {
+            d *= c;
         }
+        
+        assert_true((d % b) == player->last_rebirth % b, "checksum fail");
+        do_rebirth(from, player);
+    }
 
-        int kill_counts[kt_count] = {0, };
-        int lucks[kt_count] = {0, };
-
-        for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
-            auto &knight = *iter;
-            int max_sec = calculate_max_alive_time(knight);
-            int play_sec = elapsed_sec;
-            if (play_sec > max_sec) {
-                play_sec = max_sec;
-            }
-
-            int current_kill_count = knight.attack * play_sec / 60 / kv_enemy_hp;
-            if (current_kill_count == 0) {
-                current_kill_count = 1;
-            }
-
-            kill_counts[knight.type] = current_kill_count;
-            lucks[knight.type] = knight.luck;
-            total_kill_count += current_kill_count;
-        }
-
-        knights.modify(iter, self, [&](auto& target) {
-            for (int index = 0; index < target.rows.size(); index++) {
-                int type = target.rows[index].type;
-                target.rows[index].kill_count += kill_counts[type];
-            }
-        });
-
-        int powder = total_kill_count / kv_kill_powder_rate;
-        if (powder <= 0) {
-            powder = 1;
-        }
-
-        int botties[kt_count] = {0, };
-        int floor = (total_kill_count / 10) + 1;
-        for (int index = 1; index < kt_count; index++) {
-            if (kill_counts[index] > 0) {
-                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
-            }
-        }
-
-        material_controller.add_materials(from, botties);
-        players.modify(player, self, [&](auto& target) {
-            target.last_rebirth = current;
-            target.powder += powder;
-            if (target.maxfloor < floor) {
-                target.maxfloor = floor;
-            }
-        });
+    /// @brief
+    /// Rebirth all knights.
+    /// @param from
+    /// Player who requested rebirth
+    void rebirth(name from) {
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(players.cend() != player, "could not find player");
+        do_rebirth(from, player);
     }
 
     /// @brief
@@ -461,6 +407,87 @@ private:
         }
 
         return mt_mineral;
+    }
+
+    /// rebirth common logic
+    void do_rebirth(name from, player_table::const_iterator player) {
+        require_auth(from);
+
+        auto iter = knights.find(from);
+        assert_true(iter != knights.cend(), "can not found knight");
+        auto &rows = iter->rows;
+
+        int old_total_kill;
+        for (int index = 0; index < rows.size(); index++) {
+            old_total_kill += rows[index].kill_count;
+        }
+
+        int total_kill_count = 0;
+        auto &mats = material_controller.get_materials(from);
+        
+        int exp_mat_count = mats.size() + rows.size();
+        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
+
+        auto stagerule = stage_rule_controller.get_table().find(player->current_stage);
+        assert_true(stagerule != stage_rule_controller.get_table().cend(), "no stage rule");
+
+        time current = time_util::getnow();
+        int elapsed_sec = (int)(current - player->last_rebirth);
+        if (old_total_kill > 0) {
+            assert_true(elapsed_sec >= kv_min_rebirth, "too short to get rebirth");
+        }
+
+        int kill_counts[kt_count] = {0, };
+        int lucks[kt_count] = {0, };
+
+        for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
+            auto &knight = *iter;
+            int max_sec = calculate_max_alive_time(knight);
+            int play_sec = elapsed_sec;
+            if (play_sec > max_sec) {
+                play_sec = max_sec;
+            }
+
+            int current_kill_count = knight.attack * play_sec / 60 / kv_enemy_hp;
+            if (current_kill_count == 0) {
+                current_kill_count = 1;
+            }
+
+            kill_counts[knight.type] = current_kill_count;
+            lucks[knight.type] = knight.luck;
+            total_kill_count += current_kill_count;
+        }
+
+        knights.modify(iter, self, [&](auto& target) {
+            for (int index = 0; index < target.rows.size(); index++) {
+                int type = target.rows[index].type;
+                target.rows[index].kill_count += kill_counts[type];
+            }
+        });
+
+        int powder = total_kill_count / kv_kill_powder_rate;
+        if (powder <= 0) {
+            powder = 1;
+        }
+
+        int botties[kt_count] = {0, };
+        int floor = (total_kill_count / 10) + 1;
+        for (int index = 1; index < kt_count; index++) {
+            if (kill_counts[index] > 0) {
+                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
+            }
+        }
+
+        material_controller.add_materials(from, botties);
+        auto &players = player_controller.get_players();
+        players.modify(player, self, [&](auto& target) {
+            target.last_rebirth = current;
+            target.powder += powder;
+            if (target.maxfloor < floor) {
+                target.maxfloor = floor;
+            }
+        });
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule) {
