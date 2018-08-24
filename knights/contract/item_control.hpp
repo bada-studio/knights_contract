@@ -458,14 +458,15 @@ public:
     }
 
 private:
-    uint32_t random_dna(const ritem &rule, name name, int code) {
-        auto &random = random_gen::get_instance(name);
-        uint32_t stat1 = random.range(101);
-        uint32_t stat2 = random.range(101);
-        uint32_t stat3 = random.range(101);
+    uint32_t random_dna(const ritem &rule, name from, int code) {
+        auto rval = player_controller.begin_random(from);
+        uint32_t stat1 = player_controller.random_range(rval, 101);
+        uint32_t stat2 = player_controller.random_range(rval, 101);
+        uint32_t stat3 = player_controller.random_range(rval, 101);
         uint32_t reveal1 = 1;
-        uint32_t reveal2 = random.range(100) < rule.stat2_reveal_rate ? 1 : 0;
-        uint32_t reveal3 = random.range(100) < rule.stat3_reveal_rate ? 1 : 0;
+        uint32_t reveal2 = player_controller.random_range(rval, 100) < rule.stat2_reveal_rate ? 1 : 0;
+        uint32_t reveal3 = player_controller.random_range(rval, 100) < rule.stat3_reveal_rate ? 1 : 0;
+        player_controller.end_random(from, rval);
 
         uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
         uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;

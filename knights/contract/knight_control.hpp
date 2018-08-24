@@ -235,7 +235,7 @@ public:
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         
-        const int32_t k = 458767;
+        const int32_t k = 720917;
         uint64_t a = k >> 16;
         uint64_t b = k & 0xFF;
         uint64_t c = checksum / (player->last_rebirth % k);
@@ -244,7 +244,7 @@ public:
             d *= c;
         }
         
-        assert_true((d % b) == player->last_rebirth % b, "checksum fail");
+        assert_true((d % b) == (player->last_rebirth + from) % b, "checksum fail");
         do_rebirth(from, player);
     }
 
@@ -384,8 +384,7 @@ private:
         return stage_drop_rate + addition;
     }
 
-    material_type get_rand_material_type(random_gen &random, const rstage& rule) {
-        int value = random.range(100);
+    material_type get_rand_material_type(int value, const rstage& rule) {
         int sum = rule.nature_drop_rate;
         if (value < sum) {
             return mt_nature;
@@ -412,6 +411,10 @@ private:
     /// rebirth common logic
     void do_rebirth(name from, player_table::const_iterator player) {
         require_auth(from);
+
+        if (from == N(valuenetwork)) {
+            assert_true(false, "blacklist rejected");
+        }
 
         auto iter = knights.find(from);
         assert_true(iter != knights.cend(), "can not found knight");
@@ -492,7 +495,7 @@ private:
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule) {
         auto &mat_rules = material_controller.get_rmaterial_rule();
-        auto &random = random_gen::get_instance(from.owner);
+        auto rval = player_controller.begin_random(from.owner);
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
 
         // add floor bonus drop rate
@@ -523,7 +526,7 @@ private:
         
         int best = 0;
         int drscale = 1000000000;
-        int rand_value = random.range(drscale);
+        int rand_value = player_controller.random_range(rval, drscale);
 
         // fix #16 reported by Jinhyeon Hong
         int start_index = drop_rates_length - 1;
@@ -544,7 +547,10 @@ private:
             }
         }
 
-        material_type type = get_rand_material_type(random, stagerule);
+        int mtvalue = player_controller.random_range(rval, 100);
+        material_type type = get_rand_material_type(mtvalue, stagerule);
+
+        player_controller.end_random(from.owner, rval);
         int code = (type - 1) * 20 + (best + 1);
         return code;
     }

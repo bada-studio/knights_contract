@@ -4,7 +4,11 @@
 
 class player_control : public control_base {
 private:
+    const uint32_t a = 1103515245;
+    const uint32_t c = 12345;
+
     player_table players;
+    playerv_table playervs;
 
     account_name self;
     rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
@@ -28,6 +32,7 @@ public:
                    variable_control &_variable_controller)
         : self(_self)
         , players(_self, _self)
+        , playervs(_self, _self)
         , rivnprice_controller(_self, N(ivnprice))
         , saleslog_controller(_saleslog_controller)
         , admin_controller(_admin_controller)
@@ -145,6 +150,38 @@ public:
         admin_controller.record_new_player();
     }
 
+    random_val begin_random(name from) {
+        uint64_t seed = 0; 
+        auto iter = playervs.find(from);
+        if (iter != playervs.cend()) {
+            seed = iter->seed;
+        } else {
+            seed = tapos_block_prefix();
+        }
+
+        return random_val(seed, 0);
+    }
+
+    uint32_t random_range(random_val &val, uint32_t to) {
+        val.seed = (a * val.seed + c) % 0x7fffffff;
+        val.value = (uint32_t)(val.seed % to);
+        return val.value;
+    }
+
+    void end_random(name from, const random_val &val) {
+        auto iter = playervs.find(from);
+        if (iter != playervs.cend()) {
+            playervs.modify(iter, self, [&](auto& target) {
+                target.seed = val.seed;
+            });
+        } else {
+            playervs.emplace(self, [&](auto& target) {
+                target.owner = from;
+                target.seed = val.seed;
+            });
+        }
+    }
+    
     // actions
     //-------------------------------------------------------------------------
     void signup(name from) {

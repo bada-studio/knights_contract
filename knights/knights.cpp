@@ -15,6 +15,7 @@ using eosio::action;
 using eosio::name;
 
 #include "table/user/player.hpp"
+#include "table/user/playerv.hpp"
 #include "table/user/knight.hpp"
 #include "table/user/material.hpp"
 #include "table/user/mat4sale.hpp"
@@ -36,6 +37,7 @@ using eosio::name;
 #include "table/rule/rmpgoods.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
+#include "table/outchain/random_val.hpp"
 #include "table/admin/adminstate.hpp"
 #include "table/admin/revenuedt.hpp"
 #include "table/admin/stockholder.hpp"
@@ -43,7 +45,6 @@ using eosio::name;
 #include "table/admin/expenseslog.hpp"
 #include "table/admin/rversion.hpp"
 #include "table/admin/marketpid.hpp"
-#include "util/random_gen.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -57,8 +58,6 @@ using eosio::name;
 #include "contract/knight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/powder_control.hpp"
-
-random_gen random_gen::instance;
 
 class knights : public eosio::contract, public control_base {
 private:

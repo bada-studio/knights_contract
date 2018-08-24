@@ -189,9 +189,9 @@ public:
             sum = sum_high;
         }
 
-        auto &random = random_gen::get_instance(from);
+        auto rval = player_controller.begin_random(from);
         for (int index = 0; index < count; ++index) {
-            int pos = random.range(sum);
+            int pos = player_controller.random_range(rval, sum);
             int value = 0;
 
             int start = 0;
@@ -211,6 +211,8 @@ public:
                 }
             }
         }
+
+        player_controller.end_random(from, rval);
     }
 
     /// @brief
