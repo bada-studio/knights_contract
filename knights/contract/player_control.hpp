@@ -213,9 +213,9 @@ public:
         assert_true((powder % k) == v3, "checksum failed");
 
         if (num > v4) {
-            return num;
+            return num % k;
         } else {
-            return v4;
+            return v4 % k;
         }
     }
 
