@@ -128,91 +128,31 @@ public:
     /// @param count
     /// Gocha request count
     void petgacha(name from, uint16_t type, uint8_t count) {
-        require_auth(from);
-        assert_true(type > 0 && type < pgt_count, "invalid gacha type");
-        assert_true(count > 0 && count < 10, "invalid count");
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(player != players.cend(), "could not find player");
 
-        int powder;
-        if (type == pgt_low_class) {
-            powder = kv_pet_gacha_low_price;
-        } else {
-            powder = kv_pet_gacha_high_price;
-        }
+        do_petgacha(player, type, count, 0);
+    }
 
-        powder *= count;
-        auto player = player_controller.get_player(from);
-        assert_true(!player_controller.is_empty_player(player), "could not find player");
-        assert_true(powder <= player->powder, "not enough powder");
+    /// @brief
+    /// Pet gacha. Run count times.
+    /// Magic powder is consumed. If the powder is insufficient, it fails.
+    /// @param from
+    /// Player who requested gocha
+    /// @param type
+    /// low_class or high_class, @see pet_gacha_type
+    /// @param count
+    /// Gocha request count
+    /// @param checksum
+    /// To prevent bots
+    void petgacha2(name from, uint16_t type, uint8_t count, int32_t checksum) {
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(player != players.cend(), "could not find player");
+        int suffle = player_controller.test_checksum(*player, checksum);
 
-        if (powder > 0) {
-            player_controller.decrease_powder(player, powder);
-        }
-
-        //@ warning for the performance issue, drop rates are hard coded here,
-        // be careful for the data sync issue with pet rule.
-        const uint32_t sum_low = 233600;
-        const uint32_t sum_high = 28960;
-        const uint32_t rare_start = 8;
-        const uint32_t legend_start = 20;
-        const uint32_t pet_total_count = 24;
-        const uint32_t pet_drop_rate[pet_total_count] = {
-            25600,
-            25600,
-            25600,
-            25600,
-            25600,
-            25600,
-            25600,
-            25600,
-            3200,
-            3200,
-            3200,
-            3200,
-            3200,
-            3200,
-            3200,
-            3200,
-            800,
-            800,
-            800,
-            800,
-            40,
-            40,
-            40,
-            40,
-        };
-
-        int sum = 0;
-        if (type == pgt_low_class) {
-            sum = sum_low;
-        } else {
-            sum = sum_high;
-        }
-
-        auto rval = player_controller.begin_random(from);
-        for (int index = 0; index < count; ++index) {
-            int pos = player_controller.random_range(rval, sum);
-            int value = 0;
-
-            int start = 0;
-            int end = pet_total_count;
-            if (type == pgt_low_class) {
-                end = legend_start;
-            } else {
-                start = rare_start;
-            }
-
-            for (int index = start; index < end; index++) {
-                value += pet_drop_rate[index];
-                int code = index + 1;
-                if (pos < value) {
-                    add_pet(from, code);
-                    break;
-                }
-            }
-        }
-
-        player_controller.end_random(from, rval);
+        do_petgacha(player, type, count, suffle);
     }
 
     /// @brief
@@ -329,6 +269,93 @@ public:
     }
 
 private:
+    void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, int suffle) {
+        name from = player->owner;
+        require_auth(from);
+        assert_true(type > 0 && type < pgt_count, "invalid gacha type");
+        assert_true(count > 0 && count < 10, "invalid count");
+
+        int powder;
+        if (type == pgt_low_class) {
+            powder = kv_pet_gacha_low_price;
+        } else {
+            powder = kv_pet_gacha_high_price;
+        }
+
+        powder *= count;
+        assert_true(powder <= player->powder, "not enough powder");
+
+        if (powder > 0) {
+            player_controller.decrease_powder(player, powder);
+        }
+
+        //@ warning for the performance issue, drop rates are hard coded here,
+        // be careful for the data sync issue with pet rule.
+        const uint32_t sum_low = 233600;
+        const uint32_t sum_high = 28960;
+        const uint32_t rare_start = 8;
+        const uint32_t legend_start = 20;
+        const uint32_t pet_total_count = 24;
+        const uint32_t pet_drop_rate[pet_total_count] = {
+            25600,
+            25600,
+            25600,
+            25600,
+            25600,
+            25600,
+            25600,
+            25600,
+            3200,
+            3200,
+            3200,
+            3200,
+            3200,
+            3200,
+            3200,
+            3200,
+            800,
+            800,
+            800,
+            800,
+            40,
+            40,
+            40,
+            40,
+        };
+
+        int sum = 0;
+        if (type == pgt_low_class) {
+            sum = sum_low;
+        } else {
+            sum = sum_high;
+        }
+
+        auto rval = player_controller.begin_random(from, suffle);
+        for (int index = 0; index < count; ++index) {
+            int pos = player_controller.random_range(rval, sum);
+            int value = 0;
+
+            int start = 0;
+            int end = pet_total_count;
+            if (type == pgt_low_class) {
+                end = legend_start;
+            } else {
+                start = rare_start;
+            }
+
+            for (int index = start; index < end; index++) {
+                value += pet_drop_rate[index];
+                int code = index + 1;
+                if (pos < value) {
+                    add_pet(from, code);
+                    break;
+                }
+            }
+        }
+
+        player_controller.end_random(from, rval);
+    }
+
     void add_stat(knight_stats &stat, stat_type type, int value) {
         switch (type) {
             case st_attack:
