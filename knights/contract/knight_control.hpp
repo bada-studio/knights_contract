@@ -230,35 +230,28 @@ public:
     /// Rebirth all knights.
     /// @param from
     /// Player who requested rebirth
-    void rebirth2(name from, int32_t checksum) {
+    void rebirth(name from) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        
-        const int32_t k = 720917;
-        uint64_t a = k >> 16;
-        uint64_t b = k & 0xFF;
-        uint64_t c = checksum / (player->last_rebirth % k);
-        uint64_t d = 1;
-        for (int index = 0; index < a; index++) {
-            d *= c;
-        }
-        
-        assert_true((d % b) == (player->last_rebirth + from) % b, "checksum fail");
-        do_rebirth(from, player);
+        do_rebirth(from, player, 0);
     }
 
     /// @brief
     /// Rebirth all knights.
     /// @param from
     /// Player who requested rebirth
-    void rebirth(name from) {
+    /// @param checksum
+    /// To prevent bots
+    void rebirth2(name from, int32_t checksum) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        do_rebirth(from, player);
+        int suffle = player_controller.test_checksum(*player, checksum);
+        
+        do_rebirth(from, player, suffle);
     }
-
+    
     /// @brief
     /// Change knight battle stage
     /// @param from
@@ -409,7 +402,7 @@ private:
     }
 
     /// rebirth common logic
-    void do_rebirth(name from, player_table::const_iterator player) {
+    void do_rebirth(name from, player_table::const_iterator player, int suffle) {
         require_auth(from);
 
         if (from == N(valuenetwork)) {
@@ -474,11 +467,13 @@ private:
             powder = 1;
         }
 
+        auto rval = player_controller.begin_random(from, suffle);
+
         int botties[kt_count] = {0, };
         int floor = (total_kill_count / 10) + 1;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
-                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule);
+                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval);
             }
         }
 
@@ -491,11 +486,12 @@ private:
                 target.maxfloor = floor;
             }
         });
+
+        player_controller.end_random(from, rval);
     }
 
-    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule) {
+    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval) {
         auto &mat_rules = material_controller.get_rmaterial_rule();
-        auto rval = player_controller.begin_random(from.owner);
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
 
         // add floor bonus drop rate
@@ -550,7 +546,6 @@ private:
         int mtvalue = player_controller.random_range(rval, 100);
         material_type type = get_rand_material_type(mtvalue, stagerule);
 
-        player_controller.end_random(from.owner, rval);
         int code = (type - 1) * 20 + (best + 1);
         return code;
     }

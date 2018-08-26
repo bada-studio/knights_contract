@@ -152,6 +152,11 @@ public:
     }
 
     /// @abi action
+    void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, int32_t checksum) {
+        item_controller.craft2(from, code, mat_ids, checksum);
+    }
+
+    /// @abi action
     void removeitem(name from, const std::vector<uint32_t>& item_ids) {
         item_controller.remove(from, item_ids);
     }
@@ -174,6 +179,11 @@ public:
     /// @abi action
     void petgacha(name from, uint16_t type, uint8_t count) {
         pet_controller.petgacha(from, type, count);
+    }
+
+    /// @abi action
+    void petgacha2(name from, uint16_t type, uint8_t count, int32_t checksum) {
+        pet_controller.petgacha2(from, type, count, checksum);
     }
 
     /// @abi action
@@ -451,4 +461,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (rebirth2) (removemat) (craft) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (rebirth2) (removemat) (craft) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

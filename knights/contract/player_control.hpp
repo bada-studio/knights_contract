@@ -150,7 +150,16 @@ public:
         admin_controller.record_new_player();
     }
 
-    random_val begin_random(name from) {
+    uint64_t get_seed(name from) {
+        auto iter = playervs.find(from);
+        if (iter != playervs.cend()) {
+            return iter->seed;
+        }
+
+        return 0;
+    }
+
+    random_val begin_random(name from, int suffle) {
         uint64_t seed = 0; 
         auto iter = playervs.find(from);
         if (iter != playervs.cend()) {
@@ -159,7 +168,12 @@ public:
             seed = tapos_block_prefix() ^ from;
         }
 
-        return random_val(seed, 0);
+        auto rval = random_val(seed, 0);
+        for (int index = 0; index < suffle; index++) {
+            random_range(rval, 100);
+        }
+
+        return rval;
     }
 
     uint32_t random_range(random_val &val, uint32_t to) {
@@ -182,6 +196,41 @@ public:
         }
     }
     
+    int test_checksum(const player& owner, int32_t checksum) {
+        int64_t seed = get_seed(owner.owner);
+        int32_t last_rebirth = owner.last_rebirth;
+        int32_t powder = owner.powder;
+        int32_t num = tapos_block_num();
+
+        // random-seed + last_rebirth + mp + time
+        int32_t v1 = get_checksum_value((checksum >> 24) & 0xFF);
+        int32_t v2 = get_checksum_value((checksum >> 16) & 0xFF);
+        int32_t v3 = get_checksum_value((checksum >> 8) & 0xFF);
+        int32_t v4 = get_checksum_value(checksum & 0xFF);
+        int32_t k = (checksum_mask & 0xFF);
+        assert_true((seed % k) == v1, "checksum failed");
+        assert_true((last_rebirth % k) == v2, "checksum failed");
+        assert_true((powder % k) == v3, "checksum failed");
+
+        if (num > v4) {
+            return num;
+        } else {
+            return v4;
+        }
+    }
+
+    int32_t get_checksum_value(int32_t value) {
+        uint64_t a = checksum_mask >> 16;
+        uint64_t b = checksum_mask & 0xFF;
+        uint64_t c = value;
+        uint64_t d = 1;
+        for (int index = 0; index < a; index++) {
+            d *= c;
+        }
+
+        return (d % b);
+    }
+
     // actions
     //-------------------------------------------------------------------------
     void signup(name from) {

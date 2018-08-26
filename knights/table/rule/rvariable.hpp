@@ -31,6 +31,7 @@ const int kv_required_floor_for_unique = 40;
 const int kv_required_floor_for_legendary = 90;
 const int kv_required_floor_for_ancient = 160;
 
+const int32_t checksum_mask = 720917;
 
 enum variable_type {
     vt_none = 0,

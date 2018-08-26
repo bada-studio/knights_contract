@@ -287,50 +287,30 @@ public:
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
     void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
-        require_auth(from);
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
-        auto &rule_table = item_rule_controller.get_table();
-        auto recipe = rule_table.find(code);
-        assert_true(recipe != rule_table.cend(), "could not find recipe");
+        do_craft(player, code, mat_ids, 0);
+    }
 
-        int inven_size = get_max_inventory_size(*player);
-        assert_true(get_items(from).size() < inven_size, "full inventory");
+    /// @brief
+    /// Craft item
+    /// @param from
+    /// Player who requested craft item
+    /// @param code
+    /// item code which you want to craft
+    /// @param mat_ids
+    /// material ids for item, this materials will be deleted.
+    /// @param checksum
+    /// To prevent bots
+    void craft2(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, int checksum) {
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(players.cend() != player, "could not find player");
+        int suffle = player_controller.test_checksum(*player, checksum);
 
-        int mat1_count = recipe->mat1_count;
-        int mat2_count = recipe->mat2_count;
-        int mat3_count = recipe->mat3_count;
-        int mat4_count = recipe->mat4_count;
-
-        auto &mats = material_controller.get_materials(from);
-
-        for (int index = 0; index < mat_ids.size(); index++) {
-            auto &mat =  material_controller.get_material(mats, mat_ids[index]);
-            assert_true(mat.saleid == 0, "material is on sale");
-
-            if (mat.code == recipe->mat1_code) {
-                mat1_count--;
-            } else if (mat.code == recipe->mat2_code) {
-                mat2_count--;
-            } else if (mat.code == recipe->mat3_code) {
-                mat3_count--;
-            } else if (mat.code == recipe->mat4_code) {
-                mat4_count--;
-            } else {
-                assert_true(false, "invalid recipe material");
-            }
-        }
-
-        assert_true(mat1_count == 0 &&
-                    mat2_count == 0 &&
-                    mat3_count == 0 &&
-                    mat4_count == 0, "invalid recipe material count");
-
-        uint32_t dna = random_dna(*recipe, from, code);
-        add_item(from, code, dna, 1, 0);
-        material_controller.remove_mats(from, mat_ids);
+        do_craft(player, code, mat_ids, suffle);
     }
 
     /// @brief
@@ -458,8 +438,53 @@ public:
     }
 
 private:
-    uint32_t random_dna(const ritem &rule, name from, int code) {
-        auto rval = player_controller.begin_random(from);
+    void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, int suffle) {
+        name from = player->owner;
+        require_auth(from);
+
+        auto &rule_table = item_rule_controller.get_table();
+        auto recipe = rule_table.find(code);
+        assert_true(recipe != rule_table.cend(), "could not find recipe");
+
+        int inven_size = get_max_inventory_size(*player);
+        assert_true(get_items(from).size() < inven_size, "full inventory");
+
+        int mat1_count = recipe->mat1_count;
+        int mat2_count = recipe->mat2_count;
+        int mat3_count = recipe->mat3_count;
+        int mat4_count = recipe->mat4_count;
+
+        auto &mats = material_controller.get_materials(from);
+
+        for (int index = 0; index < mat_ids.size(); index++) {
+            auto &mat =  material_controller.get_material(mats, mat_ids[index]);
+            assert_true(mat.saleid == 0, "material is on sale");
+
+            if (mat.code == recipe->mat1_code) {
+                mat1_count--;
+            } else if (mat.code == recipe->mat2_code) {
+                mat2_count--;
+            } else if (mat.code == recipe->mat3_code) {
+                mat3_count--;
+            } else if (mat.code == recipe->mat4_code) {
+                mat4_count--;
+            } else {
+                assert_true(false, "invalid recipe material");
+            }
+        }
+
+        assert_true(mat1_count == 0 &&
+                    mat2_count == 0 &&
+                    mat3_count == 0 &&
+                    mat4_count == 0, "invalid recipe material count");
+
+        uint32_t dna = random_dna(*recipe, from, code, suffle);
+        add_item(from, code, dna, 1, 0);
+        material_controller.remove_mats(from, mat_ids);
+    }
+
+    uint32_t random_dna(const ritem &rule, name from, int code, int suffle) {
+        auto rval = player_controller.begin_random(from, suffle);
         uint32_t stat1 = player_controller.random_range(rval, 101);
         uint32_t stat2 = player_controller.random_range(rval, 101);
         uint32_t stat3 = player_controller.random_range(rval, 101);
