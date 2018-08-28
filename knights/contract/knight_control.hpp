@@ -247,7 +247,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        int suffle = player_controller.test_checksum(*player, checksum);
+        int suffle = player_controller.test_checksum(checksum);
         
         do_rebirth(from, player, suffle);
     }

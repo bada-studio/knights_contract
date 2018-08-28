@@ -150,7 +150,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
-        int suffle = player_controller.test_checksum(*player, checksum);
+        int suffle = player_controller.test_checksum(checksum);
 
         do_petgacha(player, type, count, suffle);
     }
