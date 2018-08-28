@@ -150,15 +150,6 @@ public:
         admin_controller.record_new_player();
     }
 
-    uint64_t get_seed(name from) {
-        auto iter = playervs.find(from);
-        if (iter != playervs.cend()) {
-            return iter->seed;
-        }
-
-        return 0;
-    }
-
     random_val begin_random(name from, int suffle) {
         uint64_t seed = 0; 
         auto iter = playervs.find(from);
@@ -196,25 +187,21 @@ public:
         }
     }
     
-    int test_checksum(const player& owner, uint64_t checksum) {
+    int test_checksum(uint64_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
-        int64_t seed = get_seed(owner.owner);
-        int32_t last_rebirth = owner.last_rebirth;
-        int32_t powder = owner.powder;
-        int32_t num = tapos_block_num() % k;
+        int32_t num = tapos_block_num();
+        int32_t suffle = num % k;
 
-        int32_t v1 = get_checksum_value((checksum >> 48) & 0xFFFF);
-        int32_t v2 = get_checksum_value((checksum >> 32) & 0xFFFF);
-        int32_t v3 = get_checksum_value((checksum >> 16) & 0xFFFF);
-        int32_t v4 = get_checksum_value(checksum & 0xFFFF) % k;
-        assert_true((seed % k) == v1, "checksum failure1");
-        assert_true((last_rebirth % k) == v2, "checksum failure2");
-        assert_true((powder % k) == v3, "checksum failure3");
+        int32_t v1 = get_checksum_value((checksum >> 56));
+        int64_t v2 = (checksum >> 16) & 0xFFFFFFFFFFL;
+        int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
+        assert_true((v2 % k) == v3, "checksum failure");
+        assert_true((num - v2) < 120, "too old checksum");
 
-        if (num > v4) {
-            return num % 10;
+        if (suffle > v1) {
+            return suffle % 4;
         } else {
-            return v4 % 10;
+            return v1 % 4;
         }
     }
 
