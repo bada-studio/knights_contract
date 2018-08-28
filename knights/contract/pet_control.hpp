@@ -146,7 +146,7 @@ public:
     /// Gocha request count
     /// @param checksum
     /// To prevent bots
-    void petgacha2(name from, uint16_t type, uint8_t count, int32_t checksum) {
+    void petgacha2(name from, uint16_t type, uint8_t count, uint64_t checksum) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");

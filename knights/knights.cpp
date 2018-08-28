@@ -118,7 +118,7 @@ public:
     }
 
     /// @abi action
-    void rebirth2(name from, int32_t checksum) {
+    void rebirth2(name from, uint64_t checksum) {
         knight_controller.rebirth2(from, checksum);
     }
 
@@ -152,7 +152,7 @@ public:
     }
 
     /// @abi action
-    void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, int32_t checksum) {
+    void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint64_t checksum) {
         item_controller.craft2(from, code, mat_ids, checksum);
     }
 
@@ -182,7 +182,7 @@ public:
     }
 
     /// @abi action
-    void petgacha2(name from, uint16_t type, uint8_t count, int32_t checksum) {
+    void petgacha2(name from, uint16_t type, uint8_t count, uint64_t checksum) {
         pet_controller.petgacha2(from, type, count, checksum);
     }
 

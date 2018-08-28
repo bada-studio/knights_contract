@@ -243,7 +243,7 @@ public:
     /// Player who requested rebirth
     /// @param checksum
     /// To prevent bots
-    void rebirth2(name from, int32_t checksum) {
+    void rebirth2(name from, uint64_t checksum) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");

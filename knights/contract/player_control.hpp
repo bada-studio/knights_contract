@@ -196,39 +196,39 @@ public:
         }
     }
     
-    int test_checksum(const player& owner, int32_t checksum) {
+    int test_checksum(const player& owner, uint64_t checksum) {
+        int32_t k = (checksum_mask & 0xFFFF);
         int64_t seed = get_seed(owner.owner);
         int32_t last_rebirth = owner.last_rebirth;
         int32_t powder = owner.powder;
-        int32_t num = tapos_block_num();
+        int32_t num = tapos_block_num() % k;
 
-        // random-seed + last_rebirth + mp + time
-        int32_t v1 = get_checksum_value((checksum >> 24) & 0xFF);
-        int32_t v2 = get_checksum_value((checksum >> 16) & 0xFF);
-        int32_t v3 = get_checksum_value((checksum >> 8) & 0xFF);
-        int32_t v4 = get_checksum_value(checksum & 0xFF);
-        int32_t k = (checksum_mask & 0xFF);
-        assert_true((seed % k) == v1, "checksum failed");
-        assert_true((last_rebirth % k) == v2, "checksum failed");
-        assert_true((powder % k) == v3, "checksum failed");
+        int32_t v1 = get_checksum_value((checksum >> 48) & 0xFFFF);
+        int32_t v2 = get_checksum_value((checksum >> 32) & 0xFFFF);
+        int32_t v3 = get_checksum_value((checksum >> 16) & 0xFFFF);
+        int32_t v4 = get_checksum_value(checksum & 0xFFFF) % k;
+        assert_true((seed % k) == v1, "checksum failure1");
+        assert_true((last_rebirth % k) == v2, "checksum failure2");
+        assert_true((powder % k) == v3, "checksum failure3");
 
         if (num > v4) {
-            return num % k;
+            return num % 10;
         } else {
-            return v4 % k;
+            return v4 % 10;
         }
     }
 
     int32_t get_checksum_value(int32_t value) {
         uint64_t a = checksum_mask >> 16;
-        uint64_t b = checksum_mask & 0xFF;
+        uint64_t b = checksum_mask & 0xFFFF;
         uint64_t c = value;
         uint64_t d = 1;
         for (int index = 0; index < a; index++) {
             d *= c;
+            d %= b;
         }
 
-        return (d % b);
+        return d;
     }
 
     // actions

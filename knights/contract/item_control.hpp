@@ -304,7 +304,7 @@ public:
     /// material ids for item, this materials will be deleted.
     /// @param checksum
     /// To prevent bots
-    void craft2(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, int checksum) {
+    void craft2(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint64_t checksum) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
