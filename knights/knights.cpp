@@ -105,6 +105,11 @@ public:
         player_controller.signup(from);
     }
 
+    /// @abi action
+    void referral(name from, name to) {
+        player_controller.referral(from, to);
+    }
+
     // knight related actions
     //-------------------------------------------------------------------------
     /// @abi action
@@ -220,18 +225,6 @@ public:
     /// @abi action
     void ccsellmat(name from, uint64_t id) {
         market_controller.ccsellmat(from, id);
-    }
-
-    /// @abi action
-    void isuadmats(const std::vector<uint16_t> &matids, const std::vector<asset> &prices) {
-        auto coo = admin_controller.get_coo();
-        market_controller.isuadmats(matids, prices, coo);
-    }
-
-    /// @abi action
-    void rmadmats(const std::vector<uint16_t> &ids) {
-        auto coo = admin_controller.get_coo();
-        market_controller.rmadmats(ids, coo);
     }
 
     // rule ralated actions
@@ -461,4 +454,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (lvupknight) (setkntstage) (rebirth) (rebirth2) (removemat) (craft) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (isuadmats) (rmadmats) (petgacha) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth) (rebirth2) (removemat) (craft) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (petgacha) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

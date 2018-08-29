@@ -150,13 +150,17 @@ public:
         admin_controller.record_new_player();
     }
 
+    uint64_t seed_identity(name from) {
+        return tapos_block_prefix() ^ from;
+    }
+
     random_val begin_random(name from, int suffle) {
         uint64_t seed = 0; 
         auto iter = playervs.find(from);
         if (iter != playervs.cend()) {
             seed = iter->seed;
         } else {
-            seed = tapos_block_prefix() ^ from;
+            seed = seed_identity(from);
         }
 
         auto rval = random_val(seed, 0);
@@ -225,6 +229,49 @@ public:
         auto iter = players.find(from);
         eosio_assert(iter == players.end(), "already signed up" );
         new_player(from);
+    }
+
+    void referral(name from, name to) {
+        require_auth(from);
+
+        auto fplayer = players.find(from);
+        auto tplayer = players.find(to);
+        assert_true(fplayer != players.end(), "could not find player");
+        assert_true(tplayer != players.end(), "could not find player");
+
+        auto fplayerv = playervs.find(from);
+        auto tplayerv = playervs.find(from);
+        assert_true(fplayerv != playervs.cend(), "at least one rebirth is needed.");
+        assert_true(tplayerv != playervs.cend(), "the target player needs at least one rebirth.");
+        assert_true((fplayerv->referral & 0x80) == 0, "you have already received a referral bonus.");
+
+        // check from referral
+        playervs.modify(fplayerv, self, [&](auto& target) {
+            target.referral &= 0x80;
+            target.referral++;
+        });
+
+        playervs.modify(tplayerv, self, [&](auto& target) {
+            if (target.referral < kv_referral_max) {
+                target.referral++;
+            }
+        });
+
+        if (get_referral_count(fplayerv->referral) <= kv_referral_max) {
+            players.modify(fplayer, self, [&](auto& target) {
+                target.powder += kv_referral_bonus;
+            });
+        }
+
+        if (get_referral_count(tplayerv->referral) <= kv_referral_max) {
+            players.modify(tplayer, self, [&](auto& target) {
+                target.powder += kv_referral_bonus;
+            });
+        }
+    }
+
+    int32_t get_referral_count(uint8_t referral) {
+        return 0x7F & referral;
     }
 
     void itemivnup(name from, const asset &quantity) {

@@ -3,7 +3,9 @@
 struct playerv {
     name owner;  // 8
     uint64_t seed = 0;
-    uint32_t v1 = 0;
+    uint8_t referral = 0;
+    uint8_t v1_a = 0;
+    uint16_t v1_b = 0;
     uint32_t v2 = 0;
     uint32_t v3 = 0;
     uint32_t v4 = 0;
@@ -22,7 +24,9 @@ struct playerv {
                      playerv,
                      (owner)
                      (seed)
-                     (v1)
+                     (referral)
+                     (v1_a)
+                     (v1_b)
                      (v2)
                      (v3)
                      (v4)

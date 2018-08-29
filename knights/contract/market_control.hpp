@@ -303,34 +303,4 @@ public:
 
         return tax;
     }
-
-    void isuadmats(const std::vector<uint16_t> &matids, const std::vector<asset> &prices, name coo) {
-        require_auth(coo);
-        assert_true(matids.size() == prices.size(), "invalid arguments");
-
-        name admin;
-        admin.value = self;
-
-        for (int index = 0; index < matids.size(); index++) {
-            auto &price = prices[index];
-            assert_true(price.symbol == S(4,EOS) , "only EOS token allowed");
-            assert_true(price.is_valid(), "invalid price");
-            assert_true(price.amount > 0, "must price positive quantity");
-            issue_mat(matids[index], price, admin);
-        }
-    }
-
-    void rmadmats(const std::vector<uint16_t> &ids, name coo) {
-        require_auth(coo);
-
-        name admin;
-        admin.value = self;
-
-        for (int index = 0; index < ids.size(); index++) {
-            auto itr = materials.find(ids[index]);
-            assert_true(itr != materials.cend(), "invalid sale id");
-            assert_true(itr->player == coo || itr->player == self, "only cancel coo materials");
-            materials.erase(itr);
-        }
-    }
 };
