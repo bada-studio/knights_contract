@@ -128,11 +128,7 @@ public:
     /// @param count
     /// Gocha request count
     void petgacha(name from, uint16_t type, uint8_t count) {
-        auto &players = player_controller.get_players();
-        auto player = players.find(from);
-        assert_true(player != players.cend(), "could not find player");
-
-        do_petgacha(player, type, count, 0);
+        assert_true(false, "this action has been obsolete");
     }
 
     /// @brief
