@@ -461,8 +461,9 @@ private:
 
         int floor = (total_kill_count / 10) + 1;
         int powder = total_kill_count / kv_kill_powder_rate;
-        // #23
-        powder = (int)(powder * (1.0 + (min(1000, floor) / 500.0)));
+        
+        // get high floor bonus #23
+        powder = (int)(powder * (1.0 + (std::min(1000, floor) / 500.0)));
         if (powder <= 0) {
             powder = 1;
         }
