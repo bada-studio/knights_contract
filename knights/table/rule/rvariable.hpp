@@ -30,6 +30,8 @@ const int kv_available_sale_per_knight = 1;
 const int kv_required_floor_for_unique = 40;
 const int kv_required_floor_for_legendary = 90;
 const int kv_required_floor_for_ancient = 160;
+const int kv_referral_bonus = 1000;
+const int kv_referral_max = 30;
 
 const int32_t checksum_mask = 2042423;
 

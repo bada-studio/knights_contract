@@ -231,10 +231,7 @@ public:
     /// @param from
     /// Player who requested rebirth
     void rebirth(name from) {
-        auto &players = player_controller.get_players();
-        auto player = players.find(from);
-        assert_true(players.cend() != player, "could not find player");
-        do_rebirth(from, player, 0);
+        assert_true(false, "this action has been obsolete");
     }
 
     /// @brief
@@ -462,7 +459,11 @@ private:
             }
         });
 
+        int floor = (total_kill_count / 10) + 1;
         int powder = total_kill_count / kv_kill_powder_rate;
+        
+        // get high floor bonus #23
+        powder = (int)(powder * (1.0 + (std::min(1000, floor) / 500.0)));
         if (powder <= 0) {
             powder = 1;
         }
@@ -470,7 +471,6 @@ private:
         auto rval = player_controller.begin_random(from, suffle);
 
         int botties[kt_count] = {0, };
-        int floor = (total_kill_count / 10) + 1;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
                 botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval);

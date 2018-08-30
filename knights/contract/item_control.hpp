@@ -287,11 +287,7 @@ public:
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
     void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
-        auto &players = player_controller.get_players();
-        auto player = players.find(from);
-        assert_true(player != players.cend(), "could not find player");
-
-        do_craft(player, code, mat_ids, 0);
+        assert_true(false, "this action has been obsolete");
     }
 
     /// @brief
