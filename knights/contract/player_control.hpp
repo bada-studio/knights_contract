@@ -184,11 +184,16 @@ public:
                 target.seed = val.seed;
             });
         } else {
-            playervs.emplace(self, [&](auto& target) {
-                target.owner = from;
-                target.seed = val.seed;
-            });
+            new_playervs(from, val.seed, 0);
         }
+    }
+
+    void new_playervs(name from, uint64_t seed, int8_t referral) {
+        playervs.emplace(self, [&](auto& target) {
+            target.owner = from;
+            target.seed = seed;
+            target.referral = referral;
+        });
     }
     
     int test_checksum(uint64_t checksum) {
@@ -243,20 +248,32 @@ public:
 
         auto fplayerv = playervs.find(from);
         auto tplayerv = playervs.find(to);
-        assert_true(fplayerv != playervs.cend(), "at least one rebirth is needed.");
-        assert_true(tplayerv != playervs.cend(), "the target player needs at least one rebirth.");
-        assert_true((fplayerv->referral & 0x80) == 0, "you have already received a referral bonus.");
-        assert_true(get_referral_count(fplayerv->referral) < kv_referral_max, "you received already maximum referral bonus");
-        assert_true(get_referral_count(tplayerv->referral) < kv_referral_max, "recipient received already maximum referral bonus");
+        assert_true(fplayer->last_rebirth > 0, "one or more knight required.");
+        assert_true(tplayer->last_rebirth > 0, "one or more knight required for the recipient.");
 
-        playervs.modify(fplayerv, self, [&](auto& target) {
-            target.referral |= 0x80;
-            target.referral++;
-        });
+        if (fplayerv == playerv.cend()) {
+            new_playervs(from, seed_identity(from), 0x80 + 1);
+        } else {
+            int referral = fplayerv->referral;
+            int count = get_referral_count(referral);
+            assert_true((referral & 0x80) == 0, "you have already received a referral bonus.");
+            assert_true(count < kv_referral_max, "you received already maximum referral bonus");
+            playervs.modify(fplayerv, self, [&](auto& target) {
+                target.referral |= 0x80;
+                target.referral++;
+            });
+        }
 
-        playervs.modify(tplayerv, self, [&](auto& target) {
-            target.referral++;
-        });
+        if (tplayerv == playerv.cend()) {
+            new_playervs(to, seed_identity(to), 0x80 + 1);
+        } else {
+            int referral = tplayerv->referral;
+            int count = get_referral_count(referral);
+            assert_true(count < kv_referral_max, "recipient received already maximum referral bonus");
+            playervs.modify(tplayerv, self, [&](auto& target) {
+                target.referral++;
+            });
+        }
 
         players.modify(fplayer, self, [&](auto& target) {
             target.powder += kv_referral_bonus;
