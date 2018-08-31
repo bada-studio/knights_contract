@@ -251,8 +251,10 @@ public:
         assert_true(fplayer->last_rebirth > 0, "one or more knight required.");
         assert_true(tplayer->last_rebirth > 0, "one or more knight required for the recipient.");
 
-        if (fplayerv == playerv.cend()) {
-            new_playervs(from, seed_identity(from), 0x80 + 1);
+        if (fplayerv == playervs.cend()) {
+            uint8_t referral = 0x80;
+            referral++;
+            new_playervs(from, seed_identity(from), referral);
         } else {
             int referral = fplayerv->referral;
             int count = get_referral_count(referral);
@@ -264,8 +266,8 @@ public:
             });
         }
 
-        if (tplayerv == playerv.cend()) {
-            new_playervs(to, seed_identity(to), 0x80 + 1);
+        if (tplayerv == playervs.cend()) {
+            new_playervs(to, seed_identity(to), 1);
         } else {
             int referral = tplayerv->referral;
             int count = get_referral_count(referral);
