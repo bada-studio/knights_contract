@@ -390,6 +390,7 @@ public:
         auto &lvtable = itemlv_rule_controller.get_table();
         auto lvrule = lvtable.find(item.level + 1);
         assert_true(lvrule != lvtable.cend(), "can not found next level rule");
+        assert_true(item.exp >= lvrule.count, "insufficient item exp");
 
         auto &rtable = item_rule_controller.get_table();
         auto rule = rtable.find(item.code);
