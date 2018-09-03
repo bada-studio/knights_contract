@@ -402,7 +402,7 @@ private:
     void do_rebirth(name from, player_table::const_iterator player, int suffle) {
         require_auth(from);
 
-        if (from == N(valuenetwork)) {
+        if (from == N(valuenetwork) || from == N(ramcollector)) {
             assert_true(false, "blacklist rejected");
         }
 

@@ -206,12 +206,7 @@ public:
         int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
         assert_true((v1 % k) == v3, "checksum failure");
         assert_true((num - v1) < 120, "too old checksum");
-
-        if (suffle > v2) {
-            return suffle % 4;
-        } else {
-            return v2 % 4;
-        }
+        return ((v2 + v3) % 4) + 8;
     }
 
     int32_t get_checksum_value(int32_t value) {

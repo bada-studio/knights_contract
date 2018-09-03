@@ -90,6 +90,10 @@ public:
         require_auth(from);
         validate_price(price);
 
+        if (from == N(valuenetwork) || from == N(ramcollector)) {
+            assert_true(false, "blacklist rejected");
+        }
+
         auto &rows = item_controller.get_items(from);
         auto &item = item_controller.get_item(rows, itemid);
         assert_true(item.saleid == 0, "already on sale");
@@ -206,6 +210,10 @@ public:
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
         validate_price(price);
+
+        if (from == N(valuenetwork) || from == N(ramcollector)) {
+            assert_true(false, "blacklist rejected");
+        }
 
         auto &rows = material_controller.get_materials(from);
         auto &mat = material_controller.get_material(rows, matid);
