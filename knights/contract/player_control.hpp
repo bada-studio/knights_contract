@@ -154,7 +154,7 @@ public:
         return tapos_block_prefix() ^ from;
     }
 
-    random_val begin_random(name from, int suffle) {
+    random_val begin_random(name from, int add) {
         uint64_t seed = 0; 
         auto iter = playervs.find(from);
         if (iter != playervs.cend()) {
@@ -163,7 +163,8 @@ public:
             seed = seed_identity(from);
         }
 
-        auto rval = random_val(seed, 0);
+        int suffle = (add % 4) + 4;
+        auto rval = random_val(seed + add, 0);
         for (int index = 0; index < suffle; index++) {
             random_range(rval, 100);
         }
@@ -199,14 +200,13 @@ public:
     int test_checksum(uint64_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
         int32_t num = tapos_block_num();
-        int32_t suffle = num % k;
 
         int64_t v1 = (checksum >> 32);
         int32_t v2 = get_checksum_value((checksum >> 16) & 0xFFFF);
         int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
         assert_true((v1 % k) == v3, "checksum failure");
         assert_true((num - v1) < 120, "too old checksum");
-        return ((v2 + v3) % 4) + 8;
+        return (num + v2 + v3) % k;
     }
 
     int32_t get_checksum_value(int32_t value) {
