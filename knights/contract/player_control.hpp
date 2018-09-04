@@ -79,6 +79,7 @@ public:
         if (transfer_data.from == self) {
             auto to = to_name(transfer_data.to);
             auto to_player = players.find(to);
+            check_blacklist(to);
 
             // stockholder could be stockholder. so separate withdraw and dividend by message
             if (admin_controller.is_stock_holder(to) && 
@@ -95,6 +96,7 @@ public:
         } else if (transfer_data.to == self) {
             auto from = to_name(transfer_data.from);
             auto from_player = players.find(from);
+            check_blacklist(from);
             
             if (transfer_data.memo == "investment") {
                 admin_controller.add_investment(transfer_data.quantity);
@@ -163,7 +165,7 @@ public:
     void new_playervs(name from, int8_t referral) {
         playervs.emplace(self, [&](auto& target) {
             target.owner = from;
-            target.v3 = referral;
+            target.referral = referral;
         });
     }
     
@@ -234,24 +236,24 @@ public:
             referral++;
             new_playervs(from, referral);
         } else {
-            int referral = fplayerv->v3;
+            int referral = fplayerv->referral;
             int count = get_referral_count(referral);
             assert_true((referral & 0x80) == 0, "you have already received a referral bonus.");
             assert_true(count < kv_referral_max, "you received already maximum referral bonus");
             playervs.modify(fplayerv, self, [&](auto& target) {
-                target.v3 |= 0x80;
-                target.v3++;
+                target.referral |= 0x80;
+                target.referral++;
             });
         }
 
         if (tplayerv == playervs.cend()) {
             new_playervs(to, 1);
         } else {
-            int referral = tplayerv->v3;
+            int referral = tplayerv->referral;
             int count = get_referral_count(referral);
             assert_true(count < kv_referral_max, "recipient received already maximum referral bonus");
             playervs.modify(tplayerv, self, [&](auto& target) {
-                target.v3++;
+                target.referral++;
             });
         }
 

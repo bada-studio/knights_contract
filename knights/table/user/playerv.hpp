@@ -8,16 +8,16 @@ enum random_for {
 //@abi table playerv i64
 struct playerv {
     name owner;
-    uint32_t v1 = 0;
-    uint32_t v2 = 0;
-    uint8_t v3 = 0;
+    uint32_t from = 0;
+    uint32_t to = 0;
+    uint8_t referral = 0;
     uint8_t v4 = 0;
     uint16_t v5 = 0;
-    uint32_t v6 = 0;
-    uint32_t v7 = 0;
-    uint32_t v8 = 0;
-    uint32_t v9 = 0;
-    uint32_t v10 = 0;
+    uint32_t asset = 0;
+    uint32_t note = 0;
+    uint32_t data = 0;
+    uint32_t net = 0;
+    uint32_t cpu = 0;
 
     playerv(name o = name())
     : owner(o) {
@@ -30,16 +30,16 @@ struct playerv {
     EOSLIB_SERIALIZE(
                      playerv,
                      (owner)
-                     (v1)
-                     (v2)
-                     (v3)
+                     (from)
+                     (to)
+                     (referral)
                      (v4)
                      (v5)
-                     (v6)
-                     (v7)
-                     (v8)
-                     (v9)
-                     (v10)
+                     (asset)
+                     (note)
+                     (data)
+                     (net)
+                     (cpu)
                      )
 };
 
