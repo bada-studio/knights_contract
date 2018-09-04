@@ -150,27 +150,9 @@ public:
         admin_controller.record_new_player();
     }
 
-    uint64_t seed_identity(name from) {
-        return tapos_block_prefix() ^ from;
-    }
-
-    random_val begin_random(name from, int add) {
-        uint64_t seed = 0; 
-        auto iter = playervs.find(from);
-        if (iter != playervs.cend()) {
-            seed = iter->seed;
-        } else {
-            seed = seed_identity(from);
-        }
-
-        int suffle = (add % 4) + 4;
-        auto rval = random_val(seed + add, 0);
-        for (int index = 0; index < suffle; index++) {
-            random_range(rval, 100);
-        }
-
-        return rval;
-    }
+    uint64_t seed_identity(name from);
+    random_val begin_random(name from, random_for r4, int type);
+    void end_random(name from, const random_val &val, random_for r4, int type);
 
     uint32_t random_range(random_val &val, uint32_t to) {
         val.seed = (a * val.seed + c) % 0x7fffffff;
@@ -178,22 +160,10 @@ public:
         return val.value;
     }
 
-    void end_random(name from, const random_val &val) {
-        auto iter = playervs.find(from);
-        if (iter != playervs.cend()) {
-            playervs.modify(iter, self, [&](auto& target) {
-                target.seed = val.seed;
-            });
-        } else {
-            new_playervs(from, val.seed, 0);
-        }
-    }
-
-    void new_playervs(name from, uint64_t seed, int8_t referral) {
+    void new_playervs(name from, int8_t referral) {
         playervs.emplace(self, [&](auto& target) {
             target.owner = from;
-            target.seed = seed;
-            target.referral = referral;
+            target.v3 = referral;
         });
     }
     
@@ -206,7 +176,7 @@ public:
         int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
         assert_true((v1 % k) == v3, "checksum failure");
         assert_true((num - v1) < 120, "too old checksum");
-        return (num + v2 + v3) % k;
+        return (int)(num + v1 + v2 + v3) % k;
     }
 
     int32_t get_checksum_value(int32_t value) {
@@ -220,6 +190,19 @@ public:
         }
 
         return d;
+    }
+
+    void check_blacklist(name from) {
+        if (from == N(valuenetwork) || 
+            from == N(ramcollector) || 
+            from == N(mrnumberzero) || 
+            from == N(siuhangmeiyu) || 
+            from == N(amazinggamer) || 
+            from == N(mantikmantik) || 
+            from == N(meiyusiuhang) 
+        ) {
+            assert_true(false, "blacklist rejected");
+        }
     }
 
     // actions
@@ -249,26 +232,26 @@ public:
         if (fplayerv == playervs.cend()) {
             uint8_t referral = 0x80;
             referral++;
-            new_playervs(from, seed_identity(from), referral);
+            new_playervs(from, referral);
         } else {
-            int referral = fplayerv->referral;
+            int referral = fplayerv->v3;
             int count = get_referral_count(referral);
             assert_true((referral & 0x80) == 0, "you have already received a referral bonus.");
             assert_true(count < kv_referral_max, "you received already maximum referral bonus");
             playervs.modify(fplayerv, self, [&](auto& target) {
-                target.referral |= 0x80;
-                target.referral++;
+                target.v3 |= 0x80;
+                target.v3++;
             });
         }
 
         if (tplayerv == playervs.cend()) {
-            new_playervs(to, seed_identity(to), 1);
+            new_playervs(to, 1);
         } else {
-            int referral = tplayerv->referral;
+            int referral = tplayerv->v3;
             int count = get_referral_count(referral);
             assert_true(count < kv_referral_max, "recipient received already maximum referral bonus");
             playervs.modify(tplayerv, self, [&](auto& target) {
-                target.referral++;
+                target.v3++;
             });
         }
 

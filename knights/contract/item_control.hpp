@@ -481,14 +481,14 @@ private:
     }
 
     uint32_t random_dna(const ritem &rule, name from, int code, int suffle) {
-        auto rval = player_controller.begin_random(from, suffle);
+        auto rval = player_controller.begin_random(from, r4_craft, rule.grade);
         uint32_t stat1 = player_controller.random_range(rval, 101);
         uint32_t stat2 = player_controller.random_range(rval, 101);
         uint32_t stat3 = player_controller.random_range(rval, 101);
         uint32_t reveal1 = 1;
         uint32_t reveal2 = player_controller.random_range(rval, 100) < rule.stat2_reveal_rate ? 1 : 0;
         uint32_t reveal3 = player_controller.random_range(rval, 100) < rule.stat3_reveal_rate ? 1 : 0;
-        player_controller.end_random(from, rval);
+        player_controller.end_random(from, rval, r4_craft, rule.grade);
 
         uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
         uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;

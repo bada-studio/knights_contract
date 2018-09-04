@@ -326,7 +326,7 @@ private:
             sum = sum_high;
         }
 
-        auto rval = player_controller.begin_random(from, suffle);
+        auto rval = player_controller.begin_random(from, r4_petgacha, type);
         for (int index = 0; index < count; ++index) {
             int pos = player_controller.random_range(rval, sum);
             int value = 0;
@@ -349,7 +349,7 @@ private:
             }
         }
 
-        player_controller.end_random(from, rval);
+        player_controller.end_random(from, rval, r4_petgacha, type);
     }
 
     void add_stat(knight_stats &stat, stat_type type, int value) {

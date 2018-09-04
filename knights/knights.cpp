@@ -58,6 +58,7 @@ using eosio::name;
 #include "contract/knight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/powder_control.hpp"
+#include "contract/player_control.cpp"
 
 class knights : public eosio::contract, public control_base {
 private:

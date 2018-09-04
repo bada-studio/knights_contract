@@ -1,16 +1,23 @@
+enum random_for {
+    r4_rebirth,
+    r4_craft,
+    r4_petgacha
+};
+
 // 37 bytes
 //@abi table playerv i64
 struct playerv {
-    name owner;  // 8
-    uint64_t seed = 0;
-    uint8_t referral = 0;
-    uint8_t v1_a = 0;
-    uint16_t v1_b = 0;
+    name owner;
+    uint32_t v1 = 0;
     uint32_t v2 = 0;
-    uint32_t v3 = 0;
-    uint32_t v4 = 0;
-    uint32_t v5 = 0;
+    uint8_t v3 = 0;
+    uint8_t v4 = 0;
+    uint16_t v5 = 0;
     uint32_t v6 = 0;
+    uint32_t v7 = 0;
+    uint32_t v8 = 0;
+    uint32_t v9 = 0;
+    uint32_t v10 = 0;
 
     playerv(name o = name())
     : owner(o) {
@@ -23,15 +30,16 @@ struct playerv {
     EOSLIB_SERIALIZE(
                      playerv,
                      (owner)
-                     (seed)
-                     (referral)
-                     (v1_a)
-                     (v1_b)
+                     (v1)
                      (v2)
                      (v3)
                      (v4)
                      (v5)
                      (v6)
+                     (v7)
+                     (v8)
+                     (v9)
+                     (v10)
                      )
 };
 

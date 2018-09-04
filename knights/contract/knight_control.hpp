@@ -401,10 +401,7 @@ private:
     /// rebirth common logic
     void do_rebirth(name from, player_table::const_iterator player, int suffle) {
         require_auth(from);
-
-        if (from == N(valuenetwork) || from == N(ramcollector)) {
-            assert_true(false, "blacklist rejected");
-        }
+        player_controller.check_blacklist(from);
 
         auto iter = knights.find(from);
         assert_true(iter != knights.cend(), "can not found knight");
@@ -468,7 +465,7 @@ private:
             powder = 1;
         }
 
-        auto rval = player_controller.begin_random(from, suffle);
+        auto rval = player_controller.begin_random(from, r4_rebirth, 0);
 
         int botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
@@ -487,7 +484,7 @@ private:
             }
         });
 
-        player_controller.end_random(from, rval);
+        player_controller.end_random(from, rval, r4_rebirth, 0);
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval) {

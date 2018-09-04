@@ -89,10 +89,7 @@ public:
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
         validate_price(price);
-
-        if (from == N(valuenetwork) || from == N(ramcollector)) {
-            assert_true(false, "blacklist rejected");
-        }
+        player_controller.check_blacklist(from);
 
         auto &rows = item_controller.get_items(from);
         auto &item = item_controller.get_item(rows, itemid);
@@ -210,10 +207,7 @@ public:
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
         validate_price(price);
-
-        if (from == N(valuenetwork) || from == N(ramcollector)) {
-            assert_true(false, "blacklist rejected");
-        }
+        player_controller.check_blacklist(from);
 
         auto &rows = material_controller.get_materials(from);
         auto &mat = material_controller.get_material(rows, matid);
