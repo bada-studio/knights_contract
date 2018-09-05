@@ -246,6 +246,11 @@ public:
         return material_rule_controller;
     }
 
+    void remove2(name from, const std::vector<uint32_t> &mat_ids, uint64_t checksum) {
+        player_controller.test_checksum(checksum);
+        remove(from, mat_ids);
+    }
+
     void remove(name from, const std::vector<uint32_t> &mat_ids) {
         require_auth(from);
 

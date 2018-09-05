@@ -119,11 +119,6 @@ public:
     }
 
     /// @abi action
-    void rebirth(name from) {
-        knight_controller.rebirth(from);
-    }
-
-    /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
         knight_controller.rebirth2(from, ((int64_t)block << 32) | checksum);
     }
@@ -150,13 +145,12 @@ public:
         material_controller.remove(from, mat_ids);
     }
 
-    // item related actions
-    //-------------------------------------------------------------------------
-    /// @abi action
-    void craft(name from, uint16_t code, const std::vector<uint32_t>& mat_ids) {
-        item_controller.craft(from, code, mat_ids);
+    void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
+        material_controller.remove2(from, mat_ids, ((int64_t)block << 32) | checksum);
     }
 
+    // item related actions
+    //-------------------------------------------------------------------------
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         item_controller.craft2(from, code, mat_ids, ((int64_t)block << 32) | checksum);
@@ -182,11 +176,6 @@ public:
 
     // pet related actions
     //-------------------------------------------------------------------------
-    /// @abi action
-    void petgacha(name from, uint16_t type, uint8_t count) {
-        pet_controller.petgacha(from, type, count);
-    }
-
     /// @abi action
     void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
         pet_controller.petgacha2(from, type, count, ((int64_t)block << 32) | checksum);
@@ -226,6 +215,25 @@ public:
     /// @abi action
     void ccsellmat(name from, uint64_t id) {
         market_controller.ccsellmat(from, id);
+    }
+
+    void sellitem2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
+        market_controller.sellitem2(from, id, price, ((int64_t)block << 32) | checksum);
+    }
+
+    /// @abi action
+    void ccsellitem2(name from, uint64_t id, uint32_t block, uint32_t checksum) {
+        market_controller.ccsellitem2(from, id, ((int64_t)block << 32) | checksum);
+    }
+
+    /// @abi action
+    void sellmat2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
+        market_controller.sellmat2(from, id, price, ((int64_t)block << 32) | checksum);
+    }
+
+    /// @abi action
+    void ccsellmat2(name from, uint64_t id, uint32_t block, uint32_t checksum) {
+        market_controller.ccsellmat2(from, id, ((int64_t)block << 32) | checksum);
     }
 
     // rule ralated actions
@@ -368,13 +376,11 @@ public:
                 powder_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_mp);
             } else if (ad.action == ta_item) {
-                uint64_t saleid = atoll(ad.param.c_str());
-                asset tax = market_controller.buyitem(ad.from, saleid, ad.quantity);
+                asset tax = market_controller.buyitem(ad.from, ad);
                 admin_controller.add_revenue(tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat) {
-                uint64_t saleid = atoll(ad.param.c_str());
-                asset tax = market_controller.buymat(ad.from, saleid, ad.quantity);
+                asset tax = market_controller.buymat(ad.from, ad);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_ivn) {
@@ -455,4 +461,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth) (rebirth2) (removemat) (craft) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (ccsellitem) (sellmat) (ccsellmat) (petgacha) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (sellitem2) (ccsellitem) (ccsellitem2) (sellmat) (sellmat2) (ccsellmat) (ccsellmat2) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

@@ -113,9 +113,21 @@ public:
                 // player's deposit action
                 transfer_action res;
                 size_t center = transfer_data.memo.find(':');
+                size_t next = transfer_data.memo.find(':', center + 1);
                 res.from = from;
                 res.action = transfer_data.memo.substr(0, center);
-                res.param = transfer_data.memo.substr(center + 1);
+
+                if (next != std::string::npos) {
+                    res.param = transfer_data.memo.substr(center + 1);
+                } else {
+                    // param:type:seller;
+                    res.param = transfer_data.memo.substr(center + 1, next - (center + 1));
+                    size_t next2 = transfer_data.memo.find(':', next + 1);
+                    size_t next3 = transfer_data.memo.find(':', next2 + 1);
+                    res.type = atoi(transfer_data.memo.substr(next2 + 1, next3 - (next2 + 1)).c_str());
+                    res.seller = to_name(atoll(transfer_data.memo.substr(next3 + 1).c_str()));
+                }
+
                 res.quantity = transfer_data.quantity;       
                 func(res);
             }
@@ -155,6 +167,7 @@ public:
     uint64_t seed_identity(name from);
     random_val begin_random(name from, random_for r4, int type);
     void end_random(name from, const random_val &val, random_for r4, int type);
+    uint32_t get_key(name from);
 
     uint32_t random_range(random_val &val, uint32_t to) {
         val.seed = (a * val.seed + c) % 0x7fffffff;

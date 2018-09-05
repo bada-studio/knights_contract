@@ -86,6 +86,11 @@ public:
 
     // action
     //-------------------------------------------------------------------------
+    void sellitem2(name from, uint64_t itemid, asset price, uint64_t checksum) {
+        player_controller.test_checksum(checksum);
+        sellitem(from, itemid, price);
+    }
+
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
         validate_price(price);
@@ -124,6 +129,11 @@ public:
         item_controller.make_item_forsale(from, itemid, id);
     }
 
+    void ccsellitem2(name from, uint64_t saleid, uint64_t checksum) {
+        player_controller.test_checksum(checksum);
+        ccsellitem(from, saleid);
+    }
+
     void ccsellitem(name from, uint64_t saleid) {
         require_auth(from);
         auto saleitem = items.find(saleid);
@@ -133,12 +143,18 @@ public:
         items.erase(saleitem);
     }
 
-    asset buyitem(name from, uint64_t saleid, const asset &quantity) {
+    asset buyitem(name from, const transfer_action &ad) {
         require_auth(from);
+
+        uint64_t saleid = atoll(ad.param.c_str());
+        const asset &quantity = ad.quantity;
 
         auto saleitem = items.find(saleid);
         assert_true(saleitem != items.end(), "could not find item");
         assert_true(saleitem->player != from, "it's your item");
+        if (ad.seller.value > 0) {
+            assert_true(saleitem->player == ad.seller, "seller not matching");
+        }
 
         auto &players = player_controller.get_players();
         auto player = players.find(from);
@@ -161,7 +177,7 @@ public:
         }
 
         asset price = saleitem->price;
-        assert_true(quantity.amount == price.amount, "material price does not match");
+        assert_true(quantity.amount == price.amount, "item price does not match");
         auto dt = time_util::getnow();
 
         selllog slog;
@@ -196,12 +212,21 @@ public:
             price -= tax;
         }
 
+        auto message = std::string("eosknights:item-sale:") + 
+                       std::to_string(saleitem->code) + ":" + 
+                       std::to_string(saleitem->cid) + ":" + 
+                       from.to_string();
         action(permission_level{ self, N(active) },
                N(eosio.token), N(transfer),
-               std::make_tuple(self, saleitem->player, price, std::string("eosknights:item-sale"))
+               std::make_tuple(self, saleitem->player, price, message)
         ).send();
 
         return tax;
+    }
+
+    void sellmat2(name from, uint64_t matid, asset price, uint64_t checksum) {
+        player_controller.test_checksum(checksum);
+        sellmat(from, matid, price);
     }
 
     void sellmat(name from, uint64_t matid, asset price) {
@@ -227,6 +252,11 @@ public:
         material_controller.make_material_forsale(from, matid, id);
     }
 
+    void ccsellmat2(name from, uint64_t saleid, uint64_t checksum) {
+        player_controller.test_checksum(checksum);
+        ccsellmat(from, saleid);
+    }
+
     void ccsellmat(name from, uint64_t saleid) {
         require_auth(from);
         auto salemat = materials.find(saleid);
@@ -236,8 +266,11 @@ public:
         materials.erase(salemat);
     }
 
-    asset buymat(name from, uint64_t saleid, const asset &quantity) {
+    asset buymat(name from, const transfer_action &ad) {
         require_auth(from);
+
+        uint64_t saleid = atoll(ad.param.c_str());
+        const asset &quantity = ad.quantity;
 
         auto &players = player_controller.get_players();
         auto player = players.find(from);
@@ -251,6 +284,9 @@ public:
         auto salemat = materials.find(saleid);
         assert_true(salemat != materials.end(), "could not find mat");
         assert_true(salemat->player != from, "it's your mat");
+        if (ad.seller.value > 0) {
+            assert_true(salemat->player == ad.seller, "seller not matching");
+        }
 
         material_controller.remove_salematerial(salemat->player, salemat->cid);
         material_controller.new_material_from_market(from, salemat->code);
@@ -298,9 +334,14 @@ public:
             price -= tax;
         }
 
+        auto message = std::string("eosknights:material-sale:") + 
+                       std::to_string(salemat->code) + ":" + 
+                       std::to_string(salemat->cid) + ":" + 
+                       from.to_string();
+
         action(permission_level{ self, N(active) },
                N(eosio.token), N(transfer),
-               std::make_tuple(self, salemat->player, price, std::string("eosknights:material-sale"))
+               std::make_tuple(self, salemat->player, price, message)
         ).send();
 
         return tax;
