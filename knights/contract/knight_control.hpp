@@ -492,8 +492,7 @@ private:
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
 
         // add floor bonus drop rate
-        int bonus_floor = floor < 1000 ? floor : 1000;
-        double floor_drop_bonus = kv_floor_bonus_1000 * (bonus_floor / 1000.0);
+        double floor_drop_bonus = kv_floor_bonus_1000 * (floor / 1000.0);
         drop_rate += floor_drop_bonus;
 
         if (drop_rate > 100.0) {
