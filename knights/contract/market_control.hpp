@@ -109,7 +109,8 @@ public:
         }
 
         auto &knights = knight_controller.get_knights(from);
-        assert_true(sale_count < knights.size() * kv_available_sale_per_knight, "sell limit");
+        auto max_sell_count = get_max_sell_count(from);
+        assert_true(sale_count < max_sell_count, "sell limit");
 
         uint64_t id = next_pid(mpidt_item);
         if (id == 0) {
@@ -246,7 +247,8 @@ public:
         }
 
         auto &knights = knight_controller.get_knights(from);
-        assert_true(sale_count < knights.size() * kv_available_sale_per_knight, "sell limit");
+        auto max_sell_count = get_max_sell_count(from);
+        assert_true(sale_count < max_sell_count, "sell limit");
 
         uint64_t id = issue_mat(mat.code, price, from);
         material_controller.make_material_forsale(from, matid, id);
@@ -345,5 +347,20 @@ public:
         ).send();
 
         return tax;
+    }
+
+private:
+    int get_max_sell_count(name from) {
+        auto &knights = knight_controller.get_knights(from);
+        auto max_sell_count = knights.size() * kv_available_sale_per_knight;
+        auto player = player_controller.get_player(from);
+        if (player->maxfloor > kv_bonus_sell1_floor) {
+            max_sell_count++;
+        }
+        if (player->maxfloor > kv_bonus_sell2_floor) {
+            max_sell_count++;
+        }
+
+        return max_sell_count;
     }
 };
