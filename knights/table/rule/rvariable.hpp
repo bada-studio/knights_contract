@@ -31,7 +31,7 @@ const int kv_required_floor_for_unique = 40;
 const int kv_required_floor_for_legendary = 90;
 const int kv_required_floor_for_ancient = 160;
 const int kv_referral_bonus = 1000;
-const int kv_referral_max = 30;
+const int kv_referral_max = 100;
 const int kv_bonus_sell1_floor =  700;
 const int kv_bonus_sell2_floor = 1500;
 

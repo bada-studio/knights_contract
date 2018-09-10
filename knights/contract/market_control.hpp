@@ -354,10 +354,10 @@ private:
         auto &knights = knight_controller.get_knights(from);
         auto max_sell_count = knights.size() * kv_available_sale_per_knight;
         auto player = player_controller.get_player(from);
-        if (player->maxfloor > kv_bonus_sell1_floor) {
+        if (player->maxfloor >= kv_bonus_sell1_floor) {
             max_sell_count++;
         }
-        if (player->maxfloor > kv_bonus_sell2_floor) {
+        if (player->maxfloor >= kv_bonus_sell2_floor) {
             max_sell_count++;
         }
 
