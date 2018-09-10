@@ -22,6 +22,7 @@ using eosio::name;
 #include "table/user/item.hpp"
 #include "table/user/item4sale.hpp"
 #include "table/user/pet.hpp"
+#include "table/user/petexp.hpp"
 #include "table/user/revenue.hpp"
 #include "table/rule/rivnprice.hpp"
 #include "table/rule/rkntlv.hpp"
@@ -34,6 +35,7 @@ using eosio::name;
 #include "table/rule/rmaterial.hpp"
 #include "table/rule/rpet.hpp"
 #include "table/rule/rpetlv.hpp"
+#include "table/rule/rpetexp.hpp"
 #include "table/rule/rmpgoods.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
@@ -193,6 +195,17 @@ public:
     void pattach(name from, uint16_t code, uint8_t knight) {
         pet_controller.pattach(from, code, knight);
         knight_controller.refresh_stat(from, knight);
+    }
+
+    /// @abi action
+    void pexpstart(name from, uint16_t code) {
+        auto knight_max_level = knight_controller.get_knight_max_level(from);
+        pet_controller.pexpstart(from, code, knight_max_level);
+    }
+
+    /// @abi action
+    void pexpreturn(name from) {
+        pet_controller.pexpreturn(from);
     }
 
     // market related actions
@@ -461,4 +474,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (sellitem2) (ccsellitem) (ccsellitem2) (sellmat) (sellmat2) (ccsellmat) (ccsellmat2) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (sellitem2) (ccsellitem) (ccsellitem2) (sellmat) (sellmat2) (ccsellmat) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

@@ -183,17 +183,8 @@ public:
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
 
-        if (rule->grade == ig_normal) {
-            assert_true(pet.level < kv_pet_normal_max_up, "already max up");
-        } else if (rule->grade == ig_rare) {
-            assert_true(pet.level < kv_pet_rare_max_up, "already max up");
-        } else if (rule->grade == ig_unique) {
-            assert_true(pet.level < kv_pet_unique_max_up, "already max up");
-        } else if (rule->grade == ig_legendary) {
-            assert_true(pet.level < kv_pet_legendary_max_up, "already max up");
-        } else if (rule->grade == ig_ancient) {
-            assert_true(pet.level < kv_pet_ancient_max_up, "already max up");
-        }
+        auto max_level = get_max_pet_level(rule->grade);
+        assert_true(pet.level < max_level, "already max up");
 
         auto player = player_controller.get_player(from);
         assert_true(!player_controller.is_empty_player(player), "could not find player");
@@ -246,6 +237,52 @@ public:
 
             assert_true(exist, "can not pet");
         });
+    }
+
+    void pexpstart(name from, uint16_t code, int knight_max_level) {
+        petexp_table petexps(self, self);
+
+        auto exp_iter = petexps.find(from);
+        auto pet_iter = pets.find(from);
+        assert_true(pet_iter != pets.cend(), "no pets");
+        auto &pet_rows = get_pets(pet_iter);
+
+        // check knight
+        for (int index = 0; index < pet_rows.size(); index++) {
+            auto &pet = pet_rows[index];
+            if (pet.code != code) {
+                continue;
+            }
+            assert_true (pet.knight == 0, "already fight with knight");
+            break;
+        }
+
+        auto &pet_rule = rpet_controller.get_table();
+        auto rule = pet_rule.find(code);
+        assert_true(rule != pet_rule.cend(), "could not find pet rule");
+        auto duration = get_pet_exp_duration(rule->grade);
+        auto current = time_util::getnow();
+        int max_slots = get_pex_slots(knight_max_level);
+
+        if (exp_iter == petexps.cend()) {
+            petexprow row;
+            row.code = code;
+            row.start = current;
+            row.end = 0;
+
+            petexps.emplace(self, [&](auto& target){
+                target.owner = from;
+                target.pets.push_back(row);
+            });
+        } else {
+            
+            // todo
+
+        }
+    }
+
+    void pexpreturn(name from) {
+        petexp_table petexps(self, self);
     }
 
     /// @brief
@@ -369,5 +406,29 @@ private:
             default:
                 assert_true(false, "invalid stat type");
         }
+    }
+
+    int32_t get_pet_exp_duration(int grade) {
+        return ((kv_pet_exp_duration >> (grade - 1) * 4) & 0xF) * 4 * 3600;
+    }
+
+    int32_t get_pex_slots(int level) {
+        if (level < ((kv_pet_exp_require_level >> 4) & 0xf)) {
+            return 1;
+        }
+
+        if (level < ((kv_pet_exp_require_level >> 8) & 0xf)) {
+            return 2;
+        }
+
+        if (level < ((kv_pet_exp_require_level >> 12) & 0xf)) {
+            return 3;
+        }
+
+        return 4;
+    }
+
+    int32_t get_max_pet_level(int grade) {
+        return (kv_pet_max_up >> ((grade - 1) * 4)) & 0xf;
     }
 };
