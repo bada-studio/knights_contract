@@ -348,6 +348,9 @@ public:
             case pg_ancient: mw = exp_rule->mw5; break;
         }
 
+        // scale per day
+        mw = mw * duration / 24 * 3600;
+
         auto rval = player_controller.begin_random(from, r4_petexp, 0);
         int range = player_controller.random_range(rval, 21) - 10;
         mw += mw * range / 100;

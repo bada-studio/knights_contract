@@ -284,6 +284,11 @@ public:
     }
 
     /// @abi action
+    void cpetexp(const std::vector<rpetexp> &rules, bool truncate) {
+        pet_controller.get_pet_exp_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
         powder_controller.get_mpgoods_rule().create_rules(rules, truncate);
     }
@@ -451,4 +456,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
