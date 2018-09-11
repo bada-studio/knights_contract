@@ -1,7 +1,8 @@
 enum random_for {
     r4_rebirth,
     r4_craft,
-    r4_petgacha
+    r4_petgacha,
+    r4_petexp,
 };
 
 // 37 bytes

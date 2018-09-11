@@ -143,10 +143,6 @@ public:
     // material related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void removemat(name from, const std::vector<uint32_t>& mat_ids) {
-        material_controller.remove(from, mat_ids);
-    }
-
     void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         material_controller.remove2(from, mat_ids, ((int64_t)block << 32) | checksum);
     }
@@ -204,32 +200,13 @@ public:
     }
 
     /// @abi action
-    void pexpreturn(name from) {
-        pet_controller.pexpreturn(from);
+    void pexpreturn(name from, uint16_t code) {
+        pet_controller.pexpreturn(from, code);
     }
 
     // market related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void sellitem(name from, uint64_t id, asset price) {
-        market_controller.sellitem(from, id, price);
-    }
-
-    /// @abi action
-    void ccsellitem(name from, uint64_t id) {
-        market_controller.ccsellitem(from, id);
-    }
-
-    /// @abi action
-    void sellmat(name from, uint64_t id, asset price) {
-        market_controller.sellmat(from, id, price);
-    }
-
-    /// @abi action
-    void ccsellmat(name from, uint64_t id) {
-        market_controller.ccsellmat(from, id);
-    }
-
     void sellitem2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
         market_controller.sellitem2(from, id, price, ((int64_t)block << 32) | checksum);
     }
@@ -474,4 +451,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (sellitem2) (ccsellitem) (ccsellitem2) (sellmat) (sellmat2) (ccsellmat) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

@@ -1,6 +1,6 @@
 # CONTRACT FOR EOS KNIGHTS
 
-## ACTION NAME: petgacha
+## ACTION NAME: petgacha2
 
 ### Parameters
 Input parameters:
@@ -8,6 +8,7 @@ Input parameters:
 * `from` (player name)
 * `type` (gacha type)
 * `count` (gacha count)
+* `block` (last block)
 * `checksum` (checksum field to prevent bots)
 
 ### Intent

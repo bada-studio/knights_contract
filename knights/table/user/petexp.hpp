@@ -3,6 +3,7 @@ struct petexprow {
     uint16_t code = 0;
     uint32_t start = 0;
     uint32_t end = 0;
+    bool isback = false;
 };
 
 //@abi table petexp i64
