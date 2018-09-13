@@ -244,8 +244,9 @@ public:
     }
 
     void pexpstart(name from, uint16_t code, int knight_max_level) {
-        petexp_table petexps(self, self);
+        require_auth(from);
 
+        petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
         auto pet_iter = pets.find(from);
         assert_true(pet_iter != pets.cend(), "no pets");
@@ -308,6 +309,8 @@ public:
     }
 
     void pexpreturn(name from, uint16_t code) {
+        require_auth(from);
+
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
         assert_true(exp_iter != petexps.cend(), "could not find pet expedition data");

@@ -120,8 +120,8 @@ public:
     }
 
     /// @abi action
-    void addgift(name from, uint8_t type, uint8_t icontype, uint16_t amount, uint32_t to) {
-        player_controller.addgift(from, type, icontype, amount, to);
+    void addgift(uint8_t type, uint8_t icontype, uint16_t amount, uint32_t to) {
+        player_controller.addgift(type, icontype, amount, to);
     }
 
     // knight related actions

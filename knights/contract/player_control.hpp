@@ -280,7 +280,9 @@ public:
         });
     }
 
-    void addgift(name from, uint8_t type, uint8_t icontype, uint16_t amount, uint32_t to) {
+    void addgift(uint8_t type, uint8_t icontype, uint16_t amount, uint32_t to) {
+        require_auth(self);
+
         gift_table gifts(self, self);
         if (gifts.begin() == gifts.cend()) {
             gifts.emplace(self, [&](auto& target) {
@@ -302,8 +304,9 @@ public:
     }
 
     void getgift(name from, int16_t no) {
-        auto current = time_util::getnow();
+        require_auth(from);
 
+        auto current = time_util::getnow();
         gift_table gifts(self, self);
         assert_true(gifts.cbegin() != gifts.cend(), "invalid gift");
         assert_true(gifts.cbegin()->no == no, "invalid gift");
