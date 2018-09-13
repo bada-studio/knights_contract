@@ -223,7 +223,7 @@ public:
     /// target knight for the pet
     void pattach(name from, uint16_t code, uint8_t knight) {
         require_auth(from);
-        assert_true(is_pet_free(from, code), "the pet is on expedition");
+        assert_true(is_pet_free(from, code), "the pet is on expedition or resting");
 
         auto iter = find(from);
         pets.modify(iter, self, [&](auto& pet){
@@ -276,26 +276,33 @@ public:
         if (exp_iter == petexps.cend()) {
             petexps.emplace(self, [&](auto& target){
                 target.owner = from;
-                target.pets.push_back(row);
+                target.rows.push_back(row);
             });
         } else {
             std::vector<petexprow> updated;
-            auto &rows = exp_iter->pets;
-            assert_true(rows.size() < max_slots, "exceed max slots");
+            auto &rows = exp_iter->rows;
 
+            int count = 0;
             for (int index = 0; index < rows.size(); index++) {
                 auto &pet = rows[index];
                 if (current >= pet.end && pet.isback) {
                     continue;
                 }
+
+                if (pet.isback == false) {
+                    count++;
+                }
+
                 updated.push_back(pet);
                 assert_true(pet.code != code, "already in expedition");
             }
 
+            assert_true(count < max_slots, "exceed max slots");
             updated.push_back(row);
+
             petexps.modify(exp_iter, self, [&](auto& target){
                 target.owner = from;
-                target.pets = updated;
+                target.rows = updated;
             });
         }
     }
@@ -312,13 +319,13 @@ public:
         auto current = time_util::getnow();
 
         petexps.modify(exp_iter, self, [&](auto& target) {
-            for (int index = 0; index < target.pets.size(); index++) {
-                auto &pet = target.pets[index];
+            for (int index = 0; index < target.rows.size(); index++) {
+                auto &pet = target.rows[index];
                 if (pet.code != code) {
                     continue;
                 }
                 
-                assert_true(current < pet.end, "to early return");
+                assert_true(pet.end < current, "too early return");
                 pet.isback = true;
                 pet.end = current + duration;
                 break;
@@ -349,7 +356,7 @@ public:
         }
 
         // scale per day
-        mw = mw * duration / 24 * 3600;
+        mw = mw * duration / (24 * 3600);
 
         auto rval = player_controller.begin_random(from, r4_petexp, 0);
         int range = player_controller.random_range(rval, 21) - 10;
@@ -367,11 +374,11 @@ public:
     bool is_pet_free(name from, int16_t code) {
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
-        if(exp_iter != petexps.cend()) {
+        if(exp_iter == petexps.cend()) {
             return true;
         }
 
-        auto &rows = exp_iter->pets;
+        auto &rows = exp_iter->rows;
         auto current = time_util::getnow();
 
         for (int index = 0; index < rows.size(); index++) {

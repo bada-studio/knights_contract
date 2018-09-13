@@ -11,7 +11,7 @@ struct petexp {
     name owner;
     uint32_t v1 = 0;
     uint32_t v2 = 0;
-    std::vector<petexprow> pets;
+    std::vector<petexprow> rows;
 
     uint64_t primary_key() const {
         return owner;
@@ -22,7 +22,7 @@ struct petexp {
             (owner)
             (v1)
             (v2)
-            (pets)
+            (rows)
     )
 };
 
