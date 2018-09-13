@@ -47,6 +47,7 @@ using eosio::name;
 #include "table/admin/expenseslog.hpp"
 #include "table/admin/rversion.hpp"
 #include "table/admin/marketpid.hpp"
+#include "table/admin/gift.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -111,6 +112,16 @@ public:
     /// @abi action
     void referral(name from, name to) {
         player_controller.referral(from, to);
+    }
+
+    /// @abi action
+    void getgift(name from, int16_t no) {
+        player_controller.getgift(from, no);
+    }
+
+    /// @abi action
+    void addgift(name from, uint8_t type, uint8_t icontype, uint16_t amount, uint32_t to) {
+        player_controller.addgift(from, type, icontype, amount, to);
     }
 
     // knight related actions
@@ -456,4 +467,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
