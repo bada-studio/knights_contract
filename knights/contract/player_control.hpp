@@ -280,23 +280,23 @@ public:
         });
     }
 
-    void addgift(uint8_t type, uint8_t icontype, uint16_t amount, uint32_t to) {
+    void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
         require_auth(self);
 
         gift_table gifts(self, self);
         if (gifts.begin() == gifts.cend()) {
             gifts.emplace(self, [&](auto& target) {
-                target.no = 1;
+                target.key = 1;
+                target.no = no;
                 target.type = type;
-                target.icontype = icontype;
                 target.amount = amount;
                 target.to = to - time_util::origin;
             });
         } else {
             gifts.modify(gifts.begin(), self, [&](auto& target) {
-                target.no++;
+                target.key = 1;
+                target.no = no;
                 target.type = type;
-                target.icontype = icontype;
                 target.amount = amount;
                 target.to = to - time_util::origin;
             });
