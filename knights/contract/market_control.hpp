@@ -352,7 +352,7 @@ public:
 private:
     int get_max_sell_count(name from) {
         auto &knights = knight_controller.get_knights(from);
-        auto max_sell_count = knights.size() * kv_available_sale_per_knight;
+        auto max_sell_count = knights.size();
         auto player = player_controller.get_player(from);
         if (player->maxfloor >= kv_bonus_sell1_floor) {
             max_sell_count++;

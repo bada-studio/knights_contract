@@ -1,7 +1,8 @@
 enum random_for {
     r4_rebirth,
     r4_craft,
-    r4_petgacha
+    r4_petgacha,
+    r4_petexp,
 };
 
 // 37 bytes
@@ -12,7 +13,7 @@ struct playerv {
     uint32_t to = 0;
     uint8_t referral = 0;
     uint8_t v4 = 0;
-    uint16_t v5 = 0;
+    uint16_t gift = 0;
     uint32_t asset = 0;
     uint32_t note = 0;
     uint32_t data = 0;
@@ -34,7 +35,7 @@ struct playerv {
                      (to)
                      (referral)
                      (v4)
-                     (v5)
+                     (gift)
                      (asset)
                      (note)
                      (data)

@@ -4,6 +4,7 @@ enum pet_grade {
     pg_rare, // 2
     pg_unique, // 3
     pg_legendary, // 4
+    pg_ancient, // 5
     pg_count
 };
 

@@ -7,6 +7,7 @@ private:
     pet_table pets;
     rule_controller<rpet, rpet_table> rpet_controller;
     rule_controller<rpetlv, rpetlv_table> rpetlv_controller;
+    rule_controller<rpetexp, rpetexp_table> rpetexp_controller;
     player_control &player_controller;
     saleslog_control &saleslog_controller;
 
@@ -24,6 +25,7 @@ public:
             , pets(_self, _self)
             , rpet_controller(_self, N(pet))
             , rpetlv_controller(_self, N(petlv))
+            , rpetexp_controller(_self, N(rpetexp))
             , player_controller(_player_controller)
             , saleslog_controller(_saleslog_controller) {
     }
@@ -183,17 +185,8 @@ public:
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
 
-        if (rule->grade == ig_normal) {
-            assert_true(pet.level < kv_pet_normal_max_up, "already max up");
-        } else if (rule->grade == ig_rare) {
-            assert_true(pet.level < kv_pet_rare_max_up, "already max up");
-        } else if (rule->grade == ig_unique) {
-            assert_true(pet.level < kv_pet_unique_max_up, "already max up");
-        } else if (rule->grade == ig_legendary) {
-            assert_true(pet.level < kv_pet_legendary_max_up, "already max up");
-        } else if (rule->grade == ig_ancient) {
-            assert_true(pet.level < kv_pet_ancient_max_up, "already max up");
-        }
+        auto max_level = get_max_pet_level(rule->grade);
+        assert_true(pet.level < max_level, "already max up");
 
         auto player = player_controller.get_player(from);
         assert_true(!player_controller.is_empty_player(player), "could not find player");
@@ -230,6 +223,8 @@ public:
     /// target knight for the pet
     void pattach(name from, uint16_t code, uint8_t knight) {
         require_auth(from);
+        assert_true(is_pet_free(from, code), "the pet is on expedition or resting");
+
         auto iter = find(from);
         pets.modify(iter, self, [&](auto& pet){
             bool exist = false;
@@ -248,6 +243,162 @@ public:
         });
     }
 
+    void pexpstart(name from, uint16_t code, int knight_max_level) {
+        require_auth(from);
+
+        petexp_table petexps(self, self);
+        auto exp_iter = petexps.find(from);
+        auto pet_iter = pets.find(from);
+        assert_true(pet_iter != pets.cend(), "no pets");
+        auto &pet_rows = get_pets(pet_iter);
+
+        // check knight
+        for (int index = 0; index < pet_rows.size(); index++) {
+            auto &pet = pet_rows[index];
+            if (pet.code != code) {
+                continue;
+            }
+            assert_true (pet.knight == 0, "already fight with knight");
+            break;
+        }
+
+        auto &pet_rule = rpet_controller.get_table();
+        auto rule = pet_rule.find(code);
+        assert_true(rule != pet_rule.cend(), "could not find pet rule");
+        auto duration = get_pet_exp_duration(rule->grade);
+        auto current = time_util::getnow();
+        int max_slots = get_pex_slots(knight_max_level);
+
+        petexprow row;
+        row.code = code;
+        row.start = current;
+        row.end = current + duration;
+
+        if (exp_iter == petexps.cend()) {
+            petexps.emplace(self, [&](auto& target){
+                target.owner = from;
+                target.rows.push_back(row);
+            });
+        } else {
+            std::vector<petexprow> updated;
+            auto &rows = exp_iter->rows;
+
+            int count = 0;
+            for (int index = 0; index < rows.size(); index++) {
+                auto &pet = rows[index];
+                if (current >= pet.end && pet.isback) {
+                    continue;
+                }
+
+                if (pet.isback == false) {
+                    count++;
+                }
+
+                updated.push_back(pet);
+                assert_true(pet.code != code, "already in expedition");
+            }
+
+            assert_true(count < max_slots, "exceed max slots");
+            updated.push_back(row);
+
+            petexps.modify(exp_iter, self, [&](auto& target){
+                target.owner = from;
+                target.rows = updated;
+            });
+        }
+    }
+
+    void pexpreturn(name from, uint16_t code) {
+        require_auth(from);
+
+        petexp_table petexps(self, self);
+        auto exp_iter = petexps.find(from);
+        assert_true(exp_iter != petexps.cend(), "could not find pet expedition data");
+
+        auto &pet_rule = rpet_controller.get_table();
+        auto rule = pet_rule.find(code);
+        assert_true(rule != pet_rule.cend(), "could not find pet rule");
+        auto duration = get_pet_exp_duration(rule->grade);
+        auto current = time_util::getnow();
+
+        petexps.modify(exp_iter, self, [&](auto& target) {
+            for (int index = 0; index < target.rows.size(); index++) {
+                auto &pet = target.rows[index];
+                if (pet.code != code) {
+                    continue;
+                }
+                
+                assert_true(pet.end < current, "too early return");
+                pet.isback = true;
+                pet.end = current + duration;
+                break;
+            }
+        });
+
+        auto &pets = get_pets(from);
+        int32_t level = 1;
+        for (int index = 0; index < pets.size(); index++) {
+            auto &pet = pets[index];
+            if (pet.code == code) {
+                level = pet.level;
+                break;
+            }
+        }
+
+        auto &exp_rules = get_pet_exp_rule().get_table();
+        auto exp_rule = exp_rules.find(level);
+        assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
+
+        int mw = 0;
+        switch (rule->grade) {
+            case pg_normal: mw = exp_rule->mw1; break;
+            case pg_rare: mw = exp_rule->mw2; break;
+            case pg_unique: mw = exp_rule->mw3; break;
+            case pg_legendary: mw = exp_rule->mw4; break;
+            case pg_ancient: mw = exp_rule->mw5; break;
+        }
+
+        // scale per day
+        mw = mw * duration / (24 * 3600);
+
+        auto rval = player_controller.begin_random(from, r4_petexp, 0);
+        int range = player_controller.random_range(rval, 21) - 10;
+        mw += mw * range / 100;
+        
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        players.modify(player, self, [&](auto& target) {
+            target.powder += mw;
+        });
+
+        player_controller.end_random(from, rval, r4_petexp, 0);
+    }
+
+    bool is_pet_free(name from, int16_t code) {
+        petexp_table petexps(self, self);
+        auto exp_iter = petexps.find(from);
+        if(exp_iter == petexps.cend()) {
+            return true;
+        }
+
+        auto &rows = exp_iter->rows;
+        auto current = time_util::getnow();
+
+        for (int index = 0; index < rows.size(); index++) {
+            auto &pet = rows[index];
+            if (pet.code != code) {
+                continue;
+            }
+
+            if (current < pet.end || pet.isback == false) {
+                return false;
+            }
+            break;
+        }
+
+        return true;
+    }
+
     /// @brief
     /// Returns a controller that can CRUD the rule.
     /// @return
@@ -262,6 +413,14 @@ public:
     /// Rule controller for pet level rule
     rule_controller<rpetlv, rpetlv_table>& get_pet_level_rule() {
         return rpetlv_controller;
+    }
+
+    /// @brief
+    /// Returns a controller that can CRUD the rule.
+    /// @return
+    /// Rule controller for pet expedition rule
+    rule_controller<rpetexp, rpetexp_table>& get_pet_exp_rule() {
+        return rpetexp_controller;
     }
 
 private:
@@ -369,5 +528,29 @@ private:
             default:
                 assert_true(false, "invalid stat type");
         }
+    }
+
+    int32_t get_pet_exp_duration(int grade) {
+        return ((kv_pet_exp_duration >> (grade - 1) * 4) & 0xF) * 4 * 3600;
+    }
+
+    int32_t get_pex_slots(int level) {
+        if (level < ((kv_pet_exp_require_level >> 4) & 0xf)) {
+            return 1;
+        }
+
+        if (level < ((kv_pet_exp_require_level >> 8) & 0xf)) {
+            return 2;
+        }
+
+        if (level < ((kv_pet_exp_require_level >> 12) & 0xf)) {
+            return 3;
+        }
+
+        return 4;
+    }
+
+    int32_t get_max_pet_level(int grade) {
+        return (kv_pet_max_up >> ((grade - 1) * 4)) & 0xf;
     }
 };

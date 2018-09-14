@@ -1,12 +1,14 @@
 # CONTRACT FOR EOS KNIGHTS
 
-## ACTION NAME: ccsellmat
+## ACTION NAME: ccsellmat2
 
 ### Parameters
 Input parameters:
 
 * `from` (player name)
 * `id` (material id to cancel selling)
+* `block` (last block)
+* `checksum` (checksum field to prevent bots)
 
 ### Intent
 INTENT. The intent of the `{{ ccsellmat }}` action is to remove a material on the market. 

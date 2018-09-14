@@ -175,10 +175,11 @@ public:
         return val.value;
     }
 
-    void new_playervs(name from, int8_t referral) {
+    void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
             target.owner = from;
             target.referral = referral;
+            target.gift = gift;
         });
     }
     
@@ -247,7 +248,7 @@ public:
         if (fplayerv == playervs.cend()) {
             uint8_t referral = 0x80;
             referral++;
-            new_playervs(from, referral);
+            new_playervs(from, referral, 0);
         } else {
             int referral = fplayerv->referral;
             int count = get_referral_count(referral);
@@ -260,7 +261,7 @@ public:
         }
 
         if (tplayerv == playervs.cend()) {
-            new_playervs(to, 1);
+            new_playervs(to, 1, 0);
         } else {
             int referral = tplayerv->referral;
             int count = get_referral_count(referral);
@@ -277,6 +278,55 @@ public:
         players.modify(tplayer, self, [&](auto& target) {
             target.powder += kv_referral_bonus;
         });
+    }
+
+    void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
+        require_auth(self);
+
+        gift_table gifts(self, self);
+        if (gifts.begin() == gifts.cend()) {
+            gifts.emplace(self, [&](auto& target) {
+                target.key = 1;
+                target.no = no;
+                target.type = type;
+                target.amount = amount;
+                target.to = to - time_util::origin;
+            });
+        } else {
+            gifts.modify(gifts.begin(), self, [&](auto& target) {
+                target.key = 1;
+                target.no = no;
+                target.type = type;
+                target.amount = amount;
+                target.to = to - time_util::origin;
+            });
+        }
+    }
+
+    void getgift(name from, int16_t no) {
+        require_auth(from);
+
+        auto current = time_util::getnow();
+        gift_table gifts(self, self);
+        assert_true(gifts.cbegin() != gifts.cend(), "invalid gift");
+        assert_true(gifts.cbegin()->no == no, "invalid gift");
+        assert_true(gifts.cbegin()->to >= current, "the gift is over");
+
+        auto playerv = playervs.find(from);
+        if (playerv == playervs.cend()) {
+            new_playervs(from, 0, no);
+        } else {
+            assert_true(playerv->gift < no, "you already got gift");
+            playervs.modify(playerv, self, [&](auto& target) {
+                target.gift = no;
+            });
+        }
+
+        auto amount = gifts.cbegin()->amount;
+        assert_true(amount > 0, "no gift");
+
+        auto player = get_player(from);
+        increase_powder(player, amount);
     }
 
     int32_t get_referral_count(uint8_t referral) {

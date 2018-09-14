@@ -1,11 +1,12 @@
 # CONTRACT FOR EOS KNIGHTS
 
-## ACTION NAME: rebirth
+## ACTION NAME: rebirth2
 
 ### Parameters
 Input parameters:
 
 * `from` (player name)
+* `block` (last block)
 * `checksum` (checksum field to prevent bots)
 
 ### Intent

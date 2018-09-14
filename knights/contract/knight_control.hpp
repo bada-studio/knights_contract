@@ -80,6 +80,18 @@ public:
         return get_knights(iter);
     }
 
+    int get_knight_max_level(name from) {
+        auto &knights = get_knights(from);
+        int level = 0;
+        for (int index = 0; index < knights.size(); index++) {
+            if (knights[index].level > level) {
+                level = knights[index].level;
+            }
+        }
+
+        return level;
+    }
+
     const std::vector<knightrow>& get_knights(knight_table::const_iterator iter) {
         if (iter != knights.cend()) {
             return iter->rows;

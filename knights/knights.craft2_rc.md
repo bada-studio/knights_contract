@@ -1,6 +1,6 @@
 # CONTRACT FOR EOS KNIGHTS
 
-## ACTION NAME: craft
+## ACTION NAME: craft2
 
 ### Parameters
 Input parameters:
@@ -8,6 +8,7 @@ Input parameters:
 * `from` (player name)
 * `code` (target item id)
 * `mat_ids` (material ids for item)
+* `block` (last block)
 * `checksum` (checksum field to prevent bots)
 
 ### Intent

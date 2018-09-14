@@ -22,6 +22,7 @@ using eosio::name;
 #include "table/user/item.hpp"
 #include "table/user/item4sale.hpp"
 #include "table/user/pet.hpp"
+#include "table/user/petexp.hpp"
 #include "table/user/revenue.hpp"
 #include "table/rule/rivnprice.hpp"
 #include "table/rule/rkntlv.hpp"
@@ -34,6 +35,7 @@ using eosio::name;
 #include "table/rule/rmaterial.hpp"
 #include "table/rule/rpet.hpp"
 #include "table/rule/rpetlv.hpp"
+#include "table/rule/rpetexp.hpp"
 #include "table/rule/rmpgoods.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
@@ -45,6 +47,7 @@ using eosio::name;
 #include "table/admin/expenseslog.hpp"
 #include "table/admin/rversion.hpp"
 #include "table/admin/marketpid.hpp"
+#include "table/admin/gift.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -111,6 +114,16 @@ public:
         player_controller.referral(from, to);
     }
 
+    /// @abi action
+    void getgift(name from, int16_t no) {
+        player_controller.getgift(from, no);
+    }
+
+    /// @abi action
+    void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
+        player_controller.addgift(no, type, amount, to);
+    }
+
     // knight related actions
     //-------------------------------------------------------------------------
     /// @abi action
@@ -141,10 +154,6 @@ public:
     // material related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void removemat(name from, const std::vector<uint32_t>& mat_ids) {
-        material_controller.remove(from, mat_ids);
-    }
-
     void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         material_controller.remove2(from, mat_ids, ((int64_t)block << 32) | checksum);
     }
@@ -195,28 +204,20 @@ public:
         knight_controller.refresh_stat(from, knight);
     }
 
+    /// @abi action
+    void pexpstart(name from, uint16_t code) {
+        auto knight_max_level = knight_controller.get_knight_max_level(from);
+        pet_controller.pexpstart(from, code, knight_max_level);
+    }
+
+    /// @abi action
+    void pexpreturn(name from, uint16_t code) {
+        pet_controller.pexpreturn(from, code);
+    }
+
     // market related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void sellitem(name from, uint64_t id, asset price) {
-        market_controller.sellitem(from, id, price);
-    }
-
-    /// @abi action
-    void ccsellitem(name from, uint64_t id) {
-        market_controller.ccsellitem(from, id);
-    }
-
-    /// @abi action
-    void sellmat(name from, uint64_t id, asset price) {
-        market_controller.sellmat(from, id, price);
-    }
-
-    /// @abi action
-    void ccsellmat(name from, uint64_t id) {
-        market_controller.ccsellmat(from, id);
-    }
-
     void sellitem2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
         market_controller.sellitem2(from, id, price, ((int64_t)block << 32) | checksum);
     }
@@ -291,6 +292,11 @@ public:
     /// @abi action
     void cpetlv(const std::vector<rpetlv> &rules, bool truncate) {
         pet_controller.get_pet_level_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
+    void cpetexp(const std::vector<rpetexp> &rules, bool truncate) {
+        pet_controller.get_pet_exp_rule().create_rules(rules, truncate);
     }
 
     /// @abi action
@@ -445,20 +451,23 @@ public:
 #define EOSIO_ABI( TYPE, MEMBERS ) \
 extern "C" { \
    void apply( uint64_t receiver, uint64_t code, uint64_t action ) { \
+      auto self = receiver; \
+      TYPE thiscontract( self ); \
       if( action == N(onerror)) { \
          /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */ \
          eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \
       } \
-      auto self = receiver; \
-      if( code == self || code == N(eosio.token) || action == N(onerror) ) { \
-         TYPE thiscontract( self ); \
+      if( code == self || action == N(onerror) ) { \
          switch( action ) { \
             EOSIO_API( TYPE, MEMBERS ) \
          } \
          /* does not allow destructor of thiscontract to run: eosio_exit(0); */ \
       } \
+      if (code == N(eosio.token) && action == N(transfer)) {\
+          execute_action(&thiscontract, &knights::transfer);\
+      }\
    } \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (lvupknight) (setkntstage) (rebirth2) (removemat) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem) (sellitem2) (ccsellitem) (ccsellitem2) (sellmat) (sellmat2) (ccsellmat) (ccsellmat2) (petgacha2) (petlvup) (pattach) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
