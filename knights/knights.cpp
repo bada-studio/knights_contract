@@ -458,12 +458,14 @@ extern "C" { \
          eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \
       } \
       if( code == self || action == N(onerror) ) { \
-         switch( action ) { \
-            EOSIO_API( TYPE, MEMBERS ) \
-         } \
-         /* does not allow destructor of thiscontract to run: eosio_exit(0); */ \
+         if (action != N(transfer)) {\
+            switch( action ) { \
+                EOSIO_API( TYPE, MEMBERS ) \
+            } \
+            /* does not allow destructor of thiscontract to run: eosio_exit(0); */ \
+         }\
       } \
-      if (code == N(eosio.token) && action == N(transfer)) {\
+      if (code == N(eosio.token) && action == N(transfer) ) {\
           execute_action(&thiscontract, &knights::transfer);\
       }\
    } \
