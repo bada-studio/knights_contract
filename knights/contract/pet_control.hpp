@@ -372,10 +372,10 @@ public:
         });
 
         // determin drop material grade
-        int grade = std::min(1, rule->grade - 1);
+        int bottie_grade = std::max(1, rule->grade - 1);
         int value = player_controller.random_range(rval, 100);
-        if (value <= exp_rule->get_drop_rate(rule->grade)) {
-            grade++;
+        if (value < exp_rule->get_drop_rate(rule->grade)) {
+            bottie_grade++;
         }
 
         // check inventory size;
@@ -385,7 +385,7 @@ public:
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         // determin material
-        int bottie = get_bottie(*player, grade, rval);
+        int bottie = get_bottie(*player, bottie_grade, rval);
         assert_true(bottie != 0, "invalid material drop");
         material_controller.add_material(from, bottie);
 
