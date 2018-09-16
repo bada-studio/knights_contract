@@ -327,7 +327,8 @@ public:
                 if (pet.code != code) {
                     continue;
                 }
-                
+
+                assert_true(pet.isback == false, "already return");
                 assert_true(pet.end < current, "too early return");
                 pet.isback = true;
                 pet.end = current + duration;
@@ -358,12 +359,13 @@ public:
             case pg_ancient: mw = exp_rule->mw5; break;
         }
 
-        // scale per day
         mw = mw * duration / (24 * 3600);
 
         auto rval = player_controller.begin_random(from, r4_petexp, 0);
-        int range = player_controller.random_range(rval, 21) - 10;
+        int range = (int)player_controller.random_range(rval, 21) - 10;
         mw += mw * range / 100;
+        mw = std::max(0, mw);
+        mw = std::min(10000, mw);
         
         auto &players = player_controller.get_players();
         auto player = players.find(from);
