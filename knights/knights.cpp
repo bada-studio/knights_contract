@@ -96,7 +96,7 @@ public:
     , player_controller(_self, saleslog_controller, admin_controller, variable_controller)
     , material_controller(_self, player_controller)
     , item_controller(_self, material_controller, player_controller, saleslog_controller)
-    , pet_controller(_self, player_controller, saleslog_controller)
+    , pet_controller(_self, player_controller, material_controller, saleslog_controller)
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller) {
@@ -328,6 +328,8 @@ public:
             pet_controller.get_pet_rule().truncate_rules();
         } else if (table == N(petlv)) {
             pet_controller.get_pet_level_rule().truncate_rules();
+        } else if (table == N(petexp)) {
+            pet_controller.get_pet_exp_rule().truncate_rules();
         } else if (table == N(mpgoods)) {
             powder_controller.get_mpgoods_rule().truncate_rules();
         } else {

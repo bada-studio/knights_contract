@@ -9,6 +9,7 @@ private:
     rule_controller<rpetlv, rpetlv_table> rpetlv_controller;
     rule_controller<rpetexp, rpetexp_table> rpetexp_controller;
     player_control &player_controller;
+    material_control &material_controller;
     saleslog_control &saleslog_controller;
 
     std::vector<petrow> empty_petrows;
@@ -20,6 +21,7 @@ public:
     /// Constructor
     pet_control(account_name _self,
                 player_control &_player_controller,
+                material_control &_material_controller,
                 saleslog_control &_saleslog_controller)
             : self(_self)
             , pets(_self, _self)
@@ -27,6 +29,7 @@ public:
             , rpetlv_controller(_self, N(petlv))
             , rpetexp_controller(_self, N(rpetexp))
             , player_controller(_player_controller)
+            , material_controller(_material_controller)
             , saleslog_controller(_saleslog_controller) {
     }
 
@@ -350,16 +353,9 @@ public:
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 
-        int mw = 0;
-        switch (rule->grade) {
-            case pg_normal: mw = exp_rule->mw1; break;
-            case pg_rare: mw = exp_rule->mw2; break;
-            case pg_unique: mw = exp_rule->mw3; break;
-            case pg_legendary: mw = exp_rule->mw4; break;
-            case pg_ancient: mw = exp_rule->mw5; break;
-        }
-
-        mw = mw * duration / (24 * 3600);
+        // calculate drop magic water
+        int mw = exp_rule->get_mw(rule->grade);
+        mw = mw * duration / time_util::day;
 
         auto rval = player_controller.begin_random(from, r4_petexp, 0);
         int range = (int)player_controller.random_range(rval, 21) - 10;
@@ -369,12 +365,89 @@ public:
         
         auto &players = player_controller.get_players();
         auto player = players.find(from);
+        assert_true(player != players.cend(), "could not find player");
+
         players.modify(player, self, [&](auto& target) {
             target.powder += mw;
         });
 
+        // determin drop material grade
+        int grade = std::min(1, rule->grade - 1);
+        int value = player_controller.random_range(rval, 100);
+        if (value <= exp_rule->get_drop_rate(rule->grade)) {
+            grade++;
+        }
+
+        // check inventory size;
+        auto &mats = material_controller.get_materials(from);
+        int exp_mat_count = mats.size() + 1;
+        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
+
+        // determin material
+        int bottie = get_bottie(*player, grade, rval);
+        assert_true(bottie != 0, "invalid material drop");
+        material_controller.add_material(from, bottie);
+
         player_controller.end_random(from, rval, r4_petexp, 0);
     }
+
+    int get_bottie(const player& player, int grade, random_val &rval) {
+        int start = 0;
+        int length = 0;
+
+        double ndr[10] = {0.0, };
+        switch (grade) {
+            case ig_normal:
+                start = 0;
+                length = 4;
+                break;
+            case ig_rare:
+                start = 4;
+                length = 3;
+                break;
+            case ig_unique:
+                start = 7;
+                length = 2;
+                break;
+            case ig_legendary:
+                start = 9;
+                length = 1;
+                break;
+            case ig_ancient:
+                start = 10;
+                length = 1;
+                break;
+        }
+
+        // copy drop rate
+        double sum = 0;
+        for (int index = 0; index < length; index++) {
+            double value = drop_rates[start + index];
+            sum += value;
+            ndr[index] = value;
+        }
+
+        // normalize drop rate
+        for (int index = 0; index < length; index++) {
+            ndr[index] /= sum;
+        }
+
+        int best = 0;
+        int drscale = 1000000000;
+        int rand_value = player_controller.random_range(rval, drscale);
+
+        for (int index = length-1; index >= 1; --index) {
+            if (rand_value < int(ndr[index] * drscale)) {
+                best = index;
+                break;
+            }
+        }
+
+        int type = player_controller.random_range(rval, 5) + 1;
+        int code = (type - 1) * 20 + (best + start + 1);
+        return code;
+    }    
 
     bool is_pet_free(name from, int16_t code) {
         petexp_table petexps(self, self);
@@ -533,7 +606,7 @@ private:
     }
 
     int32_t get_pet_exp_duration(int grade) {
-        return ((kv_pet_exp_duration >> (grade - 1) * 4) & 0xF) * 4 * 3600;
+        return ((kv_pet_exp_duration >> (grade - 1) * 4) & 0xF) * 4 * time_util::hour;
     }
 
     int32_t get_pex_slots(int level) {

@@ -510,23 +510,6 @@ private:
         if (drop_rate > 100.0) {
             drop_rate = 100.0;
         }
-
-        //@ warning for the performance issue, drop rates are hard coded here,
-        // be careful for the data sync with material rule
-        const int drop_rates_length = 11;
-        const double drop_rates[drop_rates_length] = {
-            0.5255616988, // 0
-            0.2627808494, // 1
-            0.1313904247, // 2
-            0.06569521235, // 3
-            0.008211901543, // 4
-            0.004105950772, // 5
-            0.002052975386, // 6
-            0.0001283109616, // 7
-            0.00006415548081, // 8
-            0.000008019435101, // 9
-            0.0000005012146938, // 10
-        };
         
         int best = 0;
         int drscale = 1000000000;
