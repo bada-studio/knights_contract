@@ -27,7 +27,7 @@ public:
             , pets(_self, _self)
             , rpet_controller(_self, N(pet))
             , rpetlv_controller(_self, N(petlv))
-            , rpetexp_controller(_self, N(rpetexp))
+            , rpetexp_controller(_self, N(petexp))
             , player_controller(_player_controller)
             , material_controller(_material_controller)
             , saleslog_controller(_saleslog_controller) {
