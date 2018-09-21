@@ -281,7 +281,7 @@ public:
     }
 
     /// @abi action
-    void citemset(const std::vector<ritemsetrow> &rules, bool truncate) {
+    void citemset(const std::vector<ritemset> &rules, bool truncate) {
         item_controller.get_ritemset_rule().create_rules(rules, truncate);
     }
 
