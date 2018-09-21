@@ -7,6 +7,7 @@ private:
 
     rule_controller<ritem, ritem_table> item_rule_controller;
     rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller;
+    rule_controller2<ritemsetrow, ritemset_table> itemset_rule_controller;
     material_control &material_controller;
     player_control &player_controller;
     saleslog_control &saleslog_controller;
@@ -25,6 +26,7 @@ public:
             , items(_self, _self)
             , item_rule_controller(_self, N(item))
             , itemlv_rule_controller(_self, N(itemlv))
+            , itemset_rule_controller(_self, N(itemset))
             , material_controller(_material_controller)
             , player_controller(_player_controller) 
             , saleslog_controller(_saleslog_controller) {
@@ -432,6 +434,10 @@ public:
 
     rule_controller<ritemlv, ritemlv_table>& get_ritemlv_rule() {
         return itemlv_rule_controller;
+    }
+
+    rule_controller2<ritemsetrow, ritemset_table>& get_ritemset_rule() {
+        return itemset_rule_controller;
     }
 
 private:

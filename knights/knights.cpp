@@ -32,6 +32,7 @@ using eosio::name;
 #include "table/rule/rvariable.hpp"
 #include "table/rule/ritem.hpp"
 #include "table/rule/ritemlv.hpp"
+#include "table/rule/ritemset.hpp"
 #include "table/rule/rmaterial.hpp"
 #include "table/rule/rpet.hpp"
 #include "table/rule/rpetlv.hpp"
@@ -280,6 +281,11 @@ public:
     }
 
     /// @abi action
+    void citemset(const std::vector<ritemsetrow> &rules, bool truncate) {
+        item_controller.get_ritemset_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void cmaterial(const std::vector<rmaterial> &rules, bool truncate) {
         material_controller.get_rmaterial_rule().create_rules(rules, truncate);
     }
@@ -322,6 +328,8 @@ public:
             item_controller.get_ritem_rule().truncate_rules();
         } else if (table == N(itemlv)) {
             item_controller.get_ritemlv_rule().truncate_rules();
+        } else if (table == N(itemset)) {
+            item_controller.get_ritemset_rule().truncate_rules();
         } else if (table == N(material)) {
             material_controller.get_rmaterial_rule().truncate_rules();
         } else if (table == N(pet)) {
@@ -474,4 +482,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
