@@ -378,6 +378,10 @@ public:
             bottie_grade++;
         }
 
+        if (rule->grade == 1) {
+            bottie_grade = 1;
+        }
+
         // check inventory size;
         auto &mats = material_controller.get_materials(from);
         int exp_mat_count = mats.size() + 1;
