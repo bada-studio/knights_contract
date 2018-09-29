@@ -6,6 +6,8 @@
 #include <eosiolib/crypto.h>
 #include <cmath>
 
+#define MAINTENANCE 0
+
 using eosio::key256;
 using eosio::indexed_by;
 using eosio::const_mem_fun;
@@ -311,35 +313,35 @@ public:
     }
 
     /// @abi action
-    void trule(name table) {
+    void trule(name table, uint16_t size) {
         if (table == N(ivnprice)) {
-            player_controller.get_inventory_price_rule().truncate_rules();
+            player_controller.get_inventory_price_rule().truncate_rules(size);
         } else if (table == N(knt)) {
-            knight_controller.get_knight_rule_controller().truncate_rules();
+            knight_controller.get_knight_rule_controller().truncate_rules(size);
         } else if (table == N(kntlv)) {
-            knight_controller.get_knight_level_rule_controller().truncate_rules();
+            knight_controller.get_knight_level_rule_controller().truncate_rules(size);
         } else if (table == N(kntprice)) {
-            knight_controller.get_knight_price_rule_controller().truncate_rules();
+            knight_controller.get_knight_price_rule_controller().truncate_rules(size);
         } else if (table == N(stage)) {
-            knight_controller.get_stage_rule_controller().truncate_rules();
+            knight_controller.get_stage_rule_controller().truncate_rules(size);
         } else if (table == N(variable)) {
-            variable_controller.get_rvariable_rule().truncate_rules();
+            variable_controller.get_rvariable_rule().truncate_rules(size);
         } else if (table == N(item)) {
-            item_controller.get_ritem_rule().truncate_rules();
+            item_controller.get_ritem_rule().truncate_rules(size);
         } else if (table == N(itemlv)) {
-            item_controller.get_ritemlv_rule().truncate_rules();
+            item_controller.get_ritemlv_rule().truncate_rules(size);
         } else if (table == N(itemset)) {
-            item_controller.get_ritemset_rule().truncate_rules();
+            item_controller.get_ritemset_rule().truncate_rules(size);
         } else if (table == N(material)) {
-            material_controller.get_rmaterial_rule().truncate_rules();
+            material_controller.get_rmaterial_rule().truncate_rules(size);
         } else if (table == N(pet)) {
-            pet_controller.get_pet_rule().truncate_rules();
+            pet_controller.get_pet_rule().truncate_rules(size);
         } else if (table == N(petlv)) {
-            pet_controller.get_pet_level_rule().truncate_rules();
+            pet_controller.get_pet_level_rule().truncate_rules(size);
         } else if (table == N(petexp)) {
-            pet_controller.get_pet_exp_rule().truncate_rules();
+            pet_controller.get_pet_exp_rule().truncate_rules(size);
         } else if (table == N(mpgoods)) {
-            powder_controller.get_mpgoods_rule().truncate_rules();
+            powder_controller.get_mpgoods_rule().truncate_rules(size);
         } else {
             eosio_assert(0, "could not find table");
         }
@@ -460,25 +462,26 @@ public:
 
 #define EOSIO_ABI( TYPE, MEMBERS ) \
 extern "C" { \
-   void apply( uint64_t receiver, uint64_t code, uint64_t action ) { \
-      auto self = receiver; \
-      TYPE thiscontract( self ); \
-      if( action == N(onerror)) { \
-         /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */ \
-         eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \
-      } \
-      if( code == self ) { \
-         if (action != N(transfer)) {\
-            switch( action ) { \
-                EOSIO_API( TYPE, MEMBERS ) \
-            } \
-            /* does not allow destructor of thiscontract to run: eosio_exit(0); */ \
-         }\
-      } \
-      else if (code == N(eosio.token) && action == N(transfer) ) {\
-          execute_action(&thiscontract, &knights::transfer);\
-      }\
-   } \
+    void apply( uint64_t receiver, uint64_t code, uint64_t action ) { \
+        auto self = receiver; \
+        TYPE thiscontract( self ); \
+        if (MAINTENANCE == 1) { \
+            require_auth(self); \
+        }\
+        if( action == N(onerror)) { \
+            eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \
+        } \
+        if( code == self ) { \
+            if (action != N(transfer)) {\
+                switch( action ) { \
+                    EOSIO_API( TYPE, MEMBERS ) \
+                } \
+            }\
+        } \
+        else if (code == N(eosio.token) && action == N(transfer) ) {\
+            execute_action(&thiscontract, &knights::transfer);\
+        }\
+    } \
 }
 
 

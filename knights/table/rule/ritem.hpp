@@ -105,11 +105,10 @@ struct ritem {
             (mat3_count)
             (mat4_count)
             (rarity)
-
-//            (setid)
-//            (v1)
-//            (v2)
-//            (v3)
+            (setid)
+            (v1)
+            (v2)
+            (v3)
     )
 };
 

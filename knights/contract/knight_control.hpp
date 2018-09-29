@@ -479,7 +479,7 @@ private:
 
         auto rval = player_controller.begin_random(from, r4_rebirth, 0);
 
-        int botties[kt_count] = {0, };
+        uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
                 botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval);
@@ -517,11 +517,11 @@ private:
 
         // fix #16 reported by Jinhyeon Hong
         int start_index = drop_rates_length - 1;
-        if (floor < kv_required_floor_for_unique) {
+        if (floor < get_floor_for(ig_unique)) {
             start_index = 6;
-        } else if (floor < kv_required_floor_for_legendary) {
+        } else if (floor < get_floor_for(ig_legendary)) {
             start_index = 8;
-        } else if (floor < kv_required_floor_for_ancient) {
+        } else if (floor < get_floor_for(ig_ancient)) {
             start_index = 9;
         }
 
@@ -539,6 +539,19 @@ private:
 
         int code = (type - 1) * 20 + (best + 1);
         return code;
+    }
+
+    int get_floor_for(item_grade grade) {
+        int data = kv_required_floor_for_material;
+        if (grade == ig_unique) {
+            return (data & 0xF) * 100;
+        } else if (grade == ig_legendary) {
+            return ((data >> 4) & 0xF) * 100;
+        } else if (grade == ig_ancient) {
+            return ((data >> 8) & 0xF) * 100;
+        }
+
+        return 0;
     }
 
     bool is_valid_for(knight_type kt, item_sub_type ist) {
