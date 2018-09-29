@@ -25,15 +25,19 @@ private:
 
     int get_min_market_price(int grade) {
         int price = kv_min_market_price;
+        int scaler = kv_min_market_price_scaler;
         
-        if (grade == ig_rare) {
-            price *= 5;
-        } else if (grade == ig_unique) {
-            price *= 5 * 2;
-        } else if (grade == ig_legendary) {
-            price *= 5 * 2 * 5;
-        } else if (grade == ig_ancient) {
-            price *= 5 * 2 * 5 * 2;
+        if (grade >= ig_rare) {
+            price *= (scaler & 0xF);
+        } 
+        if (grade >= ig_unique) {
+            price *= ((scaler >> 4) & 0xF);
+        } 
+        if (grade >= ig_legendary) {
+            price *= ((scaler >> 8) & 0xF);
+        } 
+        if (grade >= ig_ancient) {
+            price *= ((scaler >> 12) & 0xF);
         }
 
         return price;
