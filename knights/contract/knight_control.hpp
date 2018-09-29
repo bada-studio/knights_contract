@@ -469,7 +469,20 @@ private:
         });
 
         int floor = (total_kill_count / 10) + 1;
-        int powder = total_kill_count / kv_kill_powder_rate;
+        double powder = 0;
+        for (int index = 1; index < kt_count; index++) {
+            if (kill_counts[index] == 0) {
+                continue;
+            }
+
+            double current_powder = kill_counts[index] / (double)kv_kill_powder_rate;
+            double scaler = 1.0 + (lucks[index] / 1000.0);
+            if (scaler > 5) { // barrier
+                scaler = 5;
+            }
+
+            powder += current_powder * scaler;
+        }
         
         // get high floor bonus #23
         powder = (int)(powder * (1.0 + (std::min(1000, floor) / 500.0)));
