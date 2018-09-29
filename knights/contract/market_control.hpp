@@ -14,13 +14,29 @@ private:
 
     // modifiers
     //-------------------------------------------------------------------------
-    void validate_price(asset price) {
+    void validate_price(asset price, int grade) {
         assert_true(price.symbol == S(4,EOS) , "only EOS token allowed");
         assert_true(price.is_valid(), "invalid price");
         assert_true(price.amount > 0, "must price positive quantity");
 
-        assert_true(price.amount >= kv_min_market_price, "too small price");
+        assert_true(price.amount >= get_min_market_price(grade), "too small price");
         assert_true(price.amount <= kv_max_market_price, "too big price");
+    }
+
+    int get_min_market_price(int grade) {
+        int price = kv_min_market_price;
+        
+        if (grade == ig_rare) {
+            price *= 5;
+        } else if (grade == ig_unique) {
+            price *= 5 * 2;
+        } else if (grade == ig_legendary) {
+            price *= 5 * 2 * 5;
+        } else if (grade == ig_ancient) {
+            price *= 5 * 2 * 5 * 2;
+        }
+
+        return price;
     }
 
     uint64_t next_pid(marketpid_type type) {
@@ -93,13 +109,17 @@ public:
 
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
-        validate_price(price);
         player_controller.check_blacklist(from);
 
         auto &rows = item_controller.get_items(from);
         auto &item = item_controller.get_item(rows, itemid);
         assert_true(item.saleid == 0, "already on sale");
         assert_true(item.knight == 0, "equipped item can not be sold");
+
+        auto &item_rules = item_controller.get_ritem_rule().get_table();
+        auto item_rule = item_rules.find(item.code);
+        assert_true(item_rule != item_rules.cend(), "can not found item grade");
+        validate_price(price, item_rule->grade);
 
         int sale_count = 0;
         for (int index = 0; index < rows.size(); index++) {
@@ -232,12 +252,16 @@ public:
 
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
-        validate_price(price);
         player_controller.check_blacklist(from);
 
         auto &rows = material_controller.get_materials(from);
         auto &mat = material_controller.get_material(rows, matid);
         assert_true(mat.saleid == 0, "already on sale");
+
+        auto &mat_rules = material_controller.get_rmaterial_rule().get_table();
+        auto mat_rule = mat_rules.find(mat.code);
+        assert_true(mat_rule != mat_rules.cend(), "can not found material grade");
+        validate_price(price, mat_rule->grade);
 
         int sale_count = 0;
         for (int index = 0; index < rows.size(); index++) {
