@@ -477,8 +477,8 @@ private:
 
             double current_powder = kill_counts[index] / (double)kv_kill_powder_rate;
             double scaler = 1.0 + (lucks[index] / 1000.0);
-            if (scaler > 5) { // barrier
-                scaler = 5;
+            if (scaler > 8) { // barrier
+                scaler = 8;
             }
 
             powder += current_powder * scaler;
