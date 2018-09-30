@@ -54,6 +54,7 @@ public:
         int32_t setcount = 0;
         int16_t codes[3] = {0, };
         int32_t bonuses[3] = {0, };
+        int item_count = 0;
 
         for (int index = 0; index < rows.size(); index++) {
             auto &item = rows[index];
@@ -63,7 +64,7 @@ public:
 
             auto rule = rule_table.find(item.code);
             assert_true(rule != rule_table.cend(), "could not find rule");
-            if (index == 0) {
+            if (setid == 0) {
                 setid = rule->setid;
             }
 
@@ -81,8 +82,8 @@ public:
             assert_true(lvrule != lvrules.cend(), "could not find level rule");
 
             uint32_t bonus = lvrules.find(item.level)->bonus;
-            bonuses[index] = bonus;
-            codes[index] = item.code;
+            bonuses[item_count] = bonus;
+            codes[item_count] = item.code;
 
             uint32_t stat1 = (uint32_t)(rule->stat1 + get_variation_value(rule->stat1_rand_range, rate1));
             stat1 = apply_bonus_stat(stat1, bonus);
@@ -99,6 +100,8 @@ public:
                 stat3 = apply_bonus_stat(stat3, bonus);
                 add_stat(stat, (stat_type) rule->stat3_type, stat3);
             }
+
+            item_count++;
         }
 
         // apply set item stat
