@@ -363,7 +363,7 @@ public:
         // calculate tax
         asset tax(0, S(4, EOS));
         if (tax_rate > 0) {
-            tax = price * kv_market_tax_rate / 100;
+            tax = price * tax_rate / 100;
             if (tax.amount == 0) {
                 tax.amount = 1;
             }

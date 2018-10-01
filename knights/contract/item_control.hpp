@@ -269,19 +269,22 @@ public:
                     } else if (id < rows[mid].id) {
                         right = mid - 1;
                     } else {
+                        auto &target = item.rows[mid];
                         // it is on sale or equipped
-                        if (item.rows[mid].saleid != 0 || 
-                            item.rows[mid].knight != 0) {
+                        if (target.saleid != 0 || 
+                            target.knight != 0) {
                             break;
                         }
 
                         // find powder rule
-                        auto rule = item_rule.find(item.rows[mid].code);
+                        auto rule = item_rule.find(target.code);
                         if (rule == item_rule.cend()) {
                             break;
                         }
 
-                        powder += rule->powder;
+                        int count = target.exp + 1;
+                        count = std::min(count, 16);
+                        powder += rule->powder * count;
                         item.rows.erase(item.rows.begin() + mid);
                         found = true;
                         break;
