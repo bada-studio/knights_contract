@@ -389,7 +389,7 @@ public:
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         // determin material
-        int bottie = get_bottie(*player, bottie_grade, rval);
+        uint16_t bottie = get_bottie(*player, bottie_grade, rval);
         assert_true(bottie != 0, "invalid material drop");
         material_controller.add_material(from, bottie);
 

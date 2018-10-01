@@ -7,6 +7,7 @@ private:
 
     rule_controller<ritem, ritem_table> item_rule_controller;
     rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller;
+    rule_controller<ritemset, ritemset_table> itemset_rule_controller;
     material_control &material_controller;
     player_control &player_controller;
     saleslog_control &saleslog_controller;
@@ -25,6 +26,7 @@ public:
             , items(_self, _self)
             , item_rule_controller(_self, N(item))
             , itemlv_rule_controller(_self, N(itemlv))
+            , itemset_rule_controller(_self, N(itemset))
             , material_controller(_material_controller)
             , player_controller(_player_controller) 
             , saleslog_controller(_saleslog_controller) {
@@ -48,6 +50,11 @@ public:
         auto &lvrules = itemlv_rule_controller.get_table();
 
         auto &rows = get_items(from);
+        int32_t setid = 0;
+        int32_t setcount = 0;
+        int16_t codes[3] = {0, };
+        int32_t bonuses[3] = {0, };
+        int item_count = 0;
 
         for (int index = 0; index < rows.size(); index++) {
             auto &item = rows[index];
@@ -57,6 +64,13 @@ public:
 
             auto rule = rule_table.find(item.code);
             assert_true(rule != rule_table.cend(), "could not find rule");
+            if (setid == 0) {
+                setid = rule->setid;
+            }
+
+            if (setid != 0 && setid == rule->setid) {
+                setcount++;
+            }
 
             uint32_t rate1 = item.dna & 0xFF;
             uint32_t rate2 = (item.dna >> 8) & 0xFF;
@@ -68,6 +82,9 @@ public:
             assert_true(lvrule != lvrules.cend(), "could not find level rule");
 
             uint32_t bonus = lvrules.find(item.level)->bonus;
+            bonuses[item_count] = bonus;
+            codes[item_count] = item.code;
+
             uint32_t stat1 = (uint32_t)(rule->stat1 + get_variation_value(rule->stat1_rand_range, rate1));
             stat1 = apply_bonus_stat(stat1, bonus);
             add_stat(stat, (stat_type)rule->stat1_type, stat1);
@@ -82,6 +99,26 @@ public:
                 uint32_t stat3 = (uint32_t)(rule->stat3 + get_variation_value(rule->stat3_rand_range, rate3));
                 stat3 = apply_bonus_stat(stat3, bonus);
                 add_stat(stat, (stat_type) rule->stat3_type, stat3);
+            }
+
+            item_count++;
+        }
+
+        // apply set item stat
+        if (setid > 0 && setcount == 3) {
+            auto &table = get_ritemset_rule().get_table();
+            auto iter = table.find(setid);
+            if (iter == table.cend()) {
+                return;
+            }
+
+            for (int index = 0; index < 3; index++) {
+                auto rule = iter->get_element(codes[index]);
+                assert_true(rule.type > 0, "can not found set rule");
+
+                uint32_t current_stat = rule.stat;
+                current_stat = apply_bonus_stat(current_stat, bonuses[index]);
+                add_stat(stat, (stat_type)rule.type, current_stat);
             }
         }
     }
@@ -232,19 +269,22 @@ public:
                     } else if (id < rows[mid].id) {
                         right = mid - 1;
                     } else {
+                        auto &target = item.rows[mid];
                         // it is on sale or equipped
-                        if (item.rows[mid].saleid != 0 || 
-                            item.rows[mid].knight != 0) {
+                        if (target.saleid != 0 || 
+                            target.knight != 0) {
                             break;
                         }
 
                         // find powder rule
-                        auto rule = item_rule.find(item.rows[mid].code);
+                        auto rule = item_rule.find(target.code);
                         if (rule == item_rule.cend()) {
                             break;
                         }
 
-                        powder += rule->powder;
+                        int count = target.exp + 1;
+                        count = std::min(count, 16);
+                        powder += rule->powder * count;
                         item.rows.erase(item.rows.begin() + mid);
                         found = true;
                         break;
@@ -432,6 +472,10 @@ public:
 
     rule_controller<ritemlv, ritemlv_table>& get_ritemlv_rule() {
         return itemlv_rule_controller;
+    }
+
+    rule_controller<ritemset, ritemset_table>& get_ritemset_rule() {
+        return itemset_rule_controller;
     }
 
 private:

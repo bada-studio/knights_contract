@@ -34,7 +34,7 @@ public:
         return size;
     }
 
-    void add_material(name from, int code) {
+    void add_material(name from, uint16_t code) {
         matrow row;
         row.code = code;
         row.saleid = 0;
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void add_materials(name from, int mats[]) {
+    void add_materials(name from, const uint16_t mats[]) {
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){

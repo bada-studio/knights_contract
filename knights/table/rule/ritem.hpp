@@ -65,6 +65,10 @@ struct ritem {
     uint8_t mat3_count;
     uint8_t mat4_count;
     uint32_t rarity;
+    uint8_t setid;
+    uint8_t v1;
+    uint16_t v2;
+    uint32_t v3;
 
     ritem() {
     }
@@ -101,6 +105,10 @@ struct ritem {
             (mat3_count)
             (mat4_count)
             (rarity)
+            (setid)
+            (v1)
+            (v2)
+            (v3)
     )
 };
 

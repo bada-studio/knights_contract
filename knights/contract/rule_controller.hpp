@@ -18,7 +18,7 @@ public:
         require_auth(self);
 
         if (truncate) {
-            truncate_rules();
+            truncate_rules(9999);
         }
 
         for (auto iter = data.begin(); iter != data.end(); ++iter) {
@@ -41,12 +41,17 @@ public:
         }
     }
 
-    void truncate_rules() {
+    void truncate_rules(uint16_t size) {
         require_auth(self);
 
         auto iter = table.begin();
+        uint16_t count = 0;
         while (iter != table.cend()) {
             iter = table.erase(iter);
+            count++;
+            if (count == size) {
+                break;
+            }
         }
     }
 
