@@ -256,15 +256,18 @@ public:
         auto &pet_rows = get_pets(pet_iter);
 
         // check knight
+        bool found = false;
         for (int index = 0; index < pet_rows.size(); index++) {
             auto &pet = pet_rows[index];
             if (pet.code != code) {
                 continue;
             }
             assert_true (pet.knight == 0, "already fight with knight");
+            found = true;
             break;
         }
 
+        assert_true(found, "can not found pet");
         auto &pet_rule = rpet_controller.get_table();
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
@@ -324,6 +327,7 @@ public:
         auto duration = get_pet_exp_duration(rule->grade);
         auto current = time_util::getnow();
 
+        bool found = false;
         petexps.modify(exp_iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
                 auto &pet = target.rows[index];
@@ -335,20 +339,25 @@ public:
                 assert_true(pet.end < current, "too early return");
                 pet.isback = true;
                 pet.end = current + duration;
+                found = true;
                 break;
             }
         });
 
+        assert_true(found, "can not found pet exp data");
         auto &pets = get_pets(from);
+        found = false;
         int32_t level = 1;
         for (int index = 0; index < pets.size(); index++) {
             auto &pet = pets[index];
             if (pet.code == code) {
                 level = pet.level;
+                found = true;
                 break;
             }
         }
 
+        assert_true(found, "can not found pet data");
         auto &exp_rules = get_pet_exp_rule().get_table();
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");

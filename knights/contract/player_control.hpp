@@ -215,7 +215,12 @@ public:
             from == N(siuhangmeiyu) || 
             from == N(amazinggamer) || 
             from == N(mantikmantik) || 
-            from == N(meiyusiuhang) 
+            from == N(meiyusiuhang) ||
+            from == N(gameplayer11) ||
+            from == N(gameplayer12) ||
+            from == N(gameplayer13) ||
+            from == N(gameplayer14) ||
+            from == N(gameplayer15) 
         ) {
             assert_true(false, "blacklist rejected");
         }
