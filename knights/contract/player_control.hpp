@@ -220,7 +220,12 @@ public:
             from == N(gameplayer12) ||
             from == N(gameplayer13) ||
             from == N(gameplayer14) ||
-            from == N(gameplayer15) 
+            from == N(gameplayer15) ||
+            from == N(eos4chatting) ||
+            from == N(gi4temzqhege) ||
+            from == N(messcomposer) ||
+            from == N(pvtmessenger) ||
+            from == N(eospromoter1)
         ) {
             assert_true(false, "blacklist rejected");
         }

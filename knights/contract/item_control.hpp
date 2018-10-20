@@ -392,6 +392,7 @@ public:
         int exp = 0;
         for (auto iter = ingredient.cbegin(); iter != ingredient.cend(); ++iter) {
             auto mat = get_item(rows, *iter);
+            assert_true(mat.code == item.code, "invalid ingredient");
             exp += (mat.exp + 1);
         }
 
