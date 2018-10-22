@@ -55,6 +55,7 @@ public:
         contest_table table(self, self);
         assert_true(table.cbegin() != table.cend(), "no contest exist");
         auto contest = --table.cend();
+        assert_true(contest->count < contest->mission.max_count, "contest is done!");
 
         auto now = time_util::getnow();
         assert_true(contest->id == contest_id, "incorrect contest id");
