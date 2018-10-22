@@ -51,6 +51,7 @@ using eosio::name;
 #include "table/admin/rversion.hpp"
 #include "table/admin/marketpid.hpp"
 #include "table/admin/gift.hpp"
+#include "table/admin/contest.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -64,6 +65,7 @@ using eosio::name;
 #include "contract/knight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/powder_control.hpp"
+#include "contract/contest_control.hpp"
 #include "contract/player_control.cpp"
 
 class knights : public eosio::contract, public control_base {
@@ -79,6 +81,7 @@ private:
     powder_control powder_controller;
     admin_control admin_controller;
     saleslog_control saleslog_controller;
+    contest_control contest_controller;
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
@@ -102,7 +105,8 @@ public:
     , pet_controller(_self, player_controller, material_controller, saleslog_controller)
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
-    , powder_controller(_self, player_controller, saleslog_controller) {
+    , powder_controller(_self, player_controller, saleslog_controller)
+    , contest_controller(_self, item_controller, admin_controller) {
     }
 
     // player related actions
@@ -125,6 +129,23 @@ public:
     /// @abi action
     void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
         player_controller.addgift(no, type, amount, to);
+    }
+
+    // contest related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void addcontest(uint16_t id, const conmission& mission) {
+        contest_controller.addcontest(id, mission);
+    }
+
+    /// @abi action
+    void applycontest(name from, uint16_t contest_id, uint16_t item_id) {
+        contest_controller.applycontest(from, contest_id, item_id);
+    }
+
+    /// @abi action
+    void divcontest(uint64_t id, int16_t from, int16_t count) {
+        contest_controller.divcontest(id, from, count);
     }
 
     // knight related actions
@@ -485,4 +506,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcontest) (applycontest) (divcontest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

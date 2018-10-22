@@ -1,6 +1,4 @@
 #pragma once
-//#include <eosiolib/action.hpp>
-//using std::string;
 
 class player_control : public control_base {
 private:
