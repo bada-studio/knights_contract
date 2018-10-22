@@ -1,4 +1,4 @@
-struct conmission {
+struct cquestinfo {
     uint16_t code = 0;
     uint8_t max_count = 0;
     uint8_t score_from = 0;
@@ -12,37 +12,37 @@ struct conmission {
         return start + during;
     }
 
-    bool is_contest_period(int32_t now) const {
+    bool is_cquest_period(int32_t now) const {
         return (start <= now) && (now < get_end());
     }
 };
 
 // 10 bytes
-struct contestrow {
+struct cquestrow {
     name owner;
     uint16_t count = 0;
     bool paid = false;
 };
 
-//@abi table contest i64
-struct contest {
+//@abi table cquest i64
+struct cquest {
     uint64_t id = 0;
     uint8_t count = 0;
-    conmission mission;
-    std::vector<contestrow> rows;
+    cquestinfo info;
+    std::vector<cquestrow> rows;
 
     uint64_t primary_key() const {
         return id;
     }
 
     EOSLIB_SERIALIZE(
-            contest,
+            cquest,
             (id)
             (count)
-            (mission)
+            (info)
             (rows)
     )
 };
 
 
-typedef eosio::multi_index<N(contest), contest> contest_table;
+typedef eosio::multi_index<N(cquest), cquest> cquest_table;
