@@ -89,11 +89,16 @@ public:
         item_ids.push_back(item_id);
         item_controller.remove_items(from, item_ids);
 
+        time current = time_util::getnow();
+        int cooltime_sec = cquest->info.cooltime_min * time_util::min;
+
         table.modify(cquest, self, [&](auto& target) {
             bool found = false;
             for (int index = 0; index < target.rows.size(); index++) {
                 auto &row = target.rows[index];
                 if (row.owner == from) {
+                    assert_true((current - row.at) >= cooltime_sec, "You need wait for submit cooltime.");
+                    row.at = current;
                     row.count++;    
                     found = true;
                     break;
@@ -104,6 +109,7 @@ public:
                 cquestrow row;
                 row.owner = from;
                 row.count = 1;
+                row.at = current;
                 row.paid = false;
                 target.rows.push_back(row);
             }

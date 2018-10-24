@@ -4,6 +4,7 @@ struct cquestinfo {
     uint8_t score_from = 0;
     uint8_t score_to = 0;
     uint8_t level = 0;
+    uint16_t cooltime_min = 0;
     uint32_t start = 0;
     uint32_t during = 0;
     asset reward;
@@ -20,6 +21,7 @@ struct cquestinfo {
 // 10 bytes
 struct cquestrow {
     name owner;
+    uint32_t at = 0;
     uint16_t count = 0;
     bool paid = false;
 };
