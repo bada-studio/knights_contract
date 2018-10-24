@@ -139,8 +139,8 @@ public:
     }
 
     /// @abi action
-    void applycquest(name from, uint16_t cquest_id, uint16_t item_id) {
-        cquest_controller.applycquest(from, cquest_id, item_id);
+    void submitcquest(name from, uint16_t cquest_id, uint16_t item_id) {
+        cquest_controller.submitcquest(from, cquest_id, item_id);
     }
 
     /// @abi action
@@ -506,4 +506,4 @@ extern "C" { \
 }
 
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (applycquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

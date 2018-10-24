@@ -271,16 +271,12 @@ public:
                     } else {
                         auto &target = item.rows[mid];
                         // it is on sale or equipped
-                        if (target.saleid != 0 || 
-                            target.knight != 0) {
-                            break;
-                        }
+                        assert_true(target.saleid == 0, "can not remove item on sale");
+                        assert_true(target.knight == 0, "can not remove equipped item");
 
                         // find powder rule
                         auto rule = item_rule.find(target.code);
-                        if (rule == item_rule.cend()) {
-                            break;
-                        }
+                        assert_true(rule != item_rule.cend(), "can not found rule");
 
                         int count = target.exp + 1;
                         count = std::min(count, 16);

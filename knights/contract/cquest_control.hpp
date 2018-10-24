@@ -29,12 +29,12 @@ public:
         auto iter = table.find(id);
 
         // new one
-        if (iter != table.cend()) {
+        if (iter == table.cend()) {
             // check last
             if (table.cbegin() != table.cend()) {
                 auto now = time_util::getnow();
                 auto last = --table.cend();
-                assert_true(last->info.get_end() < now, "thre is already a cquest");
+                assert_true(last->info.get_end() < now, "there is already a cquest");
             }
 
             table.emplace(self, [&](auto& target) {
@@ -42,6 +42,20 @@ public:
                 target.count = 0;
                 target.info = info;
             });
+
+            // add version to rule
+            rversion_table rtable(self, self);
+            auto ver = rtable.find(N(cquest));
+            if (ver != rtable.cend()) {
+                rtable.modify(ver, self, [&](auto &target) {
+                    target.version = id;
+                });
+            } else {
+                rtable.emplace(self, [&](auto &target) {
+                    target.rule = to_name(N(cquest));
+                    target.version = id;
+                });
+            }            
         } else {
             table.modify(iter, self, [&](auto& target) {
                 target.info = info;
@@ -49,7 +63,7 @@ public:
         }
     }
 
-    void applycquest(name from, uint16_t cquest_id, uint16_t item_id) {
+    void submitcquest(name from, uint16_t cquest_id, uint16_t item_id) {
         require_auth(from);
 
         cquest_table table(self, self);
@@ -64,7 +78,7 @@ public:
         auto &items = item_controller.get_items(from);
         auto &item = item_controller.get_item(items, item_id);
         assert_true(item.id == item_id, "can not found item");
-        assert_true(cquest->info.code == item.code, "incorrect item id");
+        assert_true(cquest->info.code == item.code, "incorrect item code");
         assert_true(cquest->info.level == item.level, "incorrect item level");
 
         int score = item_controller.calculate_item_score(item.code, item.dna);

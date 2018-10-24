@@ -12,7 +12,7 @@ struct cquestinfo {
         return start + during;
     }
 
-    bool is_cquest_period(int32_t now) const {
+    bool is_cquest_period(uint32_t now) const {
         return (start <= now) && (now < get_end());
     }
 };
