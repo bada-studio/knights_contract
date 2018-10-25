@@ -134,18 +134,34 @@ public:
     // cquest related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void addcquest(uint16_t id, const cquestinfo& info) {
-        cquest_controller.addcquest(id, info);
+    void addcquest(const cquest& quest) {
+        cquest_controller.addcquest(quest);
     }
 
     /// @abi action
-    void submitcquest(name from, uint16_t cquest_id, uint16_t item_id) {
-        cquest_controller.submitcquest(from, cquest_id, item_id);
+    void removecquest(uint32_t id) {
+        // it only available there is no user's record
+        cquest_controller.removecquest(id);
     }
 
     /// @abi action
-    void divcquest(uint64_t id, int16_t from, int16_t count) {
-        cquest_controller.divcquest(id, from, count);
+    void updatecquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
+        cquest_controller.updatecquest(id, sponsor, start, duration);
+    }
+
+    /// @abi action
+    void updatecqdts(uint32_t id, const std::vector<cquestdetail>& details) {
+        cquest_controller.updatecqdts(id, details);
+    }
+
+    /// @abi action
+    void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id) {
+        cquest_controller.submitcquest(from, cquest_id, no, item_id);
+    }
+
+    /// @abi action
+    void divcquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
+        cquest_controller.divcquest(id, no, from, count);
     }
 
     // knight related actions
@@ -476,6 +492,7 @@ public:
             iter = table.erase(iter);
         }
     }
+
     */
 };
 
@@ -505,5 +522,4 @@ extern "C" { \
     } \
 }
 
-
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatecquest) (updatecqdts) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
