@@ -106,7 +106,7 @@ public:
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
-    , cquest_controller(_self, item_controller, admin_controller) {
+    , cquest_controller(_self, item_controller, player_controller, admin_controller) {
     }
 
     // player related actions
@@ -134,8 +134,13 @@ public:
     // cquest related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void addcquest(const cquest& quest) {
-        cquest_controller.addcquest(quest);
+    void addcquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
+        cquest_controller.addcquest(id, sponsor, start, duration);
+    }
+
+    /// @abi action
+    void testquest(uint32_t cquest_id, uint8_t no) {
+        cquest_controller.testquest(cquest_id, no);
     }
 
     /// @abi action
@@ -145,18 +150,13 @@ public:
     }
 
     /// @abi action
-    void updatecquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
-        cquest_controller.updatecquest(id, sponsor, start, duration);
+    void updatesubq(uint32_t id, const std::vector<cquestdetail>& details) {
+        cquest_controller.updatesubq(id, details);
     }
 
     /// @abi action
-    void updatecqdts(uint32_t id, const std::vector<cquestdetail>& details) {
-        cquest_controller.updatecqdts(id, details);
-    }
-
-    /// @abi action
-    void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id) {
-        cquest_controller.submitcquest(from, cquest_id, no, item_id);
+    void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id, uint32_t block, uint32_t checksum) {
+        cquest_controller.submitcquest(from, cquest_id, no, item_id, ((int64_t)block << 32) | checksum);
     }
 
     /// @abi action
@@ -522,4 +522,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatecquest) (updatecqdts) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (testquest) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
