@@ -110,22 +110,9 @@ public:
         });
     }
 
-    void testquest(uint32_t cquest_id, uint8_t no) {
-        cquest_table table(self, self);
-        assert_true(table.cbegin() != table.cend(), "no cquest exist");
-        auto cquest = --table.cend();
-
-        table.modify(cquest, self, [&](auto& target) {
-            auto &subquest = target.subquests[no];
-            subquest.records.clear();
-        });        
-    }
-
     void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id, uint64_t checksum) {
         require_auth(from);
-
-        // todo
-        //player_controller.test_checksum(checksum);
+        player_controller.test_checksum(checksum);
 
         cquest_table table(self, self);
         assert_true(table.cbegin() != table.cend(), "no cquest exist");
@@ -236,7 +223,9 @@ public:
         }
 
         // write expenses log
-        admin_controller.add_expenses(quantity, to_name(self), "craft contest dividend to players");
+        if (quantity.amount > 0) {
+            admin_controller.add_expenses(quantity, to_name(self), "craft contest dividend to players");
+        }
 
         // set paid flag
         table.modify(cquest, self, [&](auto& target) {
