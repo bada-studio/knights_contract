@@ -14,7 +14,7 @@ struct cquestrecord {
     bool paid = false; // for the dividened
 };
 
-struct cquestitem {
+struct csubquest {
     cquestdetail detail; // quest detail
     uint16_t total_submit_count = 0; // total submit count
     std::vector<cquestrecord> records; // each player's submit record
@@ -26,7 +26,7 @@ struct cquest {
     uint16_t sponsor = 0; // sponsor code
     uint32_t start = 0; // start from
     uint32_t duration = 0; // event duration
-    std::vector<cquestitem> subquests; // sub quest
+    std::vector<csubquest> subquests; // sub quest
 
     uint64_t primary_key() const {
         return id;
