@@ -51,6 +51,7 @@ using eosio::name;
 #include "table/admin/rversion.hpp"
 #include "table/admin/marketpid.hpp"
 #include "table/admin/gift.hpp"
+#include "table/admin/cquest.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -64,6 +65,7 @@ using eosio::name;
 #include "contract/knight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/powder_control.hpp"
+#include "contract/cquest_control.hpp"
 #include "contract/player_control.cpp"
 
 class knights : public eosio::contract, public control_base {
@@ -79,6 +81,7 @@ private:
     powder_control powder_controller;
     admin_control admin_controller;
     saleslog_control saleslog_controller;
+    cquest_control cquest_controller;
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
@@ -102,7 +105,8 @@ public:
     , pet_controller(_self, player_controller, material_controller, saleslog_controller)
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
-    , powder_controller(_self, player_controller, saleslog_controller) {
+    , powder_controller(_self, player_controller, saleslog_controller)
+    , cquest_controller(_self, item_controller, player_controller, admin_controller) {
     }
 
     // player related actions
@@ -125,6 +129,34 @@ public:
     /// @abi action
     void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
         player_controller.addgift(no, type, amount, to);
+    }
+
+    // cquest related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void addcquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
+        cquest_controller.addcquest(id, sponsor, start, duration);
+    }
+
+    /// @abi action
+    void removecquest(uint32_t id) {
+        // it only available there is no user's record
+        cquest_controller.removecquest(id);
+    }
+
+    /// @abi action
+    void updatesubq(uint32_t id, const std::vector<cquestdetail>& details) {
+        cquest_controller.updatesubq(id, details);
+    }
+
+    /// @abi action
+    void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id, uint32_t block, uint32_t checksum) {
+        cquest_controller.submitcquest(from, cquest_id, no, item_id, ((int64_t)block << 32) | checksum);
+    }
+
+    /// @abi action
+    void divcquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
+        cquest_controller.divcquest(id, no, from, count);
     }
 
     // knight related actions
@@ -455,6 +487,7 @@ public:
             iter = table.erase(iter);
         }
     }
+
     */
 };
 
@@ -484,5 +517,4 @@ extern "C" { \
     } \
 }
 
-
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

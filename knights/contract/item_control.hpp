@@ -271,16 +271,12 @@ public:
                     } else {
                         auto &target = item.rows[mid];
                         // it is on sale or equipped
-                        if (target.saleid != 0 || 
-                            target.knight != 0) {
-                            break;
-                        }
+                        assert_true(target.saleid == 0, "can not remove item on sale");
+                        assert_true(target.knight == 0, "can not remove equipped item");
 
                         // find powder rule
                         auto rule = item_rule.find(target.code);
-                        if (rule == item_rule.cend()) {
-                            break;
-                        }
+                        assert_true(rule != item_rule.cend(), "can not found rule");
 
                         int count = target.exp + 1;
                         count = std::min(count, 16);
@@ -315,7 +311,33 @@ public:
 
         assert_true(found, "could not found item");
     }
-    
+
+    int calculate_item_score(uint16_t code, uint32_t dna) {
+        auto &rule_table = item_rule_controller.get_table();
+        auto rule = rule_table.find(code);
+        assert_true(rule != rule_table.cend(), "could not find rule");
+
+        uint32_t rate1 = dna & 0xFF; 
+        uint32_t rate2 = (dna >> 8) & 0xFF; 
+        uint32_t rate3 = (dna >> 16) & 0xFF;
+        uint32_t reveal2 = (dna >> 24) & 0x2; 
+        uint32_t reveal3 = (dna >> 24) & 0x4; 
+        int stat1 = rule->stat1_rand_range + get_variation_value(rule->stat1_rand_range, (int)rate1);
+        int stat2 = 0;
+        if (reveal2 > 0) {
+            stat2 = rule->stat2 + get_variation_value(rule->stat2_rand_range, (int)rate2);
+        }
+        int stat3 = 0;
+        if (reveal3 > 0) {
+            stat3 = rule->stat3 + get_variation_value(rule->stat3_rand_range, (int) rate3);
+        }
+
+        int stat1Max = rule->stat1_rand_range * 2;
+        int stat2Max = rule->stat2 + rule->stat2_rand_range;
+        int stat3Max = rule->stat3 + rule->stat3_rand_range;
+        return (stat1 + stat2 + stat3) * 100 / (stat1Max + stat2Max + stat3Max);
+    }
+
     // actions
     //-------------------------------------------------------------------------
     /// @brief

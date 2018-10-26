@@ -375,9 +375,9 @@ public:
 
 private:
     int calculate_max_alive_time(const knightrow &knight) {
-        int damage_per_min = kv_enemy_attack;
-        damage_per_min -= kv_enemy_attack * knight.defense / (knight.defense + kv_defense_base);
-        int alive_sec = 60 * knight.hp / damage_per_min;
+        double damage_per_min = kv_enemy_attack;
+        damage_per_min -= (double)kv_enemy_attack * knight.defense / (knight.defense + kv_defense_base);
+        int alive_sec = (int)(60 * knight.hp / damage_per_min);
         return alive_sec;
     }
 
