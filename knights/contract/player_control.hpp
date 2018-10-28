@@ -229,6 +229,14 @@ public:
         }
     }
 
+    void require_coo_auth() {
+        if (has_auth(self)) {
+            return;
+        }
+
+        return require_auth(admin_controller.get_coo());
+    }
+
     // actions
     //-------------------------------------------------------------------------
     void signup(name from) {

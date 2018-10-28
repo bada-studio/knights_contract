@@ -23,7 +23,7 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void addcquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
-        require_auth(self);
+        player_controller.require_coo_auth();
 
         cquest_table table(self, self);
         auto iter = table.find(id);
@@ -73,7 +73,8 @@ public:
     }
 
     void removecquest(uint32_t id) {
-        require_auth(self);
+        player_controller.require_coo_auth();
+
         cquest_table table(self, self);
         auto iter = table.find(id);
         assert_true(iter != table.cend(), "there is no event");
@@ -86,7 +87,8 @@ public:
     }
 
     void updatesubq(uint32_t id, const std::vector<cquestdetail>& details) {
-        require_auth(self);
+        player_controller.require_coo_auth();
+
         cquest_table table(self, self);
         auto iter = table.find(id);
         assert_true(iter != table.cend(), "there is no event");
@@ -176,7 +178,7 @@ public:
     }
 
     void divcquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
-        require_auth(self);
+        player_controller.require_coo_auth();
 
         cquest_table table(self, self);
         auto cquest = table.find(id);
