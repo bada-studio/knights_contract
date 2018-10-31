@@ -316,6 +316,7 @@ public:
 
     void pexpreturn(name from, uint16_t code) {
         require_auth(from);
+        player_controller.require_sigle_action();
 
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
