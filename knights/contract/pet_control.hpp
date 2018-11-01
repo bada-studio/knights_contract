@@ -314,8 +314,14 @@ public:
         }
     }
 
+    void pexpreturn2(name from, uint16_t code, uint64_t checksum) { 
+        player_controller.test_checksum(checksum);
+        pexpreturn(from, code);
+    }
+
     void pexpreturn(name from, uint16_t code) {
         require_auth(from);
+        player_controller.require_action_count(1);
 
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);

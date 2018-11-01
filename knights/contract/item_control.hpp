@@ -505,6 +505,7 @@ private:
     void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, int suffle) {
         name from = player->owner;
         require_auth(from);
+        player_controller.require_action_count(1);
 
         auto &rule_table = item_rule_controller.get_table();
         auto recipe = rule_table.find(code);

@@ -193,6 +193,15 @@ public:
         return (int)(num + v1 + v2 + v3) % k;
     }
 
+    void require_action_count(int count) {
+        char buffer[512];
+        int actual_size = read_transaction(buffer, 512);
+        eosio::datastream<const char *> ds(buffer, actual_size);
+        eosio::transaction tx;
+        ds >> tx;
+        eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
+    }
+
     int32_t get_checksum_value(int32_t value) {
         uint64_t a = checksum_mask >> 16;
         uint64_t b = checksum_mask & 0xFFFF;
