@@ -414,7 +414,7 @@ private:
     void do_rebirth(name from, player_table::const_iterator player, int suffle) {
         require_auth(from);
         player_controller.check_blacklist(from);
-        player_controller.require_sigle_action();
+        player_controller.require_action_count(1);
 
         auto iter = knights.find(from);
         assert_true(iter != knights.cend(), "can not found knight");
