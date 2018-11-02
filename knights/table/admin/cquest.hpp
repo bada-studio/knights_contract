@@ -5,7 +5,8 @@ struct cquestdetail {
     uint8_t score_from = 0; // required score 
     uint8_t score_to = 0; // required score 
     uint8_t level = 0; // required item level
-    asset reward; // total reward
+    asset reward; // reward1
+    asset reward2; // reward2
 };
 
 struct cquestrecord {

@@ -177,6 +177,15 @@ public:
         });
     }
 
+    uint64_t get_code_name(eosio::symbol_type symbol) {
+        switch (symbol) {
+            case S(4, EOS): return N(eosio.token);
+            case S(4, TRYBE): return N(trybenetwork);
+        }
+
+        return 0;
+    }
+
     void divcquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
         player_controller.require_coo_auth();
 
@@ -194,7 +203,8 @@ public:
 
         int total_count = subquest.total_submit_count;
         int current = 0;
-        asset quantity(0, S(4, EOS));
+        asset quantity1(0, subquest.detail.reward.symbol);
+        asset quantity2(0, subquest.detail.reward2.symbol);
 
         for (int index = from; index < subquest.records.size(); index++) {
             auto &record = subquest.records[index];
@@ -205,7 +215,11 @@ public:
             // reward calculation
             asset reward = subquest.detail.reward;
             reward = reward * record.submit_count / total_count;
-            quantity += reward;
+            quantity1 += reward;
+
+            asset reward2 = subquest.detail.reward2;
+            reward2 = reward2 * record.submit_count / total_count;
+            quantity2 += reward2;
 
             // build message
             auto message = std::string("cquest-dividend:") + 
@@ -213,11 +227,21 @@ public:
                         std::to_string(total_count) + ":" + 
                         std::to_string(record.submit_count);
 
-            // transfer
-            action(permission_level{ self, N(active) },
-                N(eosio.token), N(transfer),
-                std::make_tuple(self, record.owner, reward, message)
-            ).send();
+            // reward transfer
+            if (reward.amount > 0) {
+                action(permission_level{ self, N(active) },
+                    get_code_name(reward.symbol), N(transfer),
+                    std::make_tuple(self, record.owner, reward, message)
+                ).send();
+            }
+
+            // reward2 transfer
+            if (reward2.amount > 0) {
+                action(permission_level{ self, N(active) },
+                    get_code_name(reward2.symbol), N(transfer),
+                    std::make_tuple(self, record.owner, reward2, message)
+                ).send();
+            }
 
             if (++current == count) {
                 break;
@@ -225,8 +249,11 @@ public:
         }
 
         // write expenses log
-        if (quantity.amount > 0) {
-            admin_controller.add_expenses(quantity, to_name(self), "craft contest dividend to players");
+        if (quantity1.symbol == S(4, EOS) && quantity1.amount > 0) {
+            admin_controller.add_expenses(quantity1, to_name(self), "craft contest dividend to players");
+        }
+        if (quantity2.symbol == S(4, EOS) && quantity2.amount > 0) {
+            admin_controller.add_expenses(quantity2, to_name(self), "craft contest dividend to players");
         }
 
         // set paid flag
@@ -241,6 +268,6 @@ public:
                     break;
                 }
             }
-        });     
+        });
     }
 };
