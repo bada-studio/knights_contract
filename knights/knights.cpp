@@ -139,9 +139,9 @@ public:
     }
 
     /// @abi action
-    void removecquest(uint32_t id) {
+    void removecquest(uint32_t id, bool force) {
         // it only available there is no user's record
-        cquest_controller.removecquest(id);
+        cquest_controller.removecquest(id, force);
     }
 
     /// @abi action

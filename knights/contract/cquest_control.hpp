@@ -72,15 +72,17 @@ public:
         }
     }
 
-    void removecquest(uint32_t id) {
+    void removecquest(uint32_t id, bool force) {
         player_controller.require_coo_auth();
 
         cquest_table table(self, self);
         auto iter = table.find(id);
         assert_true(iter != table.cend(), "there is no event");
 
-        for (int index = 0; index < iter->subquests.size(); index++) {
-            assert_true(iter->subquests[index].records.size() == 0, "there is player's record");
+        if (force == false) {
+            for (int index = 0; index < iter->subquests.size(); index++) {
+                assert_true(iter->subquests[index].records.size() == 0, "there is player's record");
+            }
         }
 
         table.erase(iter);
