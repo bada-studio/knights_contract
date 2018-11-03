@@ -182,6 +182,7 @@ public:
     uint64_t get_code_name(eosio::symbol_type symbol) {
         switch (symbol) {
             case S(4, EOS): return N(eosio.token);
+            case S(4, BADA): return N(thebadatoken);
             case S(4, TRYBE): return N(trybenetwork);
         }
 
