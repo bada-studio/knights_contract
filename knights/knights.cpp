@@ -113,7 +113,7 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void signup(name from) {
-        player_controller.signup(from);
+        //player_controller.signup(from);
     }
 
     /// @abi action
