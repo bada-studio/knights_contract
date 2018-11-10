@@ -40,6 +40,7 @@ using eosio::name;
 #include "table/rule/rpetlv.hpp"
 #include "table/rule/rpetexp.hpp"
 #include "table/rule/rmpgoods.hpp"
+#include "table/user/kntskill.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
