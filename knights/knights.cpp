@@ -222,6 +222,8 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
+        auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() > 0, "hire knight first!");
         pet_controller.petgacha2(from, type, count, ((int64_t)block << 32) | checksum);
     }
 
