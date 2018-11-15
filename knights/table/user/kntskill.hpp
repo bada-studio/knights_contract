@@ -1,15 +1,15 @@
 struct kntskill {
     uint16_t code;
     uint8_t level;
-    bool selected;
+    uint32_t v1;
 
     kntskill() {
     }    
 
-    kntskill(uint16_t code, uint8_t level, bool selected) {
+    kntskill(uint16_t code, uint8_t level) {
         this->code = code;
         this->level = level;
-        this->selected = selected;
+        this->v1 = 0;
     }
 };
 

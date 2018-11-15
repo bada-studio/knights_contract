@@ -13,6 +13,7 @@ private:
     rule_controller<rknt, rknt_table> knight_rule_controller;
     rule_controller<rkntlv, rkntlv_table> knight_level_rule_controller;
     rule_controller<rkntprice, rkntprice_table> knight_price_rule_controller;
+    rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller;
     rule_controller<rstage, rstage_table> stage_rule_controller;
     std::vector<knightrow> empty_knightrows;
 
@@ -30,6 +31,7 @@ public:
             , knight_rule_controller(_self, N(knt))
             , knight_level_rule_controller(_self, N(kntlv))
             , knight_price_rule_controller(_self, N(kntprice))
+            , knight_skill_rule_controller(_self, N(kntskills))
             , stage_rule_controller(_self, N(stage))
             , material_controller(_material_controller)
             , item_controller(_item_controller)
@@ -357,6 +359,21 @@ public:
         refresh_stat(from, knight);
     }
 
+    /// @brief
+    /// skill level up
+    /// @param from
+    /// account name
+    /// @param knt
+    /// target knight
+    /// @param id
+    /// skill id
+    void skillup(name from, uint8_t knt, uint16_t id) {
+        require_auth(from);
+
+        kntskills_table table(self, self);
+        
+    }
+
     rule_controller<rknt, rknt_table>& get_knight_rule_controller() {
         return knight_rule_controller;
     }
@@ -367,6 +384,10 @@ public:
 
     rule_controller<rkntprice, rkntprice_table>& get_knight_price_rule_controller() {
         return knight_price_rule_controller;
+    }
+
+    rule_controller<rkntskills, rkntskills_table>& get_knight_skill_rule_controller() {
+        return knight_skill_rule_controller;
     }
 
     rule_controller<rstage, rstage_table>& get_stage_rule_controller() {

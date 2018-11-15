@@ -16,16 +16,6 @@ using eosio::permission_level;
 using eosio::action;
 using eosio::name;
 
-#include "table/user/player.hpp"
-#include "table/user/playerv.hpp"
-#include "table/user/knight.hpp"
-#include "table/user/material.hpp"
-#include "table/user/mat4sale.hpp"
-#include "table/user/item.hpp"
-#include "table/user/item4sale.hpp"
-#include "table/user/pet.hpp"
-#include "table/user/petexp.hpp"
-#include "table/user/revenue.hpp"
 #include "table/rule/rivnprice.hpp"
 #include "table/rule/rkntlv.hpp"
 #include "table/rule/rkntprice.hpp"
@@ -40,6 +30,17 @@ using eosio::name;
 #include "table/rule/rpetlv.hpp"
 #include "table/rule/rpetexp.hpp"
 #include "table/rule/rmpgoods.hpp"
+#include "table/rule/rkntskill.hpp"
+#include "table/user/player.hpp"
+#include "table/user/playerv.hpp"
+#include "table/user/knight.hpp"
+#include "table/user/material.hpp"
+#include "table/user/mat4sale.hpp"
+#include "table/user/item.hpp"
+#include "table/user/item4sale.hpp"
+#include "table/user/pet.hpp"
+#include "table/user/petexp.hpp"
+#include "table/user/revenue.hpp"
 #include "table/user/kntskill.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
@@ -187,6 +188,11 @@ public:
         knight_controller.detach(from, id);
     }
 
+    /// @abi action
+    void skillup(name from, uint8_t knt, uint16_t id) {
+        knight_controller.skillup(from, knt, id);
+    }
+
     // material related actions
     //-------------------------------------------------------------------------
     /// @abi action
@@ -303,6 +309,11 @@ public:
     }
 
     /// @abi action
+    void ckntskills(const std::vector<rkntskills> &rules, bool truncate) {
+        knight_controller.get_knight_skill_rule_controller().create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void cstage(const std::vector<rstage> &rules, bool truncate) {
         knight_controller.get_stage_rule_controller().create_rules(rules, truncate);
     }
@@ -362,6 +373,8 @@ public:
             knight_controller.get_knight_level_rule_controller().truncate_rules(size);
         } else if (table == N(kntprice)) {
             knight_controller.get_knight_price_rule_controller().truncate_rules(size);
+        } else if (table == N(kntskills)) {
+            knight_controller.get_knight_skill_rule_controller().truncate_rules(size);
         } else if (table == N(stage)) {
             knight_controller.get_stage_rule_controller().truncate_rules(size);
         } else if (table == N(variable)) {
@@ -525,4 +538,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
