@@ -370,8 +370,77 @@ public:
     void skillup(name from, uint8_t knt, uint16_t id) {
         require_auth(from);
 
-        kntskills_table table(self, self);
+        auto knt_iter = knights.find(from);
+        assert_true(knt_iter != knights.cend(), "could not found knight");
+        auto &knight = get_knight(knt_iter, knt);
+        int total_point = knight.level - 1;
+        int current_point = 0;
+        assert_true(total_point > 0, "no remain skill point");
+
+        bool is_first_skill = ((id % 10) == 1);
+
+        // remain point check
+        assert_true(knight_skill_rule_controller.is_empty() == false, "empty rule");
+        const auto &rule = knight_skill_rule_controller.get_table().begin()->get_rule(id);
         
+        kntskills_table table(self, self);
+        auto iter = table.find(from);
+        if (iter == table.end()) {
+            // check first skill
+            assert_true(is_first_skill, "required previous skill first");
+            
+            // new skill
+            table.emplace(self, [&](auto &target) {
+                kntskill skill;
+                skill.set(id, 1);
+                auto &skills = target.get_skills(knt);
+                skills.push_back(skill);
+            });
+        } else {
+            auto &skills = iter->cget_skills(knt);
+
+            // remain point check
+            current_point = get_skill_count(skills);
+            assert_true(total_point > current_point, "no remain skill point");
+
+            bool find_lhs = false;
+            for (int index = 0; index < skills.size(); index++) {
+                if (skills[index].code == id-1) {
+                    find_lhs = true;
+                }
+
+                // full upgrade check
+                if (skills[index].code == id) {
+                    assert_true(skills[index].level < rule.maxlevel, "already full level");
+                    break;
+                }
+            }
+
+            // left hand side skill check
+            if (is_first_skill == false && find_lhs == false) {
+                assert_true(false, "required previous skill first");
+            }
+            
+            table.modify(iter, self, [&](auto &target) {
+                auto &tskills = target.get_skills(knt);
+                bool found = false;
+                for (int index = 0; index < tskills.size(); index++) {
+                    // level up
+                    if (tskills[index].code == id) {
+                        tskills[index].level++;
+                        found = true;
+                        break;
+                    }
+                }
+
+                // new skill
+                if (found == false) {
+                    kntskill skill;
+                    skill.set(id, 1);
+                    tskills.push_back(skill);
+                }
+            });
+        }
     }
 
     rule_controller<rknt, rknt_table>& get_knight_rule_controller() {
@@ -600,5 +669,13 @@ private:
             return false;
         }
         return true;
+    }
+
+    int get_skill_count(const std::vector<kntskill> &skills) const {
+        int res = 0;
+        for (int index=0; index < skills.size(); index++) {
+            res += skills[index].level;
+        }
+        return res;
     }
 };

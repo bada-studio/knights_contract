@@ -36,6 +36,17 @@ struct rkntskills {
         return no;
     }
 
+    const rkntskill& get_rule(int id) const {
+        for (int index = 0; index < skills.size(); index++) {
+            if (skills[index].code == id) {
+                return skills[index];
+            }
+        }
+
+        eosio_assert(0, "can not found skill rule");
+        return skills[0];
+    }
+
     EOSLIB_SERIALIZE(
             rkntskills,
             (no)

@@ -55,6 +55,10 @@ public:
         }
     }
 
+    bool is_empty() {
+        return table.cbegin() == table.cend();
+    }
+
     TableType& get_table() {
         return table;
     }
