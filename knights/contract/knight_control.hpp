@@ -393,6 +393,7 @@ public:
             table.emplace(self, [&](auto &target) {
                 kntskill skill;
                 skill.set(id, 1);
+                target.owner = from;
                 auto &skills = target.get_skills(knt);
                 skills.push_back(skill);
             });
@@ -441,6 +442,29 @@ public:
                 }
             });
         }
+    }
+
+    /// @brief
+    /// reset knight's skillset
+    /// @param from
+    /// account name
+    /// @param knt
+    /// target knight
+    void skillreset(name from, uint8_t knt) {
+        kntskills_table table(self, self);
+        auto iter = table.find(from);
+        assert_true(iter != table.end(), "can not found skill set");
+
+        // clear stat
+        table.modify(iter, self, [&](auto &target) {
+            auto &tskills = target.get_skills(knt);
+            tskills.clear();
+        });
+
+        // pay the price
+        auto player = player_controller.get_player(from);
+        assert_true(player_controller.is_empty_player(player) == false, "could not find player");
+        player_controller.decrease_powder(player, kv_skill_reset_price);
     }
 
     rule_controller<rknt, rknt_table>& get_knight_rule_controller() {
