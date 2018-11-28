@@ -458,6 +458,7 @@ public:
         // clear stat
         table.modify(iter, self, [&](auto &target) {
             auto &tskills = target.get_skills(knt);
+            assert_true(tskills.size() > 0, "no skill to clear");
             tskills.clear();
         });
 
