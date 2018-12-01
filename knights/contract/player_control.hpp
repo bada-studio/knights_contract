@@ -2,8 +2,8 @@
 
 class player_control : public control_base {
 private:
-    const uint32_t a = 1103515245;
-    const uint32_t c = 12345;
+    const uint64_t a = 1103515245;
+    const uint64_t c = 12345;
 
     player_table players;
     playerv_table playervs;

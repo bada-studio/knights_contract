@@ -184,6 +184,7 @@ public:
             case S(4, EOS): return N(eosio.token);
             case S(4, BADA): return N(thebadatoken);
             case S(4, TRYBE): return N(trybenetwork);
+            case S(4, MEETONE): return N(eosiomeetone);
         }
 
         return 0;
