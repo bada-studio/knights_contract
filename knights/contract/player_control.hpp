@@ -162,7 +162,7 @@ public:
         admin_controller.record_new_player();
     }
 
-    uint64_t seed_identity(name from);
+    uint32_t seed_identity(name from);
     random_val begin_random(name from, random_for r4, int type);
     void end_random(name from, const random_val &val, random_for r4, int type);
     uint32_t get_key(name from);
@@ -430,33 +430,33 @@ public:
     void shuffle(name from) {
         require_auth(self);
 
-        auto rval = player_controller.begin_random(from, r4_rebirth, 0);
+        auto rval = begin_random(from, r4_rebirth, 0);
         rval.seed = seed_identity(from);
-        player_controller.end_random(from, rval, r4_rebirth, 0);
+        end_random(from, rval, r4_rebirth, 0);
         
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_petgacha, pgt_low_class);
+        end_random(from, rval, r4_petgacha, pgt_low_class);
         
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_petgacha, pgt_high_class);
+        end_random(from, rval, r4_petgacha, pgt_high_class);
 
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_craft, ig_normal);
+        end_random(from, rval, r4_craft, ig_normal);
 
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_craft, ig_rare);
+        end_random(from, rval, r4_craft, ig_rare);
 
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_craft, ig_unique);
+        end_random(from, rval, r4_craft, ig_unique);
 
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_craft, ig_legendary);
+        end_random(from, rval, r4_craft, ig_legendary);
 
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_craft, ig_ancient);
+        end_random(from, rval, r4_craft, ig_ancient);
 
         random_range(rval, 10);
-        player_controller.end_random(from, rval, r4_petexp, 0);
+        end_random(from, rval, r4_petexp, 0);
     }
 
     rule_controller<rivnprice, rivnprice_table>& get_inventory_price_rule() {
