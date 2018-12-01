@@ -9,6 +9,7 @@ private:
 
     rule_controller<rdungeon, rdungeon_table> dungeon_rule_controller;
     rule_controller<rmobs, rmobs_table> mobs_rule_controller;
+    rule_controller<rmobskills, rmobskills_table> mobskills_rule_controller;
 
 public:
     // constructor
@@ -20,6 +21,7 @@ public:
         : self(_self)
         , dungeon_rule_controller(_self, N(dungeon))
         , mobs_rule_controller(_self, N(mobs))
+        , mobskills_rule_controller(_self, N(mobskills))
         , item_controller(_item_controller)
         , player_controller(_player_controller)
         , admin_controller(_admin_controller) {
@@ -33,4 +35,8 @@ public:
     rule_controller<rmobs, rmobs_table>& get_mobs_rule() {
         return mobs_rule_controller;
     }
+
+    rule_controller<rmobskills, rmobskills_table>& get_mobskills_rule() {
+        return mobskills_rule_controller;
+    }    
 };
