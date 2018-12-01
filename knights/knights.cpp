@@ -32,6 +32,7 @@ using eosio::name;
 #include "table/rule/rmpgoods.hpp"
 #include "table/rule/rkntskill.hpp"
 #include "table/rule/rdungeon.hpp"
+#include "table/rule/rmob.hpp"
 #include "table/user/player.hpp"
 #include "table/user/playerv.hpp"
 #include "table/user/knight.hpp"
@@ -383,6 +384,11 @@ public:
     }
 
     /// @abi action
+    void cmobs(const std::vector<rmobs> &rules, bool truncate) {
+        dungeon_controller.get_mobs_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void trule(name table, uint16_t size) {
         if (table == N(ivnprice)) {
             player_controller.get_inventory_price_rule().truncate_rules(size);
@@ -416,6 +422,8 @@ public:
             powder_controller.get_mpgoods_rule().truncate_rules(size);
         } else if (table == N(dungeon)) {
             dungeon_controller.get_dungeon_rule().truncate_rules(size);
+        } else if (table == N(mobs)) {
+            dungeon_controller.get_mobs_rule().truncate_rules(size);
         } else {
             eosio_assert(0, "could not find table");
         }
@@ -559,4 +567,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cmobs) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
