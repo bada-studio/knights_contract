@@ -427,6 +427,38 @@ public:
         });
     }
 
+    void shuffle(name from) {
+        require_auth(self);
+
+        auto rval = player_controller.begin_random(from, r4_rebirth, 0);
+        rval.seed = seed_identity(from);
+        player_controller.end_random(from, rval, r4_rebirth, 0);
+        
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_petgacha, pgt_low_class);
+        
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_petgacha, pgt_high_class);
+
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_craft, ig_normal);
+
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_craft, ig_rare);
+
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_craft, ig_unique);
+
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_craft, ig_legendary);
+
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_craft, ig_ancient);
+
+        random_range(rval, 10);
+        player_controller.end_random(from, rval, r4_petexp, 0);
+    }
+
     rule_controller<rivnprice, rivnprice_table>& get_inventory_price_rule() {
         return  rivnprice_controller;
     }
