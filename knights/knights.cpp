@@ -117,7 +117,7 @@ public:
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
-    , dungeon_controller(_self, item_controller, player_controller, knight_controller, admin_controller) {
+    , dungeon_controller(_self, material_controller, player_controller, knight_controller) {
     }
 
     // player related actions
@@ -317,6 +317,11 @@ public:
 
     // dungeon related actions
     //-------------------------------------------------------------------------
+    /// @abi action
+    void dgtcraft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
+        dungeon_controller.dgtcraft(from, code, mat_ids);
+    }
+
     /// @abi action
     void dgenter(name from, uint16_t code) {
         dungeon_controller.dgenter(from, code);
@@ -611,4 +616,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgtcraft) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

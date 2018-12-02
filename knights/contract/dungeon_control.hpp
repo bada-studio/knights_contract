@@ -3,8 +3,7 @@
 class dungeon_control : public control_base {
 private:
     account_name self;
-    item_control &item_controller;
-    admin_control &admin_controller;
+    material_control &material_controller;
     player_control &player_controller;
     knight_control &knight_controller;
 
@@ -17,23 +16,82 @@ public:
     // constructor
     //-------------------------------------------------------------------------
     dungeon_control(account_name _self,
-                    item_control &_item_controller,
+                    material_control &_material_controller,
                     player_control &_player_controller,
-                    knight_control &_knight_controller,
-                    admin_control &_admin_controller)
+                    knight_control &_knight_controller)
         : self(_self)
         , dungeon_rule_controller(_self, N(dungeon))
         , dgticket_rule_controller(_self, N(dgticket))
         , mobs_rule_controller(_self, N(mobs))
         , mobskills_rule_controller(_self, N(mobskills))
-        , item_controller(_item_controller)
+        , material_controller(_material_controller)
         , player_controller(_player_controller)
-        , knight_controller(_knight_controller)
-        , admin_controller(_admin_controller) {
+        , knight_controller(_knight_controller) {
     }
 
     // actions
     //-------------------------------------------------------------------------
+    void dgtcraft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
+        require_auth(from);
+
+        // get rule
+        auto &rule_table = dgticket_rule_controller.get_table();
+        auto rule = rule_table.find(code);
+        assert_true(rule != rule_table.cend(), "there is no dungeon rule");
+
+        int cnt1 = rule->cnt1;
+        int cnt2 = rule->cnt2;
+        int cnt3 = rule->cnt3;
+
+        // check recipe
+        auto &mats = material_controller.get_materials(from);
+        for (int index = 0; index < mat_ids.size(); index++) {
+            auto &mat = material_controller.get_material(mats, mat_ids[index]);
+            if (mat.code == rule->mat1) {
+                cnt1--;
+            } else if (mat.code == rule->mat2) {
+                cnt2--;
+            } else if (mat.code == rule->mat3) {
+                cnt3--;
+            } else {
+                assert_true(false, "invalid ticket recipe");
+            }
+        }
+
+        if (cnt1 != 0 || cnt2 != 0 || cnt3 != 0) {
+            assert_true(false, "invalid ticket recipe");
+        }
+
+        // remove material
+        material_controller.remove_mats(from, mat_ids);
+
+        // add ticket
+        dungeons_table table(self, self);
+        auto iter = table.find(from);
+        if (iter == table.cend()) {
+            table.emplace(self, [&](auto& target) {
+                dgticket ticket;
+                ticket.code = code;
+                ticket.count = 1;
+
+                target.owner = from;
+                target.tickets.push_back(ticket);
+            });
+        } else {
+            table.modify(iter, self, [&](auto& target) {
+                int tpos = target.find_ticket(code);
+                if (tpos >= 0) {
+                    target.tickets[tpos].count++;
+                } else {
+                    dgticket ticket;
+                    ticket.code = code;
+                    ticket.count = 1;
+                    target.tickets.push_back(ticket);
+                }
+            });
+        }
+    }
+
     void dgenter(name from, uint16_t code) {
         require_auth(from);
         auto &players = player_controller.get_players();
