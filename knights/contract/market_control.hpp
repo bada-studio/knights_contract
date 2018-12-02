@@ -106,11 +106,6 @@ public:
 
     // action
     //-------------------------------------------------------------------------
-    void sellitem2(name from, uint64_t itemid, asset price, uint64_t checksum) {
-        player_controller.test_checksum(checksum);
-        sellitem(from, itemid, price);
-    }
-
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
         player_controller.check_blacklist(from);
@@ -152,11 +147,6 @@ public:
         });
 
         item_controller.make_item_forsale(from, itemid, id);
-    }
-
-    void ccsellitem2(name from, uint64_t saleid, uint64_t checksum) {
-        player_controller.test_checksum(checksum);
-        ccsellitem(from, saleid);
     }
 
     void ccsellitem(name from, uint64_t saleid) {
@@ -252,11 +242,6 @@ public:
         return tax;
     }
 
-    void sellmat2(name from, uint64_t matid, asset price, uint64_t checksum) {
-        player_controller.test_checksum(checksum);
-        sellmat(from, matid, price);
-    }
-
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
         player_controller.check_blacklist(from);
@@ -283,11 +268,6 @@ public:
 
         uint64_t id = issue_mat(mat.code, price, from);
         material_controller.make_material_forsale(from, matid, id);
-    }
-
-    void ccsellmat2(name from, uint64_t saleid, uint64_t checksum) {
-        player_controller.test_checksum(checksum);
-        ccsellmat(from, saleid);
     }
 
     void ccsellmat(name from, uint64_t saleid) {

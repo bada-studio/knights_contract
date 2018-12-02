@@ -114,9 +114,8 @@ public:
         });
     }
 
-    void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id, uint64_t checksum) {
+    void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id) {
         require_auth(from);
-        player_controller.test_checksum(checksum);
 
         cquest_table table(self, self);
         assert_true(table.cbegin() != table.cend(), "no cquest exist");
