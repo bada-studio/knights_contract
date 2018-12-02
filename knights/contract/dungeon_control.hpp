@@ -9,6 +9,7 @@ private:
     knight_control &knight_controller;
 
     rule_controller<rdungeon, rdungeon_table> dungeon_rule_controller;
+    rule_controller<rdgticket, rdgticket_table> dgticket_rule_controller;
     rule_controller<rmobs, rmobs_table> mobs_rule_controller;
     rule_controller<rmobskills, rmobskills_table> mobskills_rule_controller;
 
@@ -22,6 +23,7 @@ public:
                     admin_control &_admin_controller)
         : self(_self)
         , dungeon_rule_controller(_self, N(dungeon))
+        , dgticket_rule_controller(_self, N(dgticket))
         , mobs_rule_controller(_self, N(mobs))
         , mobskills_rule_controller(_self, N(mobskills))
         , item_controller(_item_controller)
@@ -135,6 +137,10 @@ public:
 
     rule_controller<rdungeon, rdungeon_table>& get_dungeon_rule() {
         return dungeon_rule_controller;
+    }
+
+    rule_controller<rdgticket, rdgticket_table>& get_dgticket_rule() {
+        return dgticket_rule_controller;
     }
 
     rule_controller<rmobs, rmobs_table>& get_mobs_rule() {
