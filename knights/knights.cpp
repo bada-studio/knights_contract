@@ -45,6 +45,7 @@ using eosio::name;
 #include "table/user/petexp.hpp"
 #include "table/user/revenue.hpp"
 #include "table/user/kntskill.hpp"
+#include "table/user/dungeon.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
@@ -66,13 +67,13 @@ using eosio::name;
 #include "contract/player_control.hpp"
 #include "contract/material_control.hpp"
 #include "contract/item_control.hpp"
-#include "contract/dungeon_control.hpp"
 #include "contract/pet_control.hpp"
 #include "contract/knight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/powder_control.hpp"
 #include "contract/cquest_control.hpp"
 #include "contract/player_control.cpp"
+#include "contract/dungeon_control.hpp"
 
 class knights : public eosio::contract, public control_base {
 private:
@@ -114,7 +115,7 @@ public:
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
-    , dungeon_controller(_self, item_controller, player_controller, admin_controller) {
+    , dungeon_controller(_self, item_controller, player_controller, knight_controller, admin_controller) {
     }
 
     // player related actions
@@ -312,7 +313,14 @@ public:
         market_controller.ccsellmat(from, id);
     }
 
-    // rule ralated actions
+    // dungeon related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void dgenter(name from, uint16_t code) {
+        dungeon_controller.dgenter(from, code);
+    }
+
+    // rule related actions
     //-------------------------------------------------------------------------
     /// @abi action
     void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
@@ -555,7 +563,6 @@ public:
             iter = table.erase(iter);
         }
     }
-
     */
 };
 
@@ -585,4 +592,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgenter) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

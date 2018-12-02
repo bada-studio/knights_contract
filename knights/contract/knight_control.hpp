@@ -4,6 +4,7 @@ class knight_control : public control_base {
 private:
     account_name self;
     knight_table knights;
+    kntskills_table skills;
 
     material_control &material_controller;
     item_control &item_controller;
@@ -16,6 +17,7 @@ private:
     rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller;
     rule_controller<rstage, rstage_table> stage_rule_controller;
     std::vector<knightrow> empty_knightrows;
+    std::vector<kntskill> empty_kntskill;
 
 public:
     // constructor
@@ -28,6 +30,7 @@ public:
                    saleslog_control &_saleslog_controller)
             : self(_self)
             , knights(_self, _self)
+            , skills(_self, _self)
             , knight_rule_controller(_self, N(knt))
             , knight_level_rule_controller(_self, N(kntlv))
             , knight_price_rule_controller(_self, N(kntprice))
@@ -82,6 +85,11 @@ public:
         return get_knights(iter);
     }
 
+    const std::vector<kntskill>& get_knight_skills(name from, int knt) {
+        auto iter = skills.find(from);
+        return get_knight_skills(iter, knt);
+    }
+
     int get_knight_max_level(name from) {
         auto &knights = get_knights(from);
         int level = 0;
@@ -100,6 +108,14 @@ public:
         }
 
         return empty_knightrows;
+    }
+
+    const std::vector<kntskill>& get_knight_skills(kntskills_table::const_iterator iter, int knt) {
+        if (iter != skills.cend()) {
+            return iter->cget_skills(knt);
+        }
+
+        return empty_kntskill;
     }
 
     const knightrow& get_knight(knight_table::const_iterator iter, uint8_t type) {
@@ -373,14 +389,13 @@ public:
         assert_true(knight_skill_rule_controller.is_empty() == false, "empty rule");
         const auto &rule = knight_skill_rule_controller.get_table().begin()->get_rule(id);
         
-        kntskills_table table(self, self);
-        auto iter = table.find(from);
-        if (iter == table.end()) {
+        auto iter = skills.find(from);
+        if (iter == skills.end()) {
             // check first skill
             assert_true(is_first_skill, "required previous skill first");
             
             // new skill
-            table.emplace(self, [&](auto &target) {
+            skills.emplace(self, [&](auto &target) {
                 kntskill skill;
                 skill.set(id, 1);
                 target.owner = from;
@@ -388,21 +403,21 @@ public:
                 skills.push_back(skill);
             });
         } else {
-            auto &skills = iter->cget_skills(knt);
+            auto &target = iter->cget_skills(knt);
 
             // remain point check
-            current_point = get_skill_count(skills);
+            current_point = get_skill_count(target);
             assert_true(total_point > current_point, "no remain skill point");
 
             bool find_lhs = false;
-            for (int index = 0; index < skills.size(); index++) {
-                if (skills[index].code == id-1) {
+            for (int index = 0; index < target.size(); index++) {
+                if (target[index].code == id-1) {
                     find_lhs = true;
                 }
 
                 // full upgrade check
-                if (skills[index].code == id) {
-                    assert_true(skills[index].level < rule.maxlevel, "already full level");
+                if (target[index].code == id) {
+                    assert_true(target[index].level < rule.maxlevel, "already full level");
                     break;
                 }
             }
@@ -412,13 +427,13 @@ public:
                 assert_true(false, "required previous skill first");
             }
             
-            table.modify(iter, self, [&](auto &target) {
-                auto &tskills = target.get_skills(knt);
+            skills.modify(iter, self, [&](auto &target) {
+                auto &tskill = target.get_skills(knt);
                 bool found = false;
-                for (int index = 0; index < tskills.size(); index++) {
+                for (int index = 0; index < tskill.size(); index++) {
                     // level up
-                    if (tskills[index].code == id) {
-                        tskills[index].level++;
+                    if (tskill[index].code == id) {
+                        tskill[index].level++;
                         found = true;
                         break;
                     }
@@ -428,7 +443,7 @@ public:
                 if (found == false) {
                     kntskill skill;
                     skill.set(id, 1);
-                    tskills.push_back(skill);
+                    tskill.push_back(skill);
                 }
             });
         }
@@ -441,15 +456,14 @@ public:
     /// @param knt
     /// target knight
     void skillreset(name from, uint8_t knt) {
-        kntskills_table table(self, self);
-        auto iter = table.find(from);
-        assert_true(iter != table.end(), "can not found skill set");
+        auto iter = skills.find(from);
+        assert_true(iter != skills.end(), "can not found skill set");
 
         // clear stat
-        table.modify(iter, self, [&](auto &target) {
-            auto &tskills = target.get_skills(knt);
-            assert_true(tskills.size() > 0, "no skill to clear");
-            tskills.clear();
+        skills.modify(iter, self, [&](auto &target) {
+            auto &tskill = target.get_skills(knt);
+            assert_true(tskill.size() > 0, "no skill to clear");
+            tskill.clear();
         });
 
         // pay the price

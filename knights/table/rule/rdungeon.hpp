@@ -4,7 +4,8 @@
 struct rdungeon {
     uint64_t code = 0;
     uint8_t wave = 0;
-    uint8_t fee = 0;
+    uint8_t tkcode = 0;
+    uint8_t tkcount = 0;
     uint16_t required_floor = 0;
     uint16_t unique_drop = 0;
     uint16_t legendary_drop = 0;
@@ -31,7 +32,8 @@ struct rdungeon {
             rdungeon,
             (code)
             (wave)
-            (fee)
+            (tkcode)
+            (tkcount)
             (required_floor)
             (unique_drop)
             (legendary_drop)
