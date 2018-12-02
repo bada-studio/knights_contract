@@ -171,7 +171,7 @@ public:
 
     /// @brief
     /// Register stock holder
-    /// @param name
+    /// @param holder 
     /// Stock holder name
     /// @param share
     /// Stock share
@@ -196,7 +196,7 @@ public:
     }
 
     /// @brief
-    /// Withdraw eos token to stockholaders
+    /// Withdraw eos token to stockholders
     /// @param amount
     /// Amount of token to withdraw
     void dividend(asset amount) {
