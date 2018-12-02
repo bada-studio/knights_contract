@@ -18,6 +18,8 @@ struct rdungeon {
     uint16_t mdrop1 = 0;
     uint16_t mdrop2 = 0;
     uint16_t mdrop3 = 0;
+    uint16_t winmw = 0;
+    uint16_t losemw = 0;
     uint64_t v1 = 0;
     uint64_t v2 = 0;
 
@@ -46,6 +48,8 @@ struct rdungeon {
             (mdrop1)
             (mdrop2)
             (mdrop3)
+            (winmw)
+            (losemw)
             (v1)
             (v2)
     )

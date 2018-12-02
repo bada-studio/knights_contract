@@ -38,15 +38,16 @@ public:
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
 
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
-        assert_true(table.cend() != iter, "to dungeon ticket");
-
         // required floor check
         auto &rule_table = dungeon_rule_controller.get_table();
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
         assert_true(rule->required_floor <= player->maxfloor, "need more maxfloor");
+
+        // get dungeon table
+        dungeons_table table(self, self);
+        auto iter = table.find(from);
+        assert_true(table.cend() != iter, "to dungeon data");
 
         // check ticket
         int tpos = iter->find_ticket(rule->tkcode);
@@ -98,6 +99,38 @@ public:
             target.tickets[tpos].count -= rule->tkcount;
             target.rows.push_back(data);
         });
+    }
+
+    void dgleave(name from, uint16_t code) {
+        require_auth(from);
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(players.cend() != player, "could not find player");
+
+        // get rule
+        auto &rule_table = dungeon_rule_controller.get_table();
+        auto rule = rule_table.find(code);
+        assert_true(rule != rule_table.cend(), "there is no dungeon rule");
+
+        // get dungeon table
+        dungeons_table table(self, self);
+        auto iter = table.find(from);
+        assert_true(table.cend() != iter, "to dungeon data");
+
+        int pos = iter->find_data(code);
+        assert_true(pos >= 0, "there is no dungeon");
+
+        // remove dongeon
+        table.modify(iter, self, [&](auto& target) {
+            target.rows.erase(target.rows.cbegin() + pos);
+        });
+
+        // add magic water
+        player_controller.increase_powder(player, rule->losemw);
+    }
+
+    void dgclear(name from, uint16_t code, const std::vector<dgorder> orders) {
+        // todo: validate order
     }
 
     rule_controller<rdungeon, rdungeon_table>& get_dungeon_rule() {
