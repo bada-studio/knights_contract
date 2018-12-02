@@ -156,7 +156,7 @@ public:
 
     /// @abi action
     void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         cquest_controller.submitcquest(from, cquest_id, no, item_id);
     }
 
@@ -174,7 +174,7 @@ public:
 
     /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         knight_controller.rebirth(from);
     }
 
@@ -197,7 +197,7 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         material_controller.remove(from, mat_ids);
     }
 
@@ -205,7 +205,7 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         item_controller.craft(from, code, mat_ids);
     }
 
@@ -231,7 +231,7 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "hire knight first!");
         pet_controller.petgacha(from, type, count);
@@ -264,7 +264,7 @@ public:
 
     /// @abi action
     void pexpreturn2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         pet_controller.pexpreturn(from, code);
     }
 
@@ -272,25 +272,25 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void sellitem2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         market_controller.sellitem(from, id, price);
     }
 
     /// @abi action
     void ccsellitem2(name from, uint64_t id, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         market_controller.ccsellitem(from, id);
     }
 
     /// @abi action
     void sellmat2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         market_controller.sellmat(from, id, price);
     }
 
     /// @abi action
     void ccsellmat2(name from, uint64_t id, uint32_t block, uint32_t checksum) {
-        player_controller.test_checksum(((int64_t)block << 32) | checksum);
+        player_controller.checksum_gateway(from, block, checksum);
         market_controller.ccsellmat(from, id);
     }
 
