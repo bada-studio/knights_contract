@@ -318,22 +318,26 @@ public:
     // dungeon related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void dgtcraft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
+    void dgtcraft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgtcraft(from, code, mat_ids);
     }
 
     /// @abi action
-    void dgenter(name from, uint16_t code) {
+    void dgenter(name from, uint16_t code, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgenter(from, code);
     }
 
     /// @abi action
-    void dgclear(name from, uint16_t code, const std::vector<dgorder> orders) {
+    void dgclear(name from, uint16_t code, const std::vector<dgorder> orders, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgclear(from, code, orders);
     }
 
     /// @abi action
-    void dgleave(name from, uint16_t code) {
+    void dgleave(name from, uint16_t code, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgleave(from, code);
     }    
 
