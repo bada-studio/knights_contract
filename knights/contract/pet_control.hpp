@@ -132,28 +132,13 @@ public:
     /// low_class or high_class, @see pet_gacha_type
     /// @param count
     /// Gocha request count
-    void petgacha(name from, uint16_t type, uint8_t count) {
-        assert_true(false, "this action has been obsolete");
-    }
-
-    /// @brief
-    /// Pet gacha. Run count times.
-    /// Magic powder is consumed. If the powder is insufficient, it fails.
-    /// @param from
-    /// Player who requested gocha
-    /// @param type
-    /// low_class or high_class, @see pet_gacha_type
-    /// @param count
-    /// Gocha request count
     /// @param checksum
     /// To prevent bots
-    void petgacha2(name from, uint16_t type, uint8_t count, uint64_t checksum) {
+    void petgacha(name from, uint16_t type, uint8_t count) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
-        int suffle = player_controller.test_checksum(checksum);
-
-        do_petgacha(player, type, count, suffle);
+        do_petgacha(player, type, count);
     }
 
     /// @brief
@@ -312,11 +297,6 @@ public:
                 target.rows = updated;
             });
         }
-    }
-
-    void pexpreturn2(name from, uint16_t code, uint64_t checksum) { 
-        player_controller.test_checksum(checksum);
-        pexpreturn(from, code);
     }
 
     void pexpreturn(name from, uint16_t code) {
@@ -518,7 +498,7 @@ public:
     }
 
 private:
-    void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, int suffle) {
+    void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count) {
         name from = player->owner;
         require_auth(from);
         assert_true(type > 0 && type < pgt_count, "invalid gacha type");

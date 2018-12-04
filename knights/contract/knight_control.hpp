@@ -242,23 +242,13 @@ public:
     /// Rebirth all knights.
     /// @param from
     /// Player who requested rebirth
-    void rebirth(name from) {
-        assert_true(false, "this action has been obsolete");
-    }
-
-    /// @brief
-    /// Rebirth all knights.
-    /// @param from
-    /// Player who requested rebirth
     /// @param checksum
     /// To prevent bots
-    void rebirth2(name from, uint64_t checksum) {
+    void rebirth(name from) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        int suffle = player_controller.test_checksum(checksum);
-        
-        do_rebirth(from, player, suffle);
+        do_rebirth(from, player);
     }
     
     /// @brief
@@ -411,7 +401,7 @@ private:
     }
 
     /// rebirth common logic
-    void do_rebirth(name from, player_table::const_iterator player, int suffle) {
+    void do_rebirth(name from, player_table::const_iterator player) {
         require_auth(from);
         player_controller.check_blacklist(from);
         player_controller.require_action_count(1);
