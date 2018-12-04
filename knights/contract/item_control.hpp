@@ -349,26 +349,11 @@ public:
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
     void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
-        assert_true(false, "this action has been obsolete");
-    }
-
-    /// @brief
-    /// Craft item
-    /// @param from
-    /// Player who requested craft item
-    /// @param code
-    /// item code which you want to craft
-    /// @param mat_ids
-    /// material ids for item, this materials will be deleted.
-    /// @param checksum
-    /// To prevent bots
-    void craft2(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint64_t checksum) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        int suffle = player_controller.test_checksum(checksum);
 
-        do_craft(player, code, mat_ids, suffle);
+        do_craft(player, code, mat_ids);
     }
 
     /// @brief
@@ -502,7 +487,7 @@ public:
     }
 
 private:
-    void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, int suffle) {
+    void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids) {
         name from = player->owner;
         require_auth(from);
         player_controller.require_action_count(1);
@@ -543,12 +528,12 @@ private:
                     mat3_count == 0 &&
                     mat4_count == 0, "invalid recipe material count");
 
-        uint32_t dna = random_dna(*recipe, from, code, suffle);
+        uint32_t dna = random_dna(*recipe, from, code);
         add_item(from, code, dna, 1, 0);
         material_controller.remove_mats(from, mat_ids);
     }
 
-    uint32_t random_dna(const ritem &rule, name from, int code, int suffle) {
+    uint32_t random_dna(const ritem &rule, name from, int code) {
         auto rval = player_controller.begin_random(from, r4_craft, rule.grade);
         uint32_t stat1 = player_controller.random_range(rval, 101);
         uint32_t stat2 = player_controller.random_range(rval, 101);

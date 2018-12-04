@@ -166,6 +166,7 @@ public:
     random_val begin_random(name from, random_for r4, int type);
     void end_random(name from, const random_val &val, random_for r4, int type);
     uint32_t get_key(name from);
+    uint32_t get_checksum_key(name from);
 
     uint32_t random_range(random_val &val, uint32_t to) {
         val.seed = (a * val.seed + c) % 0x7fffffff;
@@ -180,6 +181,15 @@ public:
             target.gift = gift;
         });
     }
+
+    void checksum_gateway(name from, uint32_t block, uint32_t checksum) {
+        int32_t v1 = (checksum >> 16);
+        if (v1 & 0x8000) {
+            test_checksum_v2(from, block, checksum);
+        } else {
+            test_checksum(((int64_t)block << 32) | checksum);
+        }
+    }
     
     int test_checksum(uint64_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
@@ -191,6 +201,20 @@ public:
         assert_true((v1 % k) == v3, "checksum failure");
         assert_true((num - v1) < 120, "too old checksum");
         return (int)(num + v1 + v2 + v3) % k;
+    }
+
+    void test_checksum_v2(name from, uint32_t block, uint32_t checksum) {
+        int32_t k = (checksum_mask & 0xFFFF);
+        int32_t num = time_util::getnow();
+
+        int32_t v0 = block ^ get_checksum_key(from);
+        int32_t v1 = (v0 % k);
+        int32_t v2 = (checksum >> 16) & 0x7FFF;
+        int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
+        assert_true(v1 == v2, "checksum failure 1");
+        assert_true(v2 == v3, "checksum failure 2");
+        assert_true(num > v0, "checksum error type1");
+        assert_true((num - v0) < 90, "checksum error type2");
     }
 
     void require_action_count(int count) {
