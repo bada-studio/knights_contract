@@ -97,6 +97,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
+        auto time_now = time_util::getnow();
 
         // required floor check
         auto &rule_table = dungeon_rule_controller.get_table();
@@ -114,6 +115,8 @@ public:
         assert_true(tpos >= 0, "not enough ticket");
         assert_true(iter->tickets[tpos].count >= rule->tkcount, "not enough ticket");
 
+        int rpos = iter->find_record(code);
+
         // check no dungeon
         int pos = iter->find_data(code);
         assert_true(pos < 0, "there is already opened dungeon");
@@ -122,15 +125,8 @@ public:
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() == 3, "3 knights needed");
 
-        // new seed
-        auto rval = player_controller.begin_random(from, r4_dungeon, 0);
-        player_controller.random_range(rval, 100);
-        player_controller.end_random(from, rval, r4_dungeon, 0);
-
         dgdata data;
         data.code = code;
-        data.seed = rval.seed;
-        data.open = time_util::getnow();
         data.v1 = 0;
         data.v2 = 0;
 
@@ -148,7 +144,7 @@ public:
             assert_true(skills.size() >= 5, "every knights needs to have 5 or more skills");
 
             for (int k = 0; k < skills.size(); k++) {
-                item.skills.push_back(skills[index]);
+                item.skills.push_back(skills[k]);
             }
 
             data.knts.push_back(item);
@@ -156,7 +152,25 @@ public:
 
         // add dungeon data
         table.modify(iter, self, [&](auto& target) {
+            // add record
+            if (rpos >= 0) {
+                target.records[rpos].id++;
+                target.records[rpos].at = time_now;
+            } else {
+                dgrecords record;
+                record.id = 1;
+                record.at = time_now;
+                target.records.push_back(record);
+            }
+
+            // remove ticket
             target.tickets[tpos].count -= rule->tkcount;
+
+            // set seed
+            auto key = player_controller.get_checksum_key(from);
+            data.seed = (uint32_t)((from + time_now) ^ key);
+
+            // add dungeon
             target.rows.push_back(data);
         });
     }
@@ -166,22 +180,32 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-
-        // get rule
-        auto &rule_table = dungeon_rule_controller.get_table();
-        auto rule = rule_table.find(code);
-        assert_true(rule != rule_table.cend(), "there is no dungeon rule");
+        auto time_now = time_util::getnow();
 
         // get dungeon table
         dungeons_table table(self, self);
         auto iter = table.find(from);
         assert_true(table.cend() != iter, "to dungeon data");
 
+        int rpos = iter->find_record(code);
+//        int past = time_now - iter->records[rpos].at;
+//        assert_true(past <= kv_dungeon_open_sec, "dungeon is closed.");
+
         int pos = iter->find_data(code);
         assert_true(pos >= 0, "there is no dungeon");
 
+        // get rule
+        auto &rule_table = dungeon_rule_controller.get_table();
+        auto rule = rule_table.find(code);
+        assert_true(rule != rule_table.cend(), "there is no dungeon rule");
+
         // remove dongeon
         table.modify(iter, self, [&](auto& target) {
+            if (rpos >= 0) {
+                target.records[rpos].at = time_now;
+                target.records[rpos].lose++;
+            }
+
             target.rows.erase(target.rows.cbegin() + pos);
         });
 

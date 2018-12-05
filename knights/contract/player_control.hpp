@@ -213,8 +213,8 @@ public:
         int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
         assert_true(v1 == v2, "checksum failure 1");
         assert_true(v2 == v3, "checksum failure 2");
-        assert_true(num > v0, "checksum error type1");
-        assert_true((num - v0) < 90, "checksum error type2");
+        assert_true((num + 60) > v0, "checksum failure 3");
+        assert_true((num - v0) < 90, "too old action");
     }
 
     void require_action_count(int count) {

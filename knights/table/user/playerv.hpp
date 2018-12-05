@@ -3,7 +3,6 @@ enum random_for {
     r4_craft,
     r4_petgacha,
     r4_petexp,
-    r4_dungeon,
 };
 
 // 37 bytes
