@@ -1,10 +1,10 @@
 #pragma once
 
 struct dgknight {
-    uint8_t type;
-    uint32_t attack;
-    uint32_t defense;
-    uint32_t hp;
+    uint8_t type = 0;
+    uint32_t attack = 0;
+    uint32_t defense = 0;
+    uint32_t hp = 0;
     std::vector<kntskill> skills;
 };
 
@@ -12,7 +12,6 @@ struct dgdata {
     uint16_t code = 0;
     uint32_t seed = 0;
     uint64_t v1 = 0;
-    uint64_t v2 = 0;
     std::vector<dgknight> knts;
 };
 
@@ -22,12 +21,14 @@ struct dgrecords {
     uint32_t at = 0;
     uint32_t win = 0;
     uint32_t lose = 0;
+    uint64_t v1 = 0;
 };
 
 struct dgticket {
-    uint16_t code;
-    uint16_t count;
-    uint32_t free_at;
+    uint16_t code = 0;
+    uint16_t count = 0;
+    uint32_t free_at = 0;
+    uint64_t v1 = 0;
 };
 
 //@abi table dungeons i64

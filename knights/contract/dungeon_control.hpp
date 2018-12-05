@@ -127,8 +127,6 @@ public:
 
         dgdata data;
         data.code = code;
-        data.v1 = 0;
-        data.v2 = 0;
 
         // add knights
         for (int index = 0; index < knights.size(); index++) {

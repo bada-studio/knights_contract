@@ -224,7 +224,7 @@ public:
         eosio::transaction tx;
         ds >> tx;
         eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
-        eosio_assert(tx.actions[0].account == N(eosknightsio), "wrong action recipient"); 
+        eosio_assert(tx.actions[count-1].account == self, "wrong action recipient"); 
     }
 
     int32_t get_checksum_value(int32_t value) {
