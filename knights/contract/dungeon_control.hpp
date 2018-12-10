@@ -1,6 +1,6 @@
 #pragma once
 
-class dungeon_control : public control_base {
+class dungeon_control : public drop_control_base {
 private:
     account_name self;
     material_control &material_controller;
@@ -234,8 +234,6 @@ public:
         assert_true(table.cend() != iter, "to dungeon data");
 
         int rpos = iter->find_record(code);
-//        int past = time_now - iter->records[rpos].at;
-//        assert_true(past <= kv_dungeon_open_sec, "dungeon is closed.");
 
         int pos = iter->find_data(code);
         assert_true(pos >= 0, "there is no dungeon");
@@ -260,7 +258,69 @@ public:
     }
 
     void dgclear(name from, uint16_t code, const std::vector<dgorder> orders) {
-        // todo: validate order
+        require_auth(from);
+
+        // get player
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(players.cend() != player, "could not find player");
+        auto time_now = time_util::getnow();
+
+        // check inventory size;
+        auto &mats = material_controller.get_materials(from);
+        int exp_mat_count = mats.size() + 1;
+        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
+
+        // validate user's action
+        assert_true(validate(from, code, orders), "validation failure");
+        
+        // get rule
+        auto &rule_table = dungeon_rule_controller.get_table();
+        auto rule = rule_table.find(code);
+        assert_true(rule_table.cend() != rule, "could not dungeon rule");
+        
+        // determin drop material
+        auto rval = player_controller.begin_random(from, r4_dungeon, 0);
+        auto value = rval.range(10000);
+        uint16_t matcode = 0;
+
+        if (value < rule->mdrop3) {
+            matcode = rule->mat3;
+        } else if (value < (rule->mdrop3 + rule->mdrop2)) {
+            matcode = rule->mat2;
+        } else if (value < (rule->mdrop3 + rule->mdrop2 + rule->mdrop1)) {
+            matcode = rule->mat1;
+        } else {
+            auto grade = ig_rare;
+            auto value2 = rval.range(10000);
+            if (value < rule->legendary_drop) {
+                grade = ig_legendary;
+            } else if (value < (rule->legendary_drop + rule->unique_drop)) {
+                grade = ig_unique;
+            }
+
+            matcode = get_bottie(*player, grade, rval);
+        }
+
+        // add materials
+        material_controller.add_material(from, matcode);
+
+        // get dungeon table
+        dungeons_table table(self, self);
+        auto iter = table.find(from);
+        assert_true(table.cend() != iter, "to dungeon data");
+        auto pos = iter->find_data(code);
+        assert_true(pos >= 0, "can not find dungeon");
+
+        // update dungeon data
+        table.modify(iter, self, [&](auto& target) {
+            auto rpos = target.find_record(code);
+            target.records[rpos].at = time_now;
+            target.rows.erase(target.rows.begin() + pos);
+        });
+
+        player_controller.end_random(from, rval, r4_dungeon, 0);
     }
 
     rule_controller<rdungeon, rdungeon_table>& get_dungeon_rule() {
@@ -277,5 +337,11 @@ public:
 
     rule_controller<rmobskills, rmobskills_table>& get_mobskills_rule() {
         return mobskills_rule_controller;
-    }    
+    }
+
+private:
+    bool validate(name from, uint16_t code, const std::vector<dgorder> orders) {
+        // todo implement
+        return true;
+    }
 };

@@ -436,9 +436,12 @@ public:
         int8_t knight = item.knight;
 
         auto &lvtable = itemlv_rule_controller.get_table();
+        auto lvrulec = lvtable.find(item.level);
         auto lvrule = lvtable.find(item.level + 1);
+        assert_true(lvrulec != lvtable.cend(), "can not found next level rule");
         assert_true(lvrule != lvtable.cend(), "can not found next level rule");
         assert_true(item.exp >= lvrule->count, "insufficient item exp");
+        auto required = lvrule->count - lvrulec->count;
 
         auto &rtable = item_rule_controller.get_table();
         auto rule = rtable.find(item.code);
@@ -461,13 +464,26 @@ public:
             player_controller.decrease_powder(player, powder);
         }
 
+        // level up success
+        bool success = true;
+        if (lvrule->rate < 10000) {
+            auto rval = player_controller.begin_random(from, r4_craft, rule->grade);
+            success = (rval.range(10000) < lvrule->rate);
+            player_controller.end_random(from, rval, r4_craft, rule->grade);
+        }
+
         items.modify(iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
                 if (target.rows[index].id != id) {
                     continue;
                 }
+                
+                if (success) {
+                    target.rows[index].level++;
+                } else {
+                    target.rows[index].exp -= required;
+                }
 
-                target.rows[index].level++;
                 break;
             }
         });
@@ -536,12 +552,12 @@ private:
 
     uint32_t random_dna(const ritem &rule, name from, int code) {
         auto rval = player_controller.begin_random(from, r4_craft, rule.grade);
-        uint32_t stat1 = player_controller.random_range(rval, 101);
-        uint32_t stat2 = player_controller.random_range(rval, 101);
-        uint32_t stat3 = player_controller.random_range(rval, 101);
+        uint32_t stat1 = rval.range(101);
+        uint32_t stat2 = rval.range(101);
+        uint32_t stat3 = rval.range(101);
         uint32_t reveal1 = 1;
-        uint32_t reveal2 = player_controller.random_range(rval, 100) < rule.stat2_reveal_rate ? 1 : 0;
-        uint32_t reveal3 = player_controller.random_range(rval, 100) < rule.stat3_reveal_rate ? 1 : 0;
+        uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
+        uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
         player_controller.end_random(from, rval, r4_craft, rule.grade);
 
         uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;

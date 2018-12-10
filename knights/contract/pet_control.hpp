@@ -1,6 +1,6 @@
 #pragma once
 
-class pet_control : public control_base {
+class pet_control : public drop_control_base {
 private:
     account_name self;
 
@@ -353,7 +353,7 @@ public:
         mw = mw * duration / time_util::day;
 
         auto rval = player_controller.begin_random(from, r4_petexp, 0);
-        int range = (int)player_controller.random_range(rval, 21) - 10;
+        int range = (int)rval.range(21) - 10;
         mw += mw * range / 100;
         mw = std::max(0, mw);
         mw = std::min(10000, mw);
@@ -368,7 +368,7 @@ public:
 
         // determin drop material grade
         int bottie_grade = std::max(1, rule->grade - 1);
-        int value = player_controller.random_range(rval, 100);
+        int value = rval.range(100);
         if (value < exp_rule->get_drop_rate(rule->grade)) {
             bottie_grade++;
         }
@@ -390,63 +390,6 @@ public:
 
         player_controller.end_random(from, rval, r4_petexp, 0);
     }
-
-    int get_bottie(const player& player, int grade, random_val &rval) {
-        int start = 0;
-        int length = 0;
-
-        double ndr[10] = {0.0, };
-        switch (grade) {
-            case ig_normal:
-                start = 0;
-                length = 4;
-                break;
-            case ig_rare:
-                start = 4;
-                length = 3;
-                break;
-            case ig_unique:
-                start = 7;
-                length = 2;
-                break;
-            case ig_legendary:
-                start = 9;
-                length = 1;
-                break;
-            case ig_ancient:
-                start = 10;
-                length = 1;
-                break;
-        }
-
-        // copy drop rate
-        double sum = 0;
-        for (int index = 0; index < length; index++) {
-            double value = drop_rates[start + index];
-            sum += value;
-            ndr[index] = value;
-        }
-
-        // normalize drop rate
-        for (int index = 0; index < length; index++) {
-            ndr[index] /= sum;
-        }
-
-        int best = 0;
-        int drscale = 1000000000;
-        int rand_value = player_controller.random_range(rval, drscale);
-
-        for (int index = length-1; index >= 1; --index) {
-            if (rand_value < int(ndr[index] * drscale)) {
-                best = index;
-                break;
-            }
-        }
-
-        int type = player_controller.random_range(rval, 5) + 1;
-        int code = (type - 1) * 20 + (best + start + 1);
-        return code;
-    }    
 
     bool is_pet_free(name from, int16_t code) {
         petexp_table petexps(self, self);
@@ -561,7 +504,7 @@ private:
 
         auto rval = player_controller.begin_random(from, r4_petgacha, type);
         for (int index = 0; index < count; ++index) {
-            int pos = player_controller.random_range(rval, sum);
+            int pos = rval.range(sum);
             int value = 0;
 
             int start = 0;

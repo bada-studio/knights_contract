@@ -646,7 +646,7 @@ private:
         
         int best = 0;
         int drscale = 1000000000;
-        int rand_value = player_controller.random_range(rval, drscale);
+        int rand_value = rval.range(drscale);
 
         // fix #16 reported by Jinhyeon Hong
         int start_index = drop_rates_length - 1;
@@ -667,7 +667,7 @@ private:
             }
         }
 
-        int mtvalue = player_controller.random_range(rval, 100);
+        int mtvalue = rval.range(100);
         material_type type = get_rand_material_type(mtvalue, stagerule);
 
         int code = (type - 1) * 20 + (best + 1);

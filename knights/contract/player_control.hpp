@@ -2,9 +2,6 @@
 
 class player_control : public control_base {
 private:
-    const uint64_t a = 1103515245;
-    const uint64_t c = 12345;
-
     player_table players;
     playerv_table playervs;
 
@@ -167,12 +164,6 @@ public:
     void end_random(name from, const random_val &val, random_for r4, int type);
     uint32_t get_key(name from);
     uint32_t get_checksum_key(name from);
-
-    uint32_t random_range(random_val &val, uint32_t to) {
-        val.seed = (a * val.seed + c) % 0x7fffffff;
-        val.value = (uint32_t)(val.seed % to);
-        return val.value;
-    }
 
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
@@ -459,28 +450,28 @@ public:
         rval.seed = seed_identity(from);
         end_random(from, rval, r4_rebirth, 0);
         
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_petgacha, pgt_low_class);
         
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_petgacha, pgt_high_class);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_normal);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_rare);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_unique);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_legendary);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_ancient);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_petexp, 0);
     }
 
