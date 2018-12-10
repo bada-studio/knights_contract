@@ -28,7 +28,31 @@ struct dgticket {
     uint16_t code = 0;
     uint16_t count = 0;
     uint32_t free_at = 0;
-    uint64_t v1 = 0;
+    uint8_t free_count = 0;
+    uint8_t v1 = 0;
+    uint16_t v2 = 0;
+    uint32_t v3 = 0;
+
+    uint32_t get_total_count() const {
+        return count + free_at;
+    }
+
+    void reduce_count(uint32_t amount) {
+        if (free_count >= amount) {
+            free_count -= amount;
+            return;
+        }
+
+        amount -= free_count;
+        free_count = 0;
+
+        if (count >= amount) {
+            count -= amount;
+            return;
+        }
+
+        count = 0;
+    }
 };
 
 //@abi table dungeons i64

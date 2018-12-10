@@ -34,6 +34,7 @@ enum item_grade {
     ig_unique, // 3
     ig_legendary, // 4
     ig_ancient, // 5
+    ig_chaos, // 6
     ig_count
 };
 

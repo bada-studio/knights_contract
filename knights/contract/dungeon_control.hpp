@@ -92,6 +92,54 @@ public:
         }
     }
 
+    void dgfreetk(name from, uint16_t code) {
+        require_auth(from);
+
+        // get player
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(players.cend() != player, "could not find player");
+        auto time_now = time_util::getnow();
+
+        // get variable
+        auto free_ticket_duration = kv_dungeon_free_ticket >> 8;
+        auto max_free_count = kv_dungeon_free_ticket & 0xFF;
+        
+        // add ticket
+        dungeons_table table(self, self);
+        auto iter = table.find(from);
+        if (iter == table.cend()) {
+            table.emplace(self, [&](auto& target) {
+                dgticket ticket;
+                ticket.code = code;
+                ticket.count = 0;
+                ticket.free_at = time_now;
+                ticket.free_count = 1;
+
+                target.owner = from;
+                target.tickets.push_back(ticket);
+            });
+        } else {
+            table.modify(iter, self, [&](auto& target) {
+                int tpos = target.find_ticket(code);
+                if (tpos >= 0) {
+                    auto &ticket = target.tickets[tpos];
+                    auto diff = time_now - ticket.free_at;
+                    assert_true(ticket.free_count < max_free_count, "free ticket is full");
+                    assert_true(diff > time_util::hour * free_ticket_duration, "need more time to get one");
+                    ticket.free_at = time_now;
+                    ticket.free_count++;
+                } else {
+                    dgticket ticket;
+                    ticket.code = code;
+                    ticket.free_at = time_now;
+                    ticket.free_count = 1;
+                    target.tickets.push_back(ticket);
+                }
+            });
+        }
+    }
+
     void dgenter(name from, uint16_t code) {
         require_auth(from);
         auto &players = player_controller.get_players();
@@ -113,7 +161,7 @@ public:
         // check ticket
         int tpos = iter->find_ticket(rule->tkcode);
         assert_true(tpos >= 0, "not enough ticket");
-        assert_true(iter->tickets[tpos].count >= rule->tkcount, "not enough ticket");
+        assert_true(iter->tickets[tpos].get_total_count() >= rule->tkcount, "not enough ticket");
 
         int rpos = iter->find_record(code);
 
@@ -162,7 +210,7 @@ public:
             }
 
             // remove ticket
-            target.tickets[tpos].count -= rule->tkcount;
+            target.tickets[tpos].reduce_count(rule->tkcount);
 
             // set seed
             auto key = player_controller.get_checksum_key(from);

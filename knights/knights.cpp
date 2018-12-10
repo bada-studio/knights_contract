@@ -324,6 +324,11 @@ public:
     }
 
     /// @abi action
+    void dgfreetk(name from, uint16_t code) {
+        dungeon_controller.dgfreetk(from, code);
+    }
+
+    /// @abi action
     void dgenter(name from, uint16_t code, uint32_t block, uint32_t checksum) {
         player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgenter(from, code);
@@ -620,4 +625,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgtcraft) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgtcraft) (dgfreetk) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

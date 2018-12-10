@@ -451,6 +451,7 @@ public:
             case ig_unique: powder = lvrule->powder3; break;
             case ig_legendary: powder = lvrule->powder4; break;
             case ig_ancient: powder = lvrule->powder5; break;
+            case ig_chaos: powder = lvrule->powder6; break;
         }
 
         auto player = player_controller.get_player(from);
