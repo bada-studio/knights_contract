@@ -461,10 +461,6 @@ public:
         auto player = player_controller.get_player(from);
         assert_true(powder <= player->powder, "not enough powder");
 
-        if (powder > 0) {
-            player_controller.decrease_powder(player, powder);
-        }
-
         // level up success
         bool success = true;
         if (lvrule->rate < 10000) {
@@ -472,6 +468,12 @@ public:
             success = (rval.range(10000) < lvrule->rate);
             player_controller.end_random(from, rval, r4_craft, rule->grade);
         }
+
+        if (!success) {
+            powder /= 2;
+        }
+
+        player_controller.decrease_powder(player, powder);
 
         items.modify(iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
