@@ -428,6 +428,7 @@ public:
     /// Target item
     int8_t itemlvup(name from, uint64_t id) {
         require_auth(from);
+        player_controller.require_action_count(1);
 
         auto iter = items.find(from);
         auto &rows = get_items(iter);

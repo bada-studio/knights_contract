@@ -13,7 +13,7 @@ struct random_val {
         const uint64_t a = 1103515245;
         const uint64_t c = 12345;
 
-        seed = (a * seed + c) % 0x7fffffff;
+        seed = (uint32_t)((a * seed + c) % 0x7fffffff);
         value = (uint32_t)(seed % to);
         return value;
     }
