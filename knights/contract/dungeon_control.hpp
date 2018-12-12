@@ -141,6 +141,8 @@ public:
     }
 
     void dgenter(name from, uint16_t code) {
+        assert_true(false, "not ready yet");
+
         require_auth(from);
         auto &players = player_controller.get_players();
         auto player = players.find(from);
@@ -222,6 +224,8 @@ public:
     }
 
     void dgleave(name from, uint16_t code) {
+        assert_true(false, "not ready yet");
+
         require_auth(from);
         auto &players = player_controller.get_players();
         auto player = players.find(from);
@@ -258,6 +262,8 @@ public:
     }
 
     void dgclear(name from, uint16_t code, const std::vector<dgorder> orders) {
+        assert_true(false, "not ready yet");
+
         require_auth(from);
 
         // get player
