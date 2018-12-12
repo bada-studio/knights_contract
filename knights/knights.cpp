@@ -16,16 +16,6 @@ using eosio::permission_level;
 using eosio::action;
 using eosio::name;
 
-#include "table/user/player.hpp"
-#include "table/user/playerv.hpp"
-#include "table/user/knight.hpp"
-#include "table/user/material.hpp"
-#include "table/user/mat4sale.hpp"
-#include "table/user/item.hpp"
-#include "table/user/item4sale.hpp"
-#include "table/user/pet.hpp"
-#include "table/user/petexp.hpp"
-#include "table/user/revenue.hpp"
 #include "table/rule/rivnprice.hpp"
 #include "table/rule/rkntlv.hpp"
 #include "table/rule/rkntprice.hpp"
@@ -40,9 +30,27 @@ using eosio::name;
 #include "table/rule/rpetlv.hpp"
 #include "table/rule/rpetexp.hpp"
 #include "table/rule/rmpgoods.hpp"
+#include "table/rule/rkntskill.hpp"
+#include "table/rule/rdungeon.hpp"
+#include "table/rule/rdgticket.hpp"
+#include "table/rule/rmob.hpp"
+#include "table/rule/rmobskill.hpp"
+#include "table/user/player.hpp"
+#include "table/user/playerv.hpp"
+#include "table/user/knight.hpp"
+#include "table/user/material.hpp"
+#include "table/user/mat4sale.hpp"
+#include "table/user/item.hpp"
+#include "table/user/item4sale.hpp"
+#include "table/user/pet.hpp"
+#include "table/user/petexp.hpp"
+#include "table/user/revenue.hpp"
+#include "table/user/kntskill.hpp"
+#include "table/user/dungeon.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
+#include "table/outchain/dgorder.hpp"
 #include "table/admin/adminstate.hpp"
 #include "table/admin/revenuedt.hpp"
 #include "table/admin/stockholder.hpp"
@@ -67,6 +75,7 @@ using eosio::name;
 #include "contract/powder_control.hpp"
 #include "contract/cquest_control.hpp"
 #include "contract/player_control.cpp"
+#include "contract/dungeon_control.hpp"
 
 class knights : public eosio::contract, public control_base {
 private:
@@ -82,6 +91,7 @@ private:
     admin_control admin_controller;
     saleslog_control saleslog_controller;
     cquest_control cquest_controller;
+    dungeon_control dungeon_controller;
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
@@ -106,7 +116,8 @@ public:
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
-    , cquest_controller(_self, item_controller, player_controller, admin_controller) {
+    , cquest_controller(_self, item_controller, player_controller, admin_controller)
+    , dungeon_controller(_self, material_controller, player_controller, knight_controller) {
     }
 
     // player related actions
@@ -191,6 +202,16 @@ public:
     /// @abi action
     void detach(name from, uint32_t id) {
         knight_controller.detach(from, id);
+    }
+
+    /// @abi action
+    void skillup(name from, uint8_t knt, uint16_t id) {
+        knight_controller.skillup(from, knt, id);
+    }
+
+    /// @abi action
+    void skillreset(name from, uint8_t knt) {
+        knight_controller.skillreset(from, knt);
     }
 
     // material related actions
@@ -294,7 +315,38 @@ public:
         market_controller.ccsellmat(from, id);
     }
 
-    // rule ralated actions
+    // dungeon related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void dgtcraft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
+        dungeon_controller.dgtcraft(from, code, mat_ids);
+    }
+
+    /// @abi action
+    void dgfreetk(name from, uint16_t code) {
+        dungeon_controller.dgfreetk(from, code);
+    }
+
+    /// @abi action
+    void dgenter(name from, uint16_t code, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
+        dungeon_controller.dgenter(from, code);
+    }
+
+    /// @abi action
+    void dgclear(name from, uint16_t code, const std::vector<dgorder> orders, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
+        dungeon_controller.dgclear(from, code, orders);
+    }
+
+    /// @abi action
+    void dgleave(name from, uint16_t code, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
+        dungeon_controller.dgleave(from, code);
+    }    
+
+    // rule related actions
     //-------------------------------------------------------------------------
     /// @abi action
     void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
@@ -314,6 +366,11 @@ public:
     /// @abi action
     void ckntprice(const std::vector<rkntprice> &rules, bool truncate) {
         knight_controller.get_knight_price_rule_controller().create_rules(rules, truncate);
+    }
+
+    /// @abi action
+    void ckntskills(const std::vector<rkntskills> &rules, bool truncate) {
+        knight_controller.get_knight_skill_rule_controller().create_rules(rules, truncate);
     }
 
     /// @abi action
@@ -367,6 +424,26 @@ public:
     }
 
     /// @abi action
+    void cdungeon(const std::vector<rdungeon> &rules, bool truncate) {
+        dungeon_controller.get_dungeon_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
+    void cdgticket(const std::vector<rdgticket> &rules, bool truncate) {
+        dungeon_controller.get_dgticket_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
+    void cmobs(const std::vector<rmobs> &rules, bool truncate) {
+        dungeon_controller.get_mobs_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
+    void cmobskills(const std::vector<rmobskills> &rules, bool truncate) {
+        dungeon_controller.get_mobskills_rule().create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void trule(name table, uint16_t size) {
         if (table == N(ivnprice)) {
             player_controller.get_inventory_price_rule().truncate_rules(size);
@@ -376,6 +453,8 @@ public:
             knight_controller.get_knight_level_rule_controller().truncate_rules(size);
         } else if (table == N(kntprice)) {
             knight_controller.get_knight_price_rule_controller().truncate_rules(size);
+        } else if (table == N(kntskills)) {
+            knight_controller.get_knight_skill_rule_controller().truncate_rules(size);
         } else if (table == N(stage)) {
             knight_controller.get_stage_rule_controller().truncate_rules(size);
         } else if (table == N(variable)) {
@@ -396,6 +475,14 @@ public:
             pet_controller.get_pet_exp_rule().truncate_rules(size);
         } else if (table == N(mpgoods)) {
             powder_controller.get_mpgoods_rule().truncate_rules(size);
+        } else if (table == N(dungeon)) {
+            dungeon_controller.get_dungeon_rule().truncate_rules(size);
+        } else if (table == N(dgticket)) {
+            dungeon_controller.get_dgticket_rule().truncate_rules(size);
+        } else if (table == N(mobs)) {
+            dungeon_controller.get_mobs_rule().truncate_rules(size);
+        } else if (table == N(mobskills)) {
+            dungeon_controller.get_mobskills_rule().truncate_rules(size);
         } else {
             eosio_assert(0, "could not find table");
         }
@@ -509,7 +596,6 @@ public:
             iter = table.erase(iter);
         }
     }
-
     */
 };
 
@@ -539,4 +625,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (civnprice) (cknt) (ckntlv) (ckntprice) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgtcraft) (dgfreetk) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

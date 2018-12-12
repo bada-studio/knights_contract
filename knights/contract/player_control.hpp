@@ -2,9 +2,6 @@
 
 class player_control : public control_base {
 private:
-    const uint64_t a = 1103515245;
-    const uint64_t c = 12345;
-
     player_table players;
     playerv_table playervs;
 
@@ -168,12 +165,6 @@ public:
     uint32_t get_key(name from);
     uint32_t get_checksum_key(name from);
 
-    uint32_t random_range(random_val &val, uint32_t to) {
-        val.seed = (a * val.seed + c) % 0x7fffffff;
-        val.value = (uint32_t)(val.seed % to);
-        return val.value;
-    }
-
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
             target.owner = from;
@@ -213,8 +204,8 @@ public:
         int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
         assert_true(v1 == v2, "checksum failure 1");
         assert_true(v2 == v3, "checksum failure 2");
-        assert_true(num > v0, "checksum error type1");
-        assert_true((num - v0) < 90, "checksum error type2");
+        assert_true((num + 60) > v0, "checksum failure 3");
+        assert_true((num - v0) < 90, "too old action");
     }
 
     void require_action_count(int count) {
@@ -224,7 +215,7 @@ public:
         eosio::transaction tx;
         ds >> tx;
         eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
-        eosio_assert(tx.actions[0].account == N(eosknightsio), "wrong action recipient"); 
+        eosio_assert(tx.actions[count-1].account == self, "wrong action recipient"); 
     }
 
     int32_t get_checksum_value(int32_t value) {
@@ -459,28 +450,28 @@ public:
         rval.seed = seed_identity(from);
         end_random(from, rval, r4_rebirth, 0);
         
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_petgacha, pgt_low_class);
         
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_petgacha, pgt_high_class);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_normal);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_rare);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_unique);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_legendary);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_craft, ig_ancient);
 
-        random_range(rval, 10);
+        rval.range(10);
         end_random(from, rval, r4_petexp, 0);
     }
 

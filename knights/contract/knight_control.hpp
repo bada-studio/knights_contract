@@ -4,6 +4,7 @@ class knight_control : public control_base {
 private:
     account_name self;
     knight_table knights;
+    kntskills_table skills;
 
     material_control &material_controller;
     item_control &item_controller;
@@ -13,8 +14,10 @@ private:
     rule_controller<rknt, rknt_table> knight_rule_controller;
     rule_controller<rkntlv, rkntlv_table> knight_level_rule_controller;
     rule_controller<rkntprice, rkntprice_table> knight_price_rule_controller;
+    rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller;
     rule_controller<rstage, rstage_table> stage_rule_controller;
     std::vector<knightrow> empty_knightrows;
+    std::vector<kntskill> empty_kntskill;
 
 public:
     // constructor
@@ -27,9 +30,11 @@ public:
                    saleslog_control &_saleslog_controller)
             : self(_self)
             , knights(_self, _self)
+            , skills(_self, _self)
             , knight_rule_controller(_self, N(knt))
             , knight_level_rule_controller(_self, N(kntlv))
             , knight_price_rule_controller(_self, N(kntprice))
+            , knight_skill_rule_controller(_self, N(kntskills))
             , stage_rule_controller(_self, N(stage))
             , material_controller(_material_controller)
             , item_controller(_item_controller)
@@ -80,6 +85,11 @@ public:
         return get_knights(iter);
     }
 
+    const std::vector<kntskill>& get_knight_skills(name from, int knt) {
+        auto iter = skills.find(from);
+        return get_knight_skills(iter, knt);
+    }
+
     int get_knight_max_level(name from) {
         auto &knights = get_knights(from);
         int level = 0;
@@ -98,6 +108,14 @@ public:
         }
 
         return empty_knightrows;
+    }
+
+    const std::vector<kntskill>& get_knight_skills(kntskills_table::const_iterator iter, int knt) {
+        if (iter != skills.cend()) {
+            return iter->cget_skills(knt);
+        }
+
+        return empty_kntskill;
     }
 
     const knightrow& get_knight(knight_table::const_iterator iter, uint8_t type) {
@@ -347,6 +365,113 @@ public:
         refresh_stat(from, knight);
     }
 
+    /// @brief
+    /// skill level up
+    /// @param from
+    /// account name
+    /// @param knt
+    /// target knight
+    /// @param id
+    /// skill id
+    void skillup(name from, uint8_t knt, uint16_t id) {
+        require_auth(from);
+
+        auto knt_iter = knights.find(from);
+        assert_true(knt_iter != knights.cend(), "could not found knight");
+        auto &knight = get_knight(knt_iter, knt);
+        int total_point = knight.level - 1;
+        int current_point = 0;
+        assert_true(total_point > 0, "no remain skill point");
+
+        bool is_first_skill = ((id % 10) == 1);
+
+        // remain point check
+        assert_true(knight_skill_rule_controller.is_empty() == false, "empty rule");
+        const auto &rule = knight_skill_rule_controller.get_table().begin()->get_rule(id);
+        
+        auto iter = skills.find(from);
+        if (iter == skills.end()) {
+            // check first skill
+            assert_true(is_first_skill, "required previous skill first");
+            
+            // new skill
+            skills.emplace(self, [&](auto &target) {
+                kntskill skill;
+                skill.set(id, 1);
+                target.owner = from;
+                auto &skills = target.get_skills(knt);
+                skills.push_back(skill);
+            });
+        } else {
+            auto &target = iter->cget_skills(knt);
+
+            // remain point check
+            current_point = get_skill_count(target);
+            assert_true(total_point > current_point, "no remain skill point");
+
+            bool find_lhs = false;
+            for (int index = 0; index < target.size(); index++) {
+                if (target[index].code == id-1) {
+                    find_lhs = true;
+                }
+
+                // full upgrade check
+                if (target[index].code == id) {
+                    assert_true(target[index].level < rule.maxlevel, "already full level");
+                    break;
+                }
+            }
+
+            // left hand side skill check
+            if (is_first_skill == false && find_lhs == false) {
+                assert_true(false, "required previous skill first");
+            }
+            
+            skills.modify(iter, self, [&](auto &target) {
+                auto &tskill = target.get_skills(knt);
+                bool found = false;
+                for (int index = 0; index < tskill.size(); index++) {
+                    // level up
+                    if (tskill[index].code == id) {
+                        tskill[index].level++;
+                        found = true;
+                        break;
+                    }
+                }
+
+                // new skill
+                if (found == false) {
+                    kntskill skill;
+                    skill.set(id, 1);
+                    tskill.push_back(skill);
+                }
+            });
+        }
+    }
+
+    /// @brief
+    /// reset knight's skillset
+    /// @param from
+    /// account name
+    /// @param knt
+    /// target knight
+    void skillreset(name from, uint8_t knt) {
+        auto iter = skills.find(from);
+        assert_true(iter != skills.end(), "can not found skill set");
+
+        // clear stat
+        skills.modify(iter, self, [&](auto &target) {
+            auto &tskill = target.get_skills(knt);
+            assert_true(tskill.size() > 0, "no skill to clear");
+            tskill.clear();
+        });
+
+        // pay the price
+        auto player = player_controller.get_player(from);
+        assert_true(player_controller.is_empty_player(player) == false, "could not find player");
+        player_controller.decrease_powder(player, kv_skill_reset_price);
+    }
+
     rule_controller<rknt, rknt_table>& get_knight_rule_controller() {
         return knight_rule_controller;
     }
@@ -357,6 +482,10 @@ public:
 
     rule_controller<rkntprice, rkntprice_table>& get_knight_price_rule_controller() {
         return knight_price_rule_controller;
+    }
+
+    rule_controller<rkntskills, rkntskills_table>& get_knight_skill_rule_controller() {
+        return knight_skill_rule_controller;
     }
 
     rule_controller<rstage, rstage_table>& get_stage_rule_controller() {
@@ -517,7 +646,7 @@ private:
         
         int best = 0;
         int drscale = 1000000000;
-        int rand_value = player_controller.random_range(rval, drscale);
+        int rand_value = rval.range(drscale);
 
         // fix #16 reported by Jinhyeon Hong
         int start_index = drop_rates_length - 1;
@@ -538,7 +667,7 @@ private:
             }
         }
 
-        int mtvalue = player_controller.random_range(rval, 100);
+        int mtvalue = rval.range(100);
         material_type type = get_rand_material_type(mtvalue, stagerule);
 
         int code = (type - 1) * 20 + (best + 1);
@@ -569,5 +698,13 @@ private:
             return false;
         }
         return true;
+    }
+
+    int get_skill_count(const std::vector<kntskill> &skills) const {
+        int res = 0;
+        for (int index=0; index < skills.size(); index++) {
+            res += skills[index].level;
+        }
+        return res;
     }
 };

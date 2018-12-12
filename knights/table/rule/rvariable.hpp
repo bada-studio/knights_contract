@@ -15,7 +15,7 @@ const int kv_pet_gacha_low_price = 100;
 const int kv_pet_gacha_high_price = 1000;
 const int kv_required_floor_for_material = 0x521;
 const int kv_min_market_price_scaler = 0x2525;
-const int kv_pet_unique_max_up = 6;    // @deprecated
+const int kv_skill_reset_price = 2000;
 const int kv_pet_legendary_max_up = 4; // @deprecated
 const int kv_pet_ancient_max_up = 2;   // @deprecated
 const int kv_max_knight_level = 16;
@@ -27,7 +27,7 @@ const int kv_min_rebirth = 120;
 const int kv_floor_bonus_1000 = 20;
 const int kv_max_sales_log_size = 5;
 const int kv_pet_exp_duration = 0x654322;
-const int kv_required_floor_for_unique = 100;    // @deprecated
+const int kv_dungeon_free_ticket = 0x1808;
 const int kv_required_floor_for_legendary = 200; // @deprecated
 const int kv_required_floor_for_ancient = 500;   // @deprecated
 const int kv_referral_bonus = 1000;
@@ -53,9 +53,9 @@ enum variable_type {
     vt_market_tax_rate,
     vt_pet_gacha_low_price,
     vt_pet_gacha_high_price,
-    vt_pet_normal_max_up,
-    vt_pet_rare_max_up,
-    vt_pet_unique_max_up,
+    vt_required_floor_for_material,
+    vt_min_market_price_scaler,
+    vt_skill_reset_price,
     vt_pet_legendary_max_up,
     vt_pet_ancient_max_up,
     vt_max_knight_level,
