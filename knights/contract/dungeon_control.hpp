@@ -141,8 +141,6 @@ public:
     }
 
     void dgenter(name from, uint16_t code) {
-        assert_true(false, "not ready yet");
-
         require_auth(from);
         auto &players = player_controller.get_players();
         auto player = players.find(from);
@@ -261,7 +259,7 @@ public:
         player_controller.increase_powder(player, rule->losemw);
     }
 
-    void dgclear(name from, uint16_t code, const std::vector<dgorder> orders) {
+    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders) {
         assert_true(false, "not ready yet");
 
         require_auth(from);
@@ -279,7 +277,7 @@ public:
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         // validate user's action
-        assert_true(validate(from, code, orders), "validation failure");
+        assert_true(validate_orders(from, code, orders), "validation failure");
         
         // get rule
         auto &rule_table = dungeon_rule_controller.get_table();
@@ -346,7 +344,7 @@ public:
     }
 
 private:
-    bool validate(name from, uint16_t code, const std::vector<dgorder> orders) {
+    bool validate_orders(name from, uint16_t code, const std::vector<uint32_t> orders) {
         // todo implement
         return true;
     }
