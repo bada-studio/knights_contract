@@ -388,6 +388,9 @@ public:
         // remain point check
         assert_true(knight_skill_rule_controller.is_empty() == false, "empty rule");
         const auto &rule = knight_skill_rule_controller.get_table().begin()->get_rule(id);
+
+        // required level check
+        assert_true(rule.requiredlv <= knight.level, "not enough knight level");
         
         auto iter = skills.find(from);
         if (iter == skills.end()) {
