@@ -215,6 +215,7 @@ public:
             // set seed
             auto key = player_controller.get_checksum_key(from);
             data.seed = (uint32_t)((from + time_now) ^ key);
+            data.seed ^= player_controller.get_key(from);
 
             // add dungeon
             target.rows.push_back(data);
@@ -222,8 +223,6 @@ public:
     }
 
     void dgleave(name from, uint16_t code) {
-        assert_true(false, "not ready yet");
-
         require_auth(from);
         auto &players = player_controller.get_players();
         auto player = players.find(from);
@@ -260,8 +259,6 @@ public:
     }
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders) {
-        assert_true(false, "not ready yet");
-
         require_auth(from);
 
         // get player
@@ -276,14 +273,21 @@ public:
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
+        // get dungeon table
+        dungeons_table table(self, self);
+        auto iter = table.find(from);
+        assert_true(table.cend() != iter, "to dungeon data");
+        auto pos = iter->find_data(code);
+        assert_true(pos >= 0, "can not find dungeon");
+
         // validate user's action
-        assert_true(validate_orders(from, code, orders), "validation failure");
+        validate_orders(from, iter->rows[pos], orders);
         
         // get rule
         auto &rule_table = dungeon_rule_controller.get_table();
         auto rule = rule_table.find(code);
         assert_true(rule_table.cend() != rule, "could not dungeon rule");
-        
+
         // determin drop material
         auto rval = player_controller.begin_random(from, r4_dungeon, 0);
         auto value = rval.range(10000);
@@ -310,12 +314,9 @@ public:
         // add materials
         material_controller.add_material(from, matcode);
 
-        // get dungeon table
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
-        assert_true(table.cend() != iter, "to dungeon data");
-        auto pos = iter->find_data(code);
-        assert_true(pos >= 0, "can not find dungeon");
+        // add magic water
+        player_controller.increase_powder(player, rule->winmw);
+
 
         // update dungeon data
         table.modify(iter, self, [&](auto& target) {
@@ -344,8 +345,61 @@ public:
     }
 
 private:
-    bool validate_orders(name from, uint16_t code, const std::vector<uint32_t> orders) {
-        // todo implement
-        return true;
+    void validate_orders(name from, const dgdata& data, const std::vector<uint32_t> origin_orders) {
+        auto code = data.code;
+        auto length = origin_orders.size();
+        assert_true(origin_orders.size() >= 5, "validation failed 1");
+
+        // dungeon rule
+        auto &dgrule_table = dungeon_rule_controller.get_table();
+        auto dgrule = dgrule_table.find(code);
+        assert_true(dgrule_table.cend() != dgrule, "could not find dungeon rule");
+
+        // mob rule
+        auto &mobrule_table = mobs_rule_controller.get_table();
+        auto mobrule = mobrule_table.find(code);
+        assert_true(mobrule_table.cend() != mobrule, "could not find dungeon rule");
+
+        // decode
+        auto key = player_controller.get_key(from) ^ data.seed;
+        std::vector<uint32_t> orders;
+        for (int index = 0; index < origin_orders.size(); index++) {
+            auto order = origin_orders[index] ^ key;
+            orders.push_back(order);
+        }
+
+        dungeon_random dr;
+        dr.seed = data.seed ^ player_controller.get_key(from);
+
+        // validation
+        uint32_t last = orders[length-1];
+        uint32_t ordercnt = 0;
+        uint32_t checksum = 0;
+        for (int index = 0; index < length-1; index++) {
+            auto order = orders[index];
+            if (index == 0) {
+                checksum = order;
+            } else {
+                checksum ^= order;
+            }
+
+            if (index < dgrule->unit_count1) {
+                auto pos = dr.range(mobrule->mob.size());
+                order = mobrule->mob[pos].name;
+            } else {
+                if (order == 0) {
+                    continue;
+                }
+                
+                auto v1 = (order >> 16);
+                auto v2 = (order >> 8) & 0xFF;
+                assert_true(v1 >= kt_knight && v1 < kt_count, "validation failed 2-1");
+                assert_true(v2 < 10, "validation failed 2-2");
+                ordercnt++;
+            }
+        }
+
+        assert_true(ordercnt >= 3, "validation failed 3");
+        assert_true(checksum == last, "validation failed 4");
     }
 };
