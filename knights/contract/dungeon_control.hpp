@@ -363,7 +363,8 @@ private:
         // decode
         auto key = player_controller.get_key(from) ^ data.seed;
         std::vector<uint32_t> orders;
-        for (int index = 0; index < origin_orders.size(); index++) {
+        orders.push_back(origin_orders[0]);
+        for (int index = 1; index < length; index++) {
             auto order = origin_orders[index] ^ key;
             orders.push_back(order);
         }
@@ -375,17 +376,19 @@ private:
         uint32_t last = orders[length-1];
         uint32_t ordercnt = 0;
         uint32_t checksum = 0;
-        for (int index = 0; index < length-1; index++) {
+        assert_true(orders[0] == data.seed, "validation failed 2");
+
+        for (int index = 1; index < length-1; index++) {
             auto order = orders[index];
-            if (index == 0) {
+            if (index == 1) {
                 checksum = order;
             } else {
                 checksum ^= order;
             }
 
-            if (index < dgrule->unit_count1) {
+            if (index < dgrule->unit_count1 + 1) {
                 auto pos = dr.range(mobrule->mob.size());
-                order = mobrule->mob[pos].name;
+                assert_true(order == mobrule->mob[pos].name, "validation failed 2-2");
             } else {
                 if (order == 0) {
                     continue;
@@ -393,8 +396,8 @@ private:
                 
                 auto v1 = (order >> 16);
                 auto v2 = (order >> 8) & 0xFF;
-                assert_true(v1 >= kt_knight && v1 < kt_count, "validation failed 2-1");
-                assert_true(v2 < 10, "validation failed 2-2");
+                assert_true(v1 >= kt_knight && v1 < kt_count, "validation failed 2-3");
+                assert_true(v2 < 10, "validation failed 2-4");
                 ordercnt++;
             }
         }
