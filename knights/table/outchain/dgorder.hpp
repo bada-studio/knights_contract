@@ -8,7 +8,7 @@ public:
         const uint64_t a = 1103515245;
         const uint64_t c = 12345;
         seed = (uint32_t)((a * seed + c) % 0x7fffffff);
-        int value = (int)(seed % to);
+        int value = ((uint64_t)seed * to) >> 31;
         return value;
     }
 };
