@@ -302,9 +302,9 @@ public:
         } else {
             auto grade = ig_rare;
             auto value2 = rval.range(10000);
-            if (value < rule->legendary_drop) {
+            if (value2 < rule->legendary_drop) {
                 grade = ig_legendary;
-            } else if (value < (rule->legendary_drop + rule->unique_drop)) {
+            } else if (value2 < (rule->legendary_drop + rule->unique_drop)) {
                 grade = ig_unique;
             }
 
