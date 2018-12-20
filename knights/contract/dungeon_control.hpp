@@ -290,21 +290,21 @@ public:
 
         // determin drop material
         auto rval = player_controller.begin_random(from, r4_dungeon, 0);
-        auto value = rval.range(10000);
+        auto value = rval.range(100'00);
         uint16_t matcode = 0;
 
         if (value < rule->mdrop3) {
             matcode = rule->mat3;
-        } else if (value < (rule->mdrop3 + rule->mdrop2)) {
+        } else if (value < rule->mdrop2) {
             matcode = rule->mat2;
-        } else if (value < (rule->mdrop3 + rule->mdrop2 + rule->mdrop1)) {
+        } else if (value < rule->mdrop1) {
             matcode = rule->mat1;
         } else {
             auto grade = ig_rare;
-            auto value2 = rval.range(10000);
+            auto value2 = rval.range(100'00);
             if (value2 < rule->legendary_drop) {
                 grade = ig_legendary;
-            } else if (value2 < (rule->legendary_drop + rule->unique_drop)) {
+            } else if (value2 < rule->unique_drop) {
                 grade = ig_unique;
             }
 
