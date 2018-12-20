@@ -14,7 +14,7 @@ struct random_val {
         const uint64_t c = 12345;
 
         seed = (uint32_t)((a * seed + c) % 0x7fffffff);
-        value = (uint32_t)(seed % to);
+        value = ((uint64_t)seed * to) >> 31; // by Ivan Kazmenko
         return value;
     }
 };

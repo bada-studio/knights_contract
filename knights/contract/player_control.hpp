@@ -178,22 +178,10 @@ public:
         if (v1 & 0x8000) {
             test_checksum_v2(from, block, checksum);
         } else {
-            test_checksum(((int64_t)block << 32) | checksum);
+            assert_true(false, "checksum failed");
         }
     }
     
-    int test_checksum(uint64_t checksum) {
-        int32_t k = (checksum_mask & 0xFFFF);
-        int32_t num = tapos_block_num();
-
-        int64_t v1 = (checksum >> 32);
-        int32_t v2 = get_checksum_value((checksum >> 16) & 0xFFFF);
-        int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
-        assert_true((v1 % k) == v3, "checksum failure");
-        assert_true((num - v1) < 120, "too old checksum");
-        return (int)(num + v1 + v2 + v3) % k;
-    }
-
     void test_checksum_v2(name from, uint32_t block, uint32_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
         int32_t num = time_util::getnow();

@@ -335,7 +335,7 @@ public:
     }
 
     /// @abi action
-    void dgclear(name from, uint16_t code, const std::vector<dgorder> orders, uint32_t block, uint32_t checksum) {
+    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t block, uint32_t checksum) {
         player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgclear(from, code, orders);
     }
