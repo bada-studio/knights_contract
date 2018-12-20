@@ -22,9 +22,16 @@ public:
         }
 
         for (auto iter = data.begin(); iter != data.end(); ++iter) {
-            table.emplace(self, [&](auto &rule) {
-                rule = *iter;
-            });
+            auto pos = table.find(iter->primary_key());
+            if (pos != table.cend()) {
+                table.modify(pos, self, [&](auto &rule) {
+                    rule = *iter;
+                });
+            } else {
+                table.emplace(self, [&](auto &rule) {
+                    rule = *iter;
+                });
+            }
         }
 
         rversion_table table(self, self);
