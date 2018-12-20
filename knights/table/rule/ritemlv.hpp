@@ -3,12 +3,12 @@ struct ritemlv {
     uint64_t level = 0;
     uint16_t count = 0;
     uint16_t bonus = 0;
-    uint16_t powder1 = 0;
-    uint16_t powder2 = 0;
-    uint16_t powder3 = 0;
-    uint16_t powder4 = 0;
-    uint16_t powder5 = 0;
-    uint16_t powder6 = 0;
+    uint32_t powder1 = 0;
+    uint32_t powder2 = 0;
+    uint32_t powder3 = 0;
+    uint32_t powder4 = 0;
+    uint32_t powder5 = 0;
+    uint32_t powder6 = 0;
     uint16_t rate = 0;
     uint32_t v1 = 0;
 
