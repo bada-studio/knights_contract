@@ -214,7 +214,8 @@ public:
                 target.records[rpos].at = time_now;
             } else {
                 dgrecords record;
-                record.id = code;
+                record.id = 1;
+                record.code = code;
                 record.at = time_now;
                 target.records.push_back(record);
             }
