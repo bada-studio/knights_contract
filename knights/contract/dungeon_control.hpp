@@ -177,16 +177,26 @@ public:
         data.code = code;
 
         // add knights
-        for (int index = 0; index < knights.size(); index++) {
-            auto &knight = knights[index];
+        for (int type = kt_knight; type < kt_count; type++) {
             dgknight item;
-            item.type = knight.type;
-            item.attack = knight.attack;
-            item.defense = knight.defense;
-            item.hp = knight.hp;
+            bool found = false;
+            for (int index = 0; index < knights.size(); index++) {
+                auto &knight = knights[index];
+                if (knight.type != type) {
+                    continue;
+                }
+
+                item.type = knight.type;
+                item.attack = knight.attack;
+                item.defense = knight.defense;
+                item.hp = knight.hp;
+                found = true;
+                break;
+            }
+            assert_true(found, "can not found knight");
 
             // add skills
-            auto &skills = knight_controller.get_knight_skills(from, knight.type);
+            auto &skills = knight_controller.get_knight_skills(from, type);
             assert_true(skills.size() >= 5, "every knights needs to have 5 or more skills");
 
             for (int k = 0; k < skills.size(); k++) {
@@ -204,7 +214,7 @@ public:
                 target.records[rpos].at = time_now;
             } else {
                 dgrecords record;
-                record.id = 1;
+                record.id = code;
                 record.at = time_now;
                 target.records.push_back(record);
             }
