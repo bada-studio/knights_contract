@@ -3,7 +3,8 @@
 class player_control : public control_base {
 private:
     player_table players;
-    playerv_table playervs;
+    playerv_table playervs_old;
+    playerv2_table playervs;
 
     account_name self;
     rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
@@ -27,6 +28,7 @@ public:
                    variable_control &_variable_controller)
         : self(_self)
         , players(_self, _self)
+        , playervs_old(_self, _self)
         , playervs(_self, _self)
         , rivnprice_controller(_self, N(ivnprice))
         , saleslog_controller(_saleslog_controller)
@@ -194,6 +196,22 @@ public:
         assert_true(v2 == v3, "checksum failure 2");
         assert_true((num + 60) > v0, "checksum failure 3");
         assert_true((num - v0) < 90, "too old action");
+
+        auto iter = playervs.find(from);
+        if (iter == playervs.cend()) {
+            new_playervs(from, 0, 0);
+            iter = playervs.find(from);
+        }
+
+        auto v0_old = 0;
+        if (iter->block > 0) {
+            v0_old = iter->block ^ get_checksum_key(from);
+        }
+
+        assert_true(v0_old < v0, "duplicated or expired checksum!");
+        playervs.modify(iter, self, [&](auto& target) {
+            target.block = block;
+        });
     }
 
     void require_action_count(int count) {
@@ -259,6 +277,30 @@ public:
         new_player(from);
     }
 
+    playerv2_table::const_iterator migrate_playerv(name from) {
+        auto oldv = playervs_old.find(from);
+        auto newv = playervs.find(from);
+        if (oldv != playervs_old.cend() && newv == playervs.cend()) {
+            auto itr = playervs.emplace(self, [&](auto& target) {
+                target.owner = oldv->owner;
+                target.from = oldv->from;
+                target.to = oldv->to;
+                target.referral = oldv->referral;
+                target.v4 = oldv->v4;
+                target.gift = oldv->gift;
+                target.asset = oldv->asset;
+                target.note = oldv->note;
+                target.data = oldv->data;
+                target.net = oldv->net;
+                target.cpu = oldv->cpu;
+            });
+
+            playervs_old.erase(oldv);
+        }
+        
+        return playervs.find(from);
+    }
+
     void referral(name from, name to) {
         require_auth(from);
 
@@ -268,11 +310,21 @@ public:
         auto tplayer = players.find(to);
         assert_true(fplayer != players.end(), "could not find player");
         assert_true(tplayer != players.end(), "could not find player");
+        assert_true(fplayer->last_rebirth > 0, "one or more knight required.");
+        assert_true(tplayer->last_rebirth > 0, "one or more knight required for the recipient.");
 
         auto fplayerv = playervs.find(from);
         auto tplayerv = playervs.find(to);
-        assert_true(fplayer->last_rebirth > 0, "one or more knight required.");
-        assert_true(tplayer->last_rebirth > 0, "one or more knight required for the recipient.");
+
+        // migration
+        if (fplayerv == playervs.cend()) {
+            fplayerv = migrate_playerv(from);
+        }
+
+        // migration
+        if (tplayerv == playervs.cend()) {
+            tplayerv = migrate_playerv(to);
+        }
 
         if (fplayerv == playervs.cend()) {
             uint8_t referral = 0x80;
@@ -342,6 +394,12 @@ public:
         assert_true(gifts.cbegin()->to >= current, "the gift is over");
 
         auto playerv = playervs.find(from);
+
+        // migration
+        if (playerv == playervs.cend()) {
+            playerv = migrate_playerv(from);
+        }
+
         if (playerv == playervs.cend()) {
             new_playervs(from, 0, no);
         } else {
