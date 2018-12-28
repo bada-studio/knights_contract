@@ -199,6 +199,10 @@ public:
 
         auto iter = playervs.find(from);
         if (iter == playervs.cend()) {
+            iter = migrate_playerv(from);
+        }
+
+        if (iter == playervs.cend()) {
             new_playervs(from, 0, 0);
             iter = playervs.find(from);
         }
