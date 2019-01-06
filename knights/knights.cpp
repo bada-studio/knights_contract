@@ -279,6 +279,12 @@ public:
     }
 
     /// @abi action
+    void pexpstart2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
+        auto knight_max_level = knight_controller.get_knight_max_level(from);
+        pet_controller.pexpstart(from, code, knight_max_level);
+    }
+
+    /// @abi action
     void pexpreturn(name from, uint16_t code) {
         pet_controller.pexpreturn(from, code);
     }
@@ -325,6 +331,12 @@ public:
 
     /// @abi action
     void dgfreetk(name from, uint16_t code) {
+        dungeon_controller.dgfreetk(from, code);
+    }
+
+    /// @abi action
+    void dgfreetk2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgfreetk(from, code);
     }
 
@@ -625,4 +637,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpreturn) (pexpreturn2) (dgtcraft) (dgfreetk) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (shuffle) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

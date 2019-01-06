@@ -166,6 +166,7 @@ public:
     void end_random(name from, const random_val &val, random_for r4, int type);
     uint32_t get_key(name from);
     uint32_t get_checksum_key(name from);
+    void check_blacklist(name from);
 
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
@@ -239,29 +240,6 @@ public:
         }
 
         return d;
-    }
-
-    void check_blacklist(name from) {
-        if (from == N(valuenetwork) || 
-            from == N(ramcollector) || 
-            from == N(mrnumberzero) || 
-            from == N(siuhangmeiyu) || 
-            from == N(amazinggamer) || 
-            from == N(mantikmantik) || 
-            from == N(meiyusiuhang) ||
-            from == N(gameplayer11) ||
-            from == N(gameplayer12) ||
-            from == N(gameplayer13) ||
-            from == N(gameplayer14) ||
-            from == N(gameplayer15) ||
-            from == N(eos4chatting) ||
-            from == N(gi4temzqhege) ||
-            from == N(messcomposer) ||
-            from == N(pvtmessenger) ||
-            from == N(eospromoter1)
-        ) {
-            assert_true(false, "blacklist rejected");
-        }
     }
 
     void require_coo_auth() {
