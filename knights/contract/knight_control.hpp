@@ -267,7 +267,7 @@ public:
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
 
-        if (delay) {
+        if (delay && USE_DEFERRED == 1) {
             require_auth(from);
             do_rebirth(from, player, true);
 
@@ -280,7 +280,12 @@ public:
             out.delay_sec = 1;
             out.send(from, self);
         } else {
-            require_auth(self);
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+            
             do_rebirth(from, player, false);
         }
     }

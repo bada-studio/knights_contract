@@ -269,8 +269,8 @@ public:
         player_controller.increase_powder(player, rule->losemw);
     }
 
-    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool delay) {
-        if (delay) {
+    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay) {
+        if (delay && USE_DEFERRED == 1) {
             require_auth(from);
             do_dgclear(from, code, orders, true);
 
@@ -278,12 +278,17 @@ public:
             out.actions.emplace_back(
                 permission_level{ self, N(active) }, 
                 self, N(dgcleari), 
-                std::make_tuple(from, code, orders)
+                std::make_tuple(from, code, orders, checksum)
             );
             out.delay_sec = 1;
             out.send(from, self);
         } else {
-            require_auth(self);
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+
             do_dgclear(from, code, orders, false);
         }
     }

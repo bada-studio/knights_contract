@@ -7,6 +7,7 @@
 #include <cmath>
 
 #define MAINTENANCE 0
+#define USE_DEFERRED 1
 
 using eosio::key256;
 using eosio::indexed_by;
@@ -179,19 +180,8 @@ public:
         knight_controller.lvupknight(from, type);
     }
 
-    void require_testid(name from) {
-        if (from != N(raindaysmain) && 
-            from != N(badatest1111) &&
-            from != N(badatest1112) &&
-            from != N(badatest111)
-            ) {
-            assert_true(false, "MAINTENANCE");
-        }
-    }
-
     /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
-        //require_testid(from);
         player_controller.checksum_gateway(from, block, checksum);
         knight_controller.rebirth(from, checksum, true);
     }
@@ -231,7 +221,6 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        //require_testid(from);
         player_controller.checksum_gateway(from, block, checksum);
         material_controller.remove(from, mat_ids);
     }
@@ -240,14 +229,14 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        //require_testid(from);
         player_controller.checksum_gateway(from, block, checksum);
-        item_controller.craft(from, code, mat_ids, true);
+        item_controller.craft(from, code, mat_ids, checksum, true);
     }
 
     /// @abi action
-    void craft2i(name from, uint16_t code, const std::vector<uint32_t>& mat_ids) {
-        item_controller.craft(from, code, mat_ids, false);
+    void craft2i(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
+        player_controller.set_last_checksum(checksum);
+        item_controller.craft(from, code, mat_ids, checksum, false);
     }
 
     /// @abi action
@@ -275,12 +264,13 @@ public:
         player_controller.checksum_gateway(from, block, checksum);
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "hire knight first!");
-        pet_controller.petgacha(from, type, count, true);
+        pet_controller.petgacha(from, type, count, checksum, true);
     }
 
     /// @abi action
-    void petgacha2i(name from, uint16_t type, uint8_t count) {
-        pet_controller.petgacha(from, type, count, false);
+    void petgacha2i(name from, uint16_t type, uint8_t count, uint32_t checksum) {
+        player_controller.set_last_checksum(checksum);
+        pet_controller.petgacha(from, type, count, checksum, false);
     }
 
     /// @abi action
@@ -311,18 +301,19 @@ public:
 
     /// @abi action
     void pexpreturn(name from, uint16_t code) {
-        pet_controller.pexpreturn(from, code, true);
+        pet_controller.pexpreturn(from, code, 0, true);
     }
 
     /// @abi action
     void pexpreturn2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
         player_controller.checksum_gateway(from, block, checksum);
-        pet_controller.pexpreturn(from, code, false);
+        pet_controller.pexpreturn(from, code, checksum, true);
     }
 
     /// @abi action
-    void pexpreturn2i(name from, uint16_t code) {
-        pet_controller.pexpreturn(from, code, false);
+    void pexpreturn2i(name from, uint16_t code, uint32_t checksum) {
+        player_controller.set_last_checksum(checksum);
+        pet_controller.pexpreturn(from, code, checksum, false);
     }
 
     // market related actions
@@ -379,12 +370,13 @@ public:
     /// @abi action
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t block, uint32_t checksum) {
         player_controller.checksum_gateway(from, block, checksum);
-        dungeon_controller.dgclear(from, code, orders, true);
+        dungeon_controller.dgclear(from, code, orders, checksum, true);
     }
 
     /// @abi action
-    void dgcleari(name from, uint16_t code, const std::vector<uint32_t> orders) {
-        dungeon_controller.dgclear(from, code, orders, false);
+    void dgcleari(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum) {
+        player_controller.set_last_checksum(checksum);
+        dungeon_controller.dgclear(from, code, orders, checksum, false);
     }
 
     /// @abi action
@@ -654,13 +646,7 @@ extern "C" { \
         auto self = receiver; \
         TYPE thiscontract( self ); \
         if (MAINTENANCE == 1) { \
-            if (action != N(rebirth2) && \
-                action != N(rebirth2i) && \
-                action != N(removemat2) && \
-                action != N(craft2) && \
-                action != N(craft2i)) { \
-                require_auth(self); \
-            }\
+            require_auth(self); \
         }\
         if( action == N(onerror)) { \
             eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \

@@ -348,12 +348,12 @@ public:
     /// item code which you want to craft
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
-    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, bool delay) {
+    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
 
-        if (delay) {
+        if (delay && USE_DEFERRED == 1) {
             require_auth(from);
             do_craft(player, code, mat_ids, true);
 
@@ -361,12 +361,17 @@ public:
             out.actions.emplace_back(
                 permission_level{ self, N(active) }, 
                 self, N(craft2i), 
-                std::make_tuple(from, code, mat_ids)
+                std::make_tuple(from, code, mat_ids, checksum)
             );
             out.delay_sec = 1;
             out.send(from, self);
         } else {
-            require_auth(self);
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+
             do_craft(player, code, mat_ids, false);
         }
     }

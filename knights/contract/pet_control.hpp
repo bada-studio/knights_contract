@@ -134,12 +134,12 @@ public:
     /// Gocha request count
     /// @param checksum
     /// To prevent bots
-    void petgacha(name from, uint16_t type, uint8_t count, bool delay) {
+    void petgacha(name from, uint16_t type, uint8_t count, uint32_t checksum, bool delay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
-        if (delay) {
+        if (delay && USE_DEFERRED == 1) {
             require_auth(from);
             do_petgacha(player, type, count, true);
 
@@ -147,12 +147,17 @@ public:
             out.actions.emplace_back(
                 permission_level{ self, N(active) }, 
                 self, N(petgacha2i), 
-                std::make_tuple(from, type, count)
+                std::make_tuple(from, type, count, checksum)
             );
             out.delay_sec = 1;
             out.send(from, self);
         } else {
-            require_auth(self);
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+
             do_petgacha(player, type, count, false);
         }
     }
@@ -315,8 +320,8 @@ public:
         }
     }
 
-    void pexpreturn(name from, uint16_t code, bool delay) {
-        if (delay) {
+    void pexpreturn(name from, uint16_t code, uint32_t checksum, bool delay) {
+        if (delay && USE_DEFERRED == 1) {
             require_auth(from);
             do_pexpreturn(from, code, true);
 
@@ -324,12 +329,17 @@ public:
             out.actions.emplace_back(
                 permission_level{ self, N(active) }, 
                 self, N(pexpreturn2i), 
-                std::make_tuple(from, code)
+                std::make_tuple(from, code, checksum)
             );
             out.delay_sec = 1;
             out.send(from, self);
         } else {
-            require_auth(self);
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+
             do_pexpreturn(from, code, false);
         }
     }
@@ -357,7 +367,7 @@ public:
 
                 assert_true(pet.isback == false, "already return");
                 assert_true(pet.end < current, "too early return");
-                if (only_check != false) {
+                if (only_check == false) {
                     pet.isback = true;
                     pet.end = current + duration;
                 }
@@ -384,16 +394,6 @@ public:
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 
-        // calculate drop magic water
-        int mw = exp_rule->get_mw(rule->grade);
-        mw = mw * duration / time_util::day;
-
-        auto rval = player_controller.begin_random(from, r4_petexp, 0);
-        int range = (int)rval.range(21) - 10;
-        mw += mw * range / 100;
-        mw = std::max(0, mw);
-        mw = std::min(10000, mw);
-        
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
@@ -408,6 +408,16 @@ public:
             return;
         }
 
+        // calculate drop magic water
+        int mw = exp_rule->get_mw(rule->grade);
+        mw = mw * duration / time_util::day;
+
+        auto rval = player_controller.begin_random(from, r4_petexp, 0);
+        int range = (int)rval.range(21) - 10;
+        mw += mw * range / 100;
+        mw = std::max(0, mw);
+        mw = std::min(10000, mw);
+        
         players.modify(player, self, [&](auto& target) {
             target.powder += mw;
         });
