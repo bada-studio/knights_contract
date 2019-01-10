@@ -348,12 +348,27 @@ public:
     /// item code which you want to craft
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
-    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids) {
+    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, bool delay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
 
-        do_craft(player, code, mat_ids);
+        if (delay) {
+            require_auth(from);
+            do_craft(player, code, mat_ids, true);
+
+            eosio::transaction out{};
+            out.actions.emplace_back(
+                permission_level{ self, N(active) }, 
+                self, N(craft2i), 
+                std::make_tuple(from, code, mat_ids)
+            );
+            out.delay_sec = 1;
+            out.send(from, self);
+        } else {
+            require_auth(self);
+            do_craft(player, code, mat_ids, false);
+        }
     }
 
     /// @brief
@@ -507,9 +522,8 @@ public:
     }
 
 private:
-    void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids) {
+    void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check) {
         name from = player->owner;
-        require_auth(from);
         player_controller.require_action_count(1);
 
         auto &rule_table = item_rule_controller.get_table();
@@ -548,9 +562,13 @@ private:
                     mat3_count == 0 &&
                     mat4_count == 0, "invalid recipe material count");
 
+        material_controller.remove_mats(from, mat_ids, only_check);
+        if (only_check) {
+            return;
+        }
+
         uint32_t dna = random_dna(*recipe, from, code);
         add_item(from, code, dna, 1, 0);
-        material_controller.remove_mats(from, mat_ids);
     }
 
     uint32_t random_dna(const ritem &rule, name from, int code) {

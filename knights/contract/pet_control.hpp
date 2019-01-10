@@ -134,11 +134,27 @@ public:
     /// Gocha request count
     /// @param checksum
     /// To prevent bots
-    void petgacha(name from, uint16_t type, uint8_t count) {
+    void petgacha(name from, uint16_t type, uint8_t count, bool delay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
-        do_petgacha(player, type, count);
+
+        if (delay) {
+            require_auth(from);
+            do_petgacha(player, type, count, true);
+
+            eosio::transaction out{};
+            out.actions.emplace_back(
+                permission_level{ self, N(active) }, 
+                self, N(petgacha2i), 
+                std::make_tuple(from, type, count)
+            );
+            out.delay_sec = 1;
+            out.send(from, self);
+        } else {
+            require_auth(self);
+            do_petgacha(player, type, count, false);
+        }
     }
 
     /// @brief
@@ -299,8 +315,26 @@ public:
         }
     }
 
-    void pexpreturn(name from, uint16_t code) {
-        require_auth(from);
+    void pexpreturn(name from, uint16_t code, bool delay) {
+        if (delay) {
+            require_auth(from);
+            do_pexpreturn(from, code, true);
+
+            eosio::transaction out{};
+            out.actions.emplace_back(
+                permission_level{ self, N(active) }, 
+                self, N(pexpreturn2i), 
+                std::make_tuple(from, code)
+            );
+            out.delay_sec = 1;
+            out.send(from, self);
+        } else {
+            require_auth(self);
+            do_pexpreturn(from, code, false);
+        }
+    }
+
+    void do_pexpreturn(name from, uint16_t code, bool only_check) {
         player_controller.require_action_count(1);
 
         petexp_table petexps(self, self);
@@ -323,8 +357,10 @@ public:
 
                 assert_true(pet.isback == false, "already return");
                 assert_true(pet.end < current, "too early return");
-                pet.isback = true;
-                pet.end = current + duration;
+                if (only_check != false) {
+                    pet.isback = true;
+                    pet.end = current + duration;
+                }
                 found = true;
                 break;
             }
@@ -362,6 +398,16 @@ public:
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
+        // check inventory size;
+        auto &mats = material_controller.get_materials(from);
+        int exp_mat_count = mats.size() + 1;
+        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
+
+        if (only_check) {
+            return;
+        }
+
         players.modify(player, self, [&](auto& target) {
             target.powder += mw;
         });
@@ -376,12 +422,6 @@ public:
         if (rule->grade == 1) {
             bottie_grade = 1;
         }
-
-        // check inventory size;
-        auto &mats = material_controller.get_materials(from);
-        int exp_mat_count = mats.size() + 1;
-        int max_mat_count = material_controller.get_max_inventory_size(*player);
-        assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         // determin material
         uint16_t bottie = get_bottie(*player, bottie_grade, rval);
@@ -441,9 +481,8 @@ public:
     }
 
 private:
-    void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count) {
+    void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check) {
         name from = player->owner;
-        require_auth(from);
         player_controller.require_action_count(1);
 
         assert_true(type > 0 && type < pgt_count, "invalid gacha type");
@@ -458,9 +497,12 @@ private:
 
         powder *= count;
         assert_true(powder <= player->powder, "not enough powder");
-
         if (powder > 0) {
-            player_controller.decrease_powder(player, powder);
+            player_controller.decrease_powder(player, powder, only_check);
+        }
+
+        if (only_check) {
+            return;
         }
 
         //@ warning for the performance issue, drop rates are hard coded here,

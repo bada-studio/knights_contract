@@ -62,13 +62,24 @@ public:
         });
     }
 
-    void decrease_powder(player_table::const_iterator player, uint32_t powder) {
+    void decrease_powder(player_table::const_iterator player, uint32_t powder, bool only_check = false) {
         assert_true(player->powder >= powder, "not enough powder");
+        if (only_check) {
+            return;
+        }
 
         // modify powder
         players.modify(player, self, [&](auto& target) {
             target.powder -= powder;
         });
+    }
+
+    void set_last_checksum(uint32_t checksum) {
+        last_checksum = checksum;
+    }
+
+    uint32_t get_last_trx_hash() {
+        return last_trx_hash;
     }
 
     template<typename T>
@@ -213,9 +224,10 @@ public:
             seed = seed_identity(from);
         }
 
-        seed = seed ^ get_key2(from);
-        int strength = get_base_shuffle_bit(2) + (tapos_block_prefix() % 4) + (last_checksum % 4) + (last_trx_hash % 4);
-        seed = shuffle_bit(seed, strength) ^ shuffle_bit(last_trx_hash, last_checksum % 4);
+        seed ^= get_key2(from);
+        int strength = get_base_shuffle_bit(2) + (last_checksum % 4) + (last_trx_hash % 7);
+        seed = shuffle_bit(seed, strength);
+        seed ^= tapos_block_prefix();
 
         auto rval = random_val(seed, 0);
         return rval;

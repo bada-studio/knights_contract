@@ -262,11 +262,27 @@ public:
     /// Player who requested rebirth
     /// @param checksum
     /// To prevent bots
-    void rebirth(name from) {
+    void rebirth(name from, uint32_t checksum, bool delay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        do_rebirth(from, player);
+
+        if (delay) {
+            require_auth(from);
+            do_rebirth(from, player, true);
+
+            eosio::transaction out{};
+            out.actions.emplace_back(
+                permission_level{ self, N(active) }, 
+                self, N(rebirth2i), 
+                std::make_tuple(from, checksum)
+            );
+            out.delay_sec = 1;
+            out.send(from, self);
+        } else {
+            require_auth(self);
+            do_rebirth(from, player, false);
+        }
     }
     
     /// @brief
@@ -391,7 +407,7 @@ public:
 
         // required level check
         assert_true(rule.requiredlv <= knight.level, "not enough knight level");
-        
+
         auto iter = skills.find(from);
         if (iter == skills.end()) {
             // check first skill
@@ -548,8 +564,7 @@ private:
     }
 
     /// rebirth common logic
-    void do_rebirth(name from, player_table::const_iterator player) {
-        require_auth(from);
+    void do_rebirth(name from, player_table::const_iterator player, bool only_check) {
         player_controller.check_blacklist(from);
         player_controller.require_action_count(1);
 
@@ -578,12 +593,12 @@ private:
             assert_true(elapsed_sec >= kv_min_rebirth, "too short to get rebirth");
         }
 
+        if (only_check) {
+            return;
+        }
+
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
-
-        // if (elapsed_sec < 60 * 5 && player->maxfloor > 100) { 
-        //    log_account(from);
-        // }
 
         for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
             auto &knight = *iter;

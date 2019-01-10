@@ -189,7 +189,7 @@ public:
         add_material(from, code);
     }
 
-    uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids) {
+    uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids, bool only_check = false) {
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
         auto &mat_rule = material_rule_controller.get_table();
@@ -224,7 +224,9 @@ public:
                         }
 
                         powder += rule->powder;
-                        mat.rows.erase(mat.rows.begin() + mid);
+                        if (only_check == false) {
+                            mat.rows.erase(mat.rows.begin() + mid);
+                        }
                         found = true;
                         break;
                     }

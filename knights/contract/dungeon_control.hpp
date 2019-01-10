@@ -269,8 +269,26 @@ public:
         player_controller.increase_powder(player, rule->losemw);
     }
 
-    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders) {
-        require_auth(from);
+    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool delay) {
+        if (delay) {
+            require_auth(from);
+            do_dgclear(from, code, orders, true);
+
+            eosio::transaction out{};
+            out.actions.emplace_back(
+                permission_level{ self, N(active) }, 
+                self, N(dgcleari), 
+                std::make_tuple(from, code, orders)
+            );
+            out.delay_sec = 1;
+            out.send(from, self);
+        } else {
+            require_auth(self);
+            do_dgclear(from, code, orders, false);
+        }
+    }
+
+    void do_dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool only_check) {
         player_controller.require_action_count(1);
 
         // get player
@@ -299,6 +317,10 @@ public:
         auto &rule_table = dungeon_rule_controller.get_table();
         auto rule = rule_table.find(code);
         assert_true(rule_table.cend() != rule, "could not dungeon rule");
+
+        if (only_check) {
+            return;
+        }
 
         // determin drop material
         auto rval = player_controller.begin_random(from, r4_dungeon, 0);
