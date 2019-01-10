@@ -271,6 +271,7 @@ public:
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders) {
         require_auth(from);
+        player_controller.require_action_count(1);
 
         // get player
         auto &players = player_controller.get_players();

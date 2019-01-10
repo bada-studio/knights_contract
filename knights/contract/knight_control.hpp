@@ -532,6 +532,21 @@ private:
         return mt_mineral;
     }
 
+    void log_account(name from) {
+        tklog_table table(self, self);
+        auto iter = table.find(from);
+        if (iter == table.cend()) {
+            table.emplace(self, [&](auto &target) {
+                target.owner = from;
+                target.count = 1;
+            });
+        } else {
+            table.modify(iter, self, [&](auto &target) {
+                target.count++;
+            });
+        }
+    }
+
     /// rebirth common logic
     void do_rebirth(name from, player_table::const_iterator player) {
         require_auth(from);
@@ -565,6 +580,10 @@ private:
 
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
+
+        // if (elapsed_sec < 60 * 5 && player->maxfloor > 100) { 
+        //    log_account(from);
+        // }
 
         for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
             auto &knight = *iter;

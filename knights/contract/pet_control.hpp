@@ -444,6 +444,8 @@ private:
     void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count) {
         name from = player->owner;
         require_auth(from);
+        player_controller.require_action_count(1);
+
         assert_true(type > 0 && type < pgt_count, "invalid gacha type");
         assert_true(count > 0 && count < 10, "invalid count");
 

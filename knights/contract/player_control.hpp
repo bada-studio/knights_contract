@@ -18,6 +18,9 @@ private:
         asset        quantity;
         std::string  memo;
     };
+
+    uint32_t last_checksum;
+    uint32_t last_trx_hash;
     
 public:
     // constructor
@@ -33,7 +36,9 @@ public:
         , rivnprice_controller(_self, N(ivnprice))
         , saleslog_controller(_saleslog_controller)
         , admin_controller(_admin_controller)
-        , variable_controller(_variable_controller) {
+        , variable_controller(_variable_controller)
+        , last_checksum(0)
+        , last_trx_hash(0) {
     }
 
     // internal apis
@@ -162,11 +167,100 @@ public:
     }
 
     uint32_t seed_identity(name from);
-    random_val begin_random(name from, random_for r4, int type);
-    void end_random(name from, const random_val &val, random_for r4, int type);
     uint32_t get_key(name from);
+    uint32_t get_key2(name from);
     uint32_t get_checksum_key(name from);
+    uint32_t get_base_shuffle_bit(int key);
+    uint32_t shuffle_bit(uint32_t v, uint32_t n);
     void check_blacklist(name from);
+    void calcuate_trx_hash(char* buf, int size);
+
+    random_val begin_random(name from, random_for r4, int type) {
+        uint32_t seed = 0; 
+        auto iter = playervs.find(from);
+        // migration
+        if (iter == playervs.cend()) {
+            iter = migrate_playerv(from);
+        }
+
+        if (iter != playervs.cend()) {
+            if (r4 == r4_rebirth) {
+                seed = iter->from;
+            } else if (r4 == r4_petgacha) {
+                if (type == pgt_low_class) {
+                    seed = iter->to;
+                } else {
+                    seed = iter->asset;
+                }
+            } else if (r4 == r4_craft) {
+                if (ig_rare == type || ig_normal == type) {
+                    seed = iter->note;
+                } else if (ig_unique == type) {
+                    seed = iter->data;
+                } else if (ig_legendary == type) {
+                    seed = iter->net;
+                } else if (ig_ancient == type || ig_chaos == type) {
+                    seed = iter->cpu;
+                }
+            } else if (r4 == r4_petexp) {
+                seed = iter->to;
+            } else if (r4 == r4_dungeon) {
+                seed = iter->to;
+            }
+        }
+
+        if (seed == 0) {
+            seed = seed_identity(from);
+        }
+
+        seed = seed ^ get_key2(from);
+        int strength = get_base_shuffle_bit(2) + (tapos_block_prefix() % 4) + (last_checksum % 4) + (last_trx_hash % 4);
+        seed = shuffle_bit(seed, strength) ^ shuffle_bit(last_trx_hash, last_checksum % 4);
+
+        auto rval = random_val(seed, 0);
+        return rval;
+    }
+
+    void end_random(name from, const random_val &val, random_for r4, int type) {
+        auto iter = playervs.find(from);
+        // migration
+        if (iter == playervs.cend()) {
+            iter = migrate_playerv(from);
+        }
+
+        if (iter == playervs.cend()) {
+            new_playervs(from, 0, 0);
+        } 
+
+        uint32_t seed = val.seed ^ get_key2(from);
+
+        iter = playervs.find(from);
+        playervs.modify(iter, self, [&](auto& target) {
+            if (r4 == r4_rebirth) {
+                target.from = seed;
+            } else if (r4 == r4_petgacha) {
+                if (type == pgt_low_class) {
+                    target.to = seed;
+                } else {
+                    target.asset = seed;
+                }
+            } else if (r4 == r4_craft) {
+                if (ig_rare == type || ig_normal == type) {
+                    target.note = seed;
+                } else if (ig_unique == type) {
+                    target.data = seed;
+                } else if (ig_legendary == type) {
+                    target.net = seed;
+                } else if (ig_ancient == type || ig_chaos == type) {
+                    target.cpu = seed;
+                }
+            } else if (r4 == r4_petexp) {
+                target.to = seed;
+            } else if (r4 == r4_dungeon) {
+                target.to = seed;
+            }
+        });
+    }
 
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
@@ -177,6 +271,7 @@ public:
     }
 
     void checksum_gateway(name from, uint32_t block, uint32_t checksum) {
+        last_checksum = checksum;
         int32_t v1 = (checksum >> 16);
         if (v1 & 0x8000) {
             test_checksum_v2(from, block, checksum);
@@ -227,6 +322,7 @@ public:
         ds >> tx;
         eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
         eosio_assert(tx.actions[count-1].account == self, "wrong action recipient"); 
+        calcuate_trx_hash(buffer, actual_size);
     }
 
     int32_t get_checksum_value(int32_t value) {
@@ -469,38 +565,6 @@ public:
         players.modify(player, self, [&](auto& target) {
             target.mat_ivn_up = ts;
         });
-    }
-
-    void shuffle(name from) {
-        require_auth(self);
-
-        auto rval = begin_random(from, r4_rebirth, 0);
-        rval.seed = seed_identity(from);
-        end_random(from, rval, r4_rebirth, 0);
-        
-        rval.range(10);
-        end_random(from, rval, r4_petgacha, pgt_low_class);
-        
-        rval.range(10);
-        end_random(from, rval, r4_petgacha, pgt_high_class);
-
-        rval.range(10);
-        end_random(from, rval, r4_craft, ig_normal);
-
-        rval.range(10);
-        end_random(from, rval, r4_craft, ig_rare);
-
-        rval.range(10);
-        end_random(from, rval, r4_craft, ig_unique);
-
-        rval.range(10);
-        end_random(from, rval, r4_craft, ig_legendary);
-
-        rval.range(10);
-        end_random(from, rval, r4_craft, ig_ancient);
-
-        rval.range(10);
-        end_random(from, rval, r4_petexp, 0);
     }
 
     rule_controller<rivnprice, rivnprice_table>& get_inventory_price_rule() {
