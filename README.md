@@ -11,7 +11,11 @@ Hire a knight to protect the town from the goblins!
 
 ## About Bada Studio
 Bada Studio build games that runs on EOS network as smart contract. EOS knights is a our first game. See more information here.
-http://eosknights.io/
+https://eosknights.io/
+
+## Bug Bounty
+- We have 'CONTRACT BUG BOUNTY' up to 200 EOS.
+- If you found a bug or security issue on our contract, please contact us rather than attack.
 
 ### License
     Copyright (c) 2018-2019 Bada Studio.
