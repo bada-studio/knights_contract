@@ -181,7 +181,6 @@ public:
     uint32_t get_key(name from);
     uint32_t get_key2(name from);
     uint32_t get_checksum_key(name from);
-    uint32_t get_base_shuffle_bit(int key);
     uint32_t shuffle_bit(uint32_t v, uint32_t n);
     void check_blacklist(name from);
     void calcuate_trx_hash(char* buf, int size);
@@ -225,8 +224,10 @@ public:
         }
 
         seed ^= get_key2(from);
-        int strength = get_base_shuffle_bit(2) + (last_checksum % 4) + (last_trx_hash % 7);
-        seed = shuffle_bit(seed, strength);
+        int strength1 = (last_checksum % 13) + (last_trx_hash % 17);
+        int strength2 = (last_checksum % 11) + (last_trx_hash % 19);
+        seed = shuffle_bit(seed, strength1);
+        seed ^= shuffle_bit(last_trx_hash, strength2);
         seed ^= tapos_block_prefix();
 
         auto rval = random_val(seed, 0);
