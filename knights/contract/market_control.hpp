@@ -128,6 +128,8 @@ public:
         }
 
         auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() > 0, "there is no knight");
+
         auto max_sell_count = get_max_sell_count(from);
         assert_true(sale_count < max_sell_count, "sell limit");
 
@@ -174,6 +176,9 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "can not found player info");
+
+        auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() > 0, "there is no knight");
 
         // inventory check
         int max_inventory_size = item_controller.get_max_inventory_size(*player);
@@ -263,6 +268,8 @@ public:
         }
 
         auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() > 0, "there is no knight");
+
         auto max_sell_count = get_max_sell_count(from);
         assert_true(sale_count < max_sell_count, "sell limit");
 
@@ -288,6 +295,9 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "can not found player info");
+
+        auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() > 0, "there is no knight");
 
         // inventory check
         int max_inventory_size = material_controller.get_max_inventory_size(*player);
