@@ -269,23 +269,23 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            do_rebirth(from, player, true);
-
-            eosio::transaction out{};
-            out.actions.emplace_back(
-                permission_level{ self, N(active) }, 
-                self, N(rebirth2i), 
-                std::make_tuple(from, checksum)
-            );
-            out.delay_sec = 1;
-            out.send(from, self);
+            if (do_rebirth(from, player, true)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(rebirth2i), 
+                    std::make_tuple(from, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(from, self);
+            }
         } else {
             if (USE_DEFERRED == 1) {
                 require_auth(self);
             } else {
                 require_auth(from);
             }
-            
+
             do_rebirth(from, player, false);
         }
     }
@@ -569,7 +569,7 @@ private:
     }
 
     /// rebirth common logic
-    void do_rebirth(name from, player_table::const_iterator player, bool only_check) {
+    bool do_rebirth(name from, player_table::const_iterator player, bool only_check) {
         player_controller.check_blacklist(from);
         player_controller.require_action_count(1);
 
@@ -598,10 +598,6 @@ private:
             assert_true(elapsed_sec >= kv_min_rebirth, "too short to get rebirth");
         }
 
-        if (only_check) {
-            return;
-        }
-
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
 
@@ -623,6 +619,15 @@ private:
             total_kill_count += current_kill_count;
         }
 
+        int floor = (total_kill_count / 10) + 1;
+        if (only_check) {
+            if (floor < get_floor_for(ig_unique)) {
+                only_check = false;
+            } else {
+                return true;
+            }
+        }
+
         knights.modify(iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
                 int type = target.rows[index].type;
@@ -630,7 +635,6 @@ private:
             }
         });
 
-        int floor = (total_kill_count / 10) + 1;
         double powder = 0;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] == 0) {
@@ -672,6 +676,7 @@ private:
         });
 
         player_controller.end_random(from, rval, r4_rebirth, 0);
+        return only_check;
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval) {

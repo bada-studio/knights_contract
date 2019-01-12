@@ -141,16 +141,16 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            do_petgacha(player, type, count, true);
-
-            eosio::transaction out{};
-            out.actions.emplace_back(
-                permission_level{ self, N(active) }, 
-                self, N(petgacha2i), 
-                std::make_tuple(from, type, count, checksum)
-            );
-            out.delay_sec = 1;
-            out.send(from, self);
+            if (do_petgacha(player, type, count, true)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(petgacha2i), 
+                    std::make_tuple(from, type, count, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(from, self);
+            }
         } else {
             if (USE_DEFERRED == 1) {
                 require_auth(self);
@@ -323,16 +323,16 @@ public:
     void pexpreturn(name from, uint16_t code, uint32_t checksum, bool delay) {
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            do_pexpreturn(from, code, true);
-
-            eosio::transaction out{};
-            out.actions.emplace_back(
-                permission_level{ self, N(active) }, 
-                self, N(pexpreturn2i), 
-                std::make_tuple(from, code, checksum)
-            );
-            out.delay_sec = 1;
-            out.send(from, self);
+            if (do_pexpreturn(from, code, true)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(pexpreturn2i), 
+                    std::make_tuple(from, code, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(from, self);
+            }
         } else {
             if (USE_DEFERRED == 1) {
                 require_auth(self);
@@ -344,7 +344,7 @@ public:
         }
     }
 
-    void do_pexpreturn(name from, uint16_t code, bool only_check) {
+    bool do_pexpreturn(name from, uint16_t code, bool only_check) {
         player_controller.require_action_count(1);
 
         petexp_table petexps(self, self);
@@ -356,6 +356,9 @@ public:
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
         auto duration = get_pet_exp_duration(rule->grade);
         auto current = time_util::getnow();
+        if (only_check && rule->grade < pg_unique) {
+            only_check = false;
+        }
 
         bool found = false;
         petexps.modify(exp_iter, self, [&](auto& target) {
@@ -405,7 +408,7 @@ public:
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         if (only_check) {
-            return;
+            return true;
         }
 
         // calculate drop magic water
@@ -439,6 +442,7 @@ public:
         material_controller.add_material(from, bottie);
 
         player_controller.end_random(from, rval, r4_petexp, 0);
+        return only_check;
     }
 
     bool is_pet_free(name from, int16_t code) {
@@ -491,12 +495,16 @@ public:
     }
 
 private:
-    void do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check) {
+    bool do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check) {
         name from = player->owner;
         player_controller.require_action_count(1);
 
         assert_true(type > 0 && type < pgt_count, "invalid gacha type");
         assert_true(count > 0 && count < 10, "invalid count");
+
+        if (only_check && type == pgt_low_class) {
+            only_check = false;
+        }
 
         int powder;
         if (type == pgt_low_class) {
@@ -512,7 +520,7 @@ private:
         }
 
         if (only_check) {
-            return;
+            return true;
         }
 
         //@ warning for the performance issue, drop rates are hard coded here,
@@ -580,6 +588,7 @@ private:
         }
 
         player_controller.end_random(from, rval, r4_petgacha, type);
+        return only_check;
     }
 
     void add_stat(knight_stats &stat, stat_type type, int value) {

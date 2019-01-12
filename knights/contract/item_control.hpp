@@ -355,16 +355,16 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            do_craft(player, code, mat_ids, true);
-
-            eosio::transaction out{};
-            out.actions.emplace_back(
-                permission_level{ self, N(active) }, 
-                self, N(craft2i), 
-                std::make_tuple(from, code, mat_ids, checksum)
-            );
-            out.delay_sec = 1;
-            out.send(from, self);
+            if (do_craft(player, code, mat_ids, true)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(craft2i), 
+                    std::make_tuple(from, code, mat_ids, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(from, self);
+            }
         } else {
             if (USE_DEFERRED == 1) {
                 require_auth(self);
@@ -527,13 +527,16 @@ public:
     }
 
 private:
-    void do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check) {
+    bool do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check) {
         name from = player->owner;
         player_controller.require_action_count(1);
 
         auto &rule_table = item_rule_controller.get_table();
         auto recipe = rule_table.find(code);
         assert_true(recipe != rule_table.cend(), "could not find recipe");
+        if (only_check && recipe->grade < ig_unique) {
+            only_check = false;
+        }
 
         int inven_size = get_max_inventory_size(*player);
         assert_true(get_items(from).size() < inven_size, "full inventory");
@@ -569,11 +572,12 @@ private:
 
         material_controller.remove_mats(from, mat_ids, only_check);
         if (only_check) {
-            return;
+            return true;
         }
 
         uint32_t dna = random_dna(*recipe, from, code);
         add_item(from, code, dna, 1, 0);
+        return only_check;
     }
 
     uint32_t random_dna(const ritem &rule, name from, int code) {
