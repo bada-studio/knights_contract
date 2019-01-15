@@ -366,7 +366,7 @@ public:
                     std::make_tuple(from, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(now(), from);
+                out.send(player_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -465,7 +465,7 @@ public:
                     std::make_tuple(from, id, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(now(), from);
+                out.send(player_controller.get_last_trx_hash(), self);
                 return 0;
             }
         } else {

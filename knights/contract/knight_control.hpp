@@ -280,7 +280,7 @@ public:
                     std::make_tuple(from, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(now(), from);
+                out.send(player_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
