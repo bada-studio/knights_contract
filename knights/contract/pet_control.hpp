@@ -138,10 +138,13 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
+        auto pvsi = player_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            if (do_petgacha(player, type, count, true)) {
+            delay = player_controller.set_deferred(pvsi, dtt_petgacha);
+
+            if (do_petgacha(player, type, count, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
@@ -149,7 +152,7 @@ public:
                     std::make_tuple(from, type, count, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(from, self);
+                out.send(now(), from);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -158,7 +161,7 @@ public:
                 require_auth(from);
             }
 
-            do_petgacha(player, type, count, false);
+            do_petgacha(player, type, count, false, pvsi);
         }
     }
 
@@ -321,9 +324,13 @@ public:
     }
 
     void pexpreturn(name from, uint16_t code, uint32_t checksum, bool delay) {
+        auto pvsi = player_controller.get_playervs(from);
+
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            if (do_pexpreturn(from, code, true)) {
+            delay = player_controller.set_deferred(pvsi, dtt_pexpreturn);
+
+            if (do_pexpreturn(from, code, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
@@ -331,7 +338,7 @@ public:
                     std::make_tuple(from, code, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(from, self);
+                out.send(now(), from);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -340,11 +347,11 @@ public:
                 require_auth(from);
             }
 
-            do_pexpreturn(from, code, false);
+            do_pexpreturn(from, code, false, pvsi);
         }
     }
 
-    bool do_pexpreturn(name from, uint16_t code, bool only_check) {
+    bool do_pexpreturn(name from, uint16_t code, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.require_action_count(1);
 
         petexp_table petexps(self, self);
@@ -415,7 +422,7 @@ public:
         int mw = exp_rule->get_mw(rule->grade);
         mw = mw * duration / time_util::day;
 
-        auto rval = player_controller.begin_random(from, r4_petexp, 0);
+        auto rval = player_controller.begin_random(pvsi, r4_petexp, 0);
         int range = (int)rval.range(21) - 10;
         mw += mw * range / 100;
         mw = std::max(0, mw);
@@ -441,7 +448,8 @@ public:
         assert_true(bottie != 0, "invalid material drop");
         material_controller.add_material(from, bottie);
 
-        player_controller.end_random(from, rval, r4_petexp, 0);
+        player_controller.end_random(pvsi, rval, r4_petexp, 0);
+        player_controller.clear_deferred(pvsi, dtt_pexpreturn);
         return only_check;
     }
 
@@ -495,7 +503,7 @@ public:
     }
 
 private:
-    bool do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check) {
+    bool do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
         player_controller.require_action_count(1);
 
@@ -564,7 +572,7 @@ private:
             sum = sum_high;
         }
 
-        auto rval = player_controller.begin_random(from, r4_petgacha, type);
+        auto rval = player_controller.begin_random(pvsi, r4_petgacha, type);
         for (int index = 0; index < count; ++index) {
             int pos = rval.range(sum);
             int value = 0;
@@ -587,7 +595,8 @@ private:
             }
         }
 
-        player_controller.end_random(from, rval, r4_petgacha, type);
+        player_controller.end_random(pvsi, rval, r4_petgacha, type);
+        player_controller.clear_deferred(pvsi, dtt_petgacha);
         return only_check;
     }
 

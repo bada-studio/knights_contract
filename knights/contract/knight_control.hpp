@@ -266,10 +266,13 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
+        auto pvsi = player_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            if (do_rebirth(from, player, true)) {
+            delay = player_controller.set_deferred(pvsi, dtt_rebirth);
+
+            if (do_rebirth(from, player, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
@@ -277,7 +280,7 @@ public:
                     std::make_tuple(from, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(from, self);
+                out.send(now(), from);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -286,7 +289,7 @@ public:
                 require_auth(from);
             }
 
-            do_rebirth(from, player, false);
+            do_rebirth(from, player, false, pvsi);
         }
     }
     
@@ -569,7 +572,7 @@ private:
     }
 
     /// rebirth common logic
-    bool do_rebirth(name from, player_table::const_iterator player, bool only_check) {
+    bool do_rebirth(name from, player_table::const_iterator player, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.check_blacklist(from);
         player_controller.require_action_count(1);
 
@@ -656,7 +659,7 @@ private:
             powder = 1;
         }
 
-        auto rval = player_controller.begin_random(from, r4_rebirth, 0);
+        auto rval = player_controller.begin_random(pvsi, r4_rebirth, 0);
 
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
@@ -675,7 +678,8 @@ private:
             }
         });
 
-        player_controller.end_random(from, rval, r4_rebirth, 0);
+        player_controller.end_random(pvsi, rval, r4_rebirth, 0);
+        player_controller.clear_deferred(pvsi, dtt_rebirth);
         return only_check;
     }
 

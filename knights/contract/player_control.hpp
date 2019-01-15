@@ -185,45 +185,13 @@ public:
     void check_blacklist(name from);
     void calcuate_trx_hash(char* buf, int size);
 
-    random_val begin_random(name from, random_for r4, int type) {
-        uint32_t seed = 0; 
-        auto iter = playervs.find(from);
-        // migration
-        if (iter == playervs.cend()) {
-            iter = migrate_playerv(from);
-        }
-
-        if (iter != playervs.cend()) {
-            if (r4 == r4_rebirth) {
-                seed = iter->from;
-            } else if (r4 == r4_petgacha) {
-                if (type == pgt_low_class) {
-                    seed = iter->to;
-                } else {
-                    seed = iter->asset;
-                }
-            } else if (r4 == r4_craft) {
-                if (ig_rare == type || ig_normal == type) {
-                    seed = iter->note;
-                } else if (ig_unique == type) {
-                    seed = iter->data;
-                } else if (ig_legendary == type) {
-                    seed = iter->net;
-                } else if (ig_ancient == type || ig_chaos == type) {
-                    seed = iter->cpu;
-                }
-            } else if (r4 == r4_petexp) {
-                seed = iter->to;
-            } else if (r4 == r4_dungeon) {
-                seed = iter->to;
-            }
-        }
-
+    random_val begin_random(playerv2_table::const_iterator iter, random_for r4, int type) {
+        uint32_t seed = iter->seed;
         if (seed == 0) {
-            seed = seed_identity(from);
+            seed = seed_identity(iter->owner);
         }
 
-        seed ^= get_key2(from);
+        seed ^= get_key2(iter->owner);
         int strength1 = (last_checksum % 13) + (last_trx_hash % 17);
         int strength2 = (last_checksum % 11) + (last_trx_hash % 19);
         seed = shuffle_bit(seed, strength1);
@@ -234,46 +202,12 @@ public:
         return rval;
     }
 
-    void end_random(name from, const random_val &val, random_for r4, int type) {
-        auto iter = playervs.find(from);
-        // migration
-        if (iter == playervs.cend()) {
-            iter = migrate_playerv(from);
-        }
-
-        if (iter == playervs.cend()) {
-            new_playervs(from, 0, 0);
-        } 
-
-        uint32_t seed = val.seed ^ get_key2(from);
-
-        iter = playervs.find(from);
+    void end_random(playerv2_table::const_iterator iter, const random_val &val, random_for r4, int type) {
+        uint32_t seed = val.seed ^ get_key2(iter->owner);
         playervs.modify(iter, self, [&](auto& target) {
-            if (r4 == r4_rebirth) {
-                target.from = seed;
-            } else if (r4 == r4_petgacha) {
-                if (type == pgt_low_class) {
-                    target.to = seed;
-                } else {
-                    target.asset = seed;
-                }
-            } else if (r4 == r4_craft) {
-                if (ig_rare == type || ig_normal == type) {
-                    target.note = seed;
-                } else if (ig_unique == type) {
-                    target.data = seed;
-                } else if (ig_legendary == type) {
-                    target.net = seed;
-                } else if (ig_ancient == type || ig_chaos == type) {
-                    target.cpu = seed;
-                }
-            } else if (r4 == r4_petexp) {
-                target.to = seed;
-            } else if (r4 == r4_dungeon) {
-                target.to = seed;
-            }
+            target.seed = seed;
         });
-    }
+    }    
 
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
@@ -303,8 +237,8 @@ public:
         int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
         assert_true(v1 == v2, "checksum failure 1");
         assert_true(v2 == v3, "checksum failure 2");
-        assert_true((num + 60) > v0, "checksum failure 3");
-        assert_true((num - v0) < 90, "too old action");
+        assert_true((num + 60) > v0, "check your system time. it's too fast. (checksum failure)");
+        assert_true((num - v0) < 90, "check your system time it's too slow. (checksum failure)");
 
         auto iter = playervs.find(from);
         if (iter == playervs.cend()) {
@@ -325,6 +259,8 @@ public:
         playervs.modify(iter, self, [&](auto& target) {
             target.block = block;
         });
+
+        set_last_checksum(checksum);
     }
 
     void require_action_count(int count) {
@@ -359,13 +295,44 @@ public:
         return require_auth(admin_controller.get_coo());
     }
 
-    // actions
-    //-------------------------------------------------------------------------
-    void signup(name from) {
-        require_auth(from);
-        auto iter = players.find(from);
-        eosio_assert(iter == players.end(), "already signed up" );
-        new_player(from);
+    bool set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
+        return true;
+        /*
+        auto deferred_time = iter->get_deferred_time(type);
+
+        // 2nd migration
+        if (iter->migrated == 0) {
+            playervs.modify(iter, self, [&](auto &target) {
+                target.migrate();
+            });
+            return false;
+        }
+
+        if (deferred_time != 0) {
+            if (deferred_time <= time_util::getnow()) {
+                return false;
+            }
+
+            assert_true(false, "duplicated transaction");
+        } 
+
+        playervs.modify(iter, self, [&](auto &target) {
+            target.set_deferred_time(type, time_util::getnow() + 1);
+        });
+        return true;
+        */
+    }
+
+    void clear_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
+        /*
+        playervs.modify(iter, self, [&](auto &target) {
+            target.set_deferred_time(type, 0);
+        });
+        */
+    }
+
+    playerv2_table::const_iterator get_playervs(name from) {
+        return playervs.find(from);
     }
 
     playerv2_table::const_iterator migrate_playerv(name from) {
@@ -374,22 +341,25 @@ public:
         if (oldv != playervs_old.cend() && newv == playervs.cend()) {
             auto itr = playervs.emplace(self, [&](auto& target) {
                 target.owner = oldv->owner;
-                target.from = oldv->from;
-                target.to = oldv->to;
+                target.seed = oldv->from;
                 target.referral = oldv->referral;
-                target.v4 = oldv->v4;
                 target.gift = oldv->gift;
-                target.asset = oldv->asset;
-                target.note = oldv->note;
-                target.data = oldv->data;
-                target.net = oldv->net;
-                target.cpu = oldv->cpu;
+                target.migrated = 0;
             });
 
             playervs_old.erase(oldv);
         }
         
         return playervs.find(from);
+    }
+
+    // actions
+    //-------------------------------------------------------------------------
+    void signup(name from) {
+        require_auth(from);
+        auto iter = players.find(from);
+        eosio_assert(iter == players.end(), "already signed up" );
+        new_player(from);
     }
 
     void referral(name from, name to) {

@@ -352,10 +352,13 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
+        auto pvsi = player_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            if (do_craft(player, code, mat_ids, true)) {
+            delay = player_controller.set_deferred(pvsi, dtt_craft);
+
+            if (do_craft(player, code, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
@@ -363,7 +366,7 @@ public:
                     std::make_tuple(from, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(from, self);
+                out.send(now(), from);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -372,7 +375,7 @@ public:
                 require_auth(from);
             }
 
-            do_craft(player, code, mat_ids, false);
+            do_craft(player, code, mat_ids, false, pvsi);
         }
     }
 
@@ -446,8 +449,39 @@ public:
     /// Player who requested level up action
     /// @param id
     /// Target item
-    int8_t itemlvup(name from, uint64_t id) {
-        require_auth(from);
+    int8_t itemlvup(name from, uint32_t id, uint32_t checksum, bool delay) {
+        auto pvsi = player_controller.get_playervs(from);
+        int8_t knt_id = 0;
+
+        if (delay && USE_DEFERRED == 1) {
+            require_auth(from);
+            delay = player_controller.set_deferred(pvsi, dtt_itemlvup);
+
+            if (do_itemlvup(from, id, delay, &knt_id, pvsi)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(itemlvup2i), 
+                    std::make_tuple(from, id, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(now(), from);
+                return 0;
+            }
+        } else {
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+
+            do_itemlvup(from, id, false, &knt_id, pvsi);
+        }
+
+        return knt_id;
+    }
+
+    bool do_itemlvup(name from, uint32_t id, bool only_check, int8_t *knt_id, playerv2_table::const_iterator pvsi) {
         player_controller.require_action_count(1);
 
         auto iter = items.find(from);
@@ -484,9 +518,15 @@ public:
         // level up success
         bool success = true;
         if (lvrule->rate < 10000) {
-            auto rval = player_controller.begin_random(from, r4_craft, rule->grade);
+            if (only_check) {
+                return true;
+            }
+
+            auto rval = player_controller.begin_random(pvsi, r4_craft, rule->grade);
             success = (rval.range(10000) < lvrule->rate);
-            player_controller.end_random(from, rval, r4_craft, rule->grade);
+            player_controller.end_random(pvsi, rval, r4_craft, rule->grade);
+        } else {
+            only_check = false;
         }
 
         if (!success) {
@@ -511,7 +551,9 @@ public:
             }
         });
 
-        return knight;
+        *knt_id = knight;
+        player_controller.clear_deferred(pvsi, dtt_itemlvup);
+        return only_check;
     }
 
     rule_controller<ritem, ritem_table>& get_ritem_rule() {
@@ -527,7 +569,7 @@ public:
     }
 
 private:
-    bool do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check) {
+    bool do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
         player_controller.require_action_count(1);
 
@@ -575,20 +617,22 @@ private:
             return true;
         }
 
-        uint32_t dna = random_dna(*recipe, from, code);
+        uint32_t dna = random_dna(*recipe, from, code, pvsi);
         add_item(from, code, dna, 1, 0);
+
+        player_controller.clear_deferred(pvsi, dtt_craft);
         return only_check;
     }
 
-    uint32_t random_dna(const ritem &rule, name from, int code) {
-        auto rval = player_controller.begin_random(from, r4_craft, rule.grade);
+    uint32_t random_dna(const ritem &rule, name from, int code, playerv2_table::const_iterator pvsi) {
+        auto rval = player_controller.begin_random(pvsi, r4_craft, rule.grade);
         uint32_t stat1 = rval.range(101);
         uint32_t stat2 = rval.range(101);
         uint32_t stat3 = rval.range(101);
         uint32_t reveal1 = 1;
         uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
         uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
-        player_controller.end_random(from, rval, r4_craft, rule.grade);
+        player_controller.end_random(pvsi, rval, r4_craft, rule.grade);
 
         uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
         uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;

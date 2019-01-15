@@ -251,7 +251,26 @@ public:
 
     /// @abi action
     void itemlvup(name from, uint32_t id) {
-        int8_t knight = item_controller.itemlvup(from, id);
+        player_controller.set_last_checksum(tapos_block_prefix());
+        int8_t knight = item_controller.itemlvup(from, id, tapos_block_prefix(), true);
+        if (knight > 0) {
+            knight_controller.refresh_stat(from, knight);
+        }
+    }
+
+    /// @abi action
+    void itemlvup2(name from, uint32_t id, uint32_t block, uint32_t checksum) {
+        player_controller.checksum_gateway(from, block, checksum);
+        int8_t knight = item_controller.itemlvup(from, id, checksum, true);
+        if (knight > 0) {
+            knight_controller.refresh_stat(from, knight);
+        }
+    }
+
+    /// @abi action
+    void itemlvup2i(name from, uint32_t id, uint32_t checksum) {
+        player_controller.set_last_checksum(checksum);
+        int8_t knight = item_controller.itemlvup(from, id, checksum, false);
         if (knight > 0) {
             knight_controller.refresh_stat(from, knight);
         }
@@ -664,4 +683,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)

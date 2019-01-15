@@ -270,18 +270,22 @@ public:
     }
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay) {
+        auto pvsi = player_controller.get_playervs(from);
+
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            do_dgclear(from, code, orders, true);
-
-            eosio::transaction out{};
-            out.actions.emplace_back(
-                permission_level{ self, N(active) }, 
-                self, N(dgcleari), 
-                std::make_tuple(from, code, orders, checksum)
-            );
-            out.delay_sec = 1;
-            out.send(from, self);
+            delay = player_controller.set_deferred(pvsi, dtt_dgclear);
+            
+            if (do_dgclear(from, code, orders, delay, pvsi)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(dgcleari), 
+                    std::make_tuple(from, code, orders, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(now(), from);
+            }
         } else {
             if (USE_DEFERRED == 1) {
                 require_auth(self);
@@ -289,11 +293,11 @@ public:
                 require_auth(from);
             }
 
-            do_dgclear(from, code, orders, false);
+            do_dgclear(from, code, orders, false, pvsi);
         }
     }
 
-    void do_dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool only_check) {
+    bool do_dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.require_action_count(1);
 
         // get player
@@ -324,11 +328,11 @@ public:
         assert_true(rule_table.cend() != rule, "could not dungeon rule");
 
         if (only_check) {
-            return;
+            return true;
         }
 
         // determin drop material
-        auto rval = player_controller.begin_random(from, r4_dungeon, 0);
+        auto rval = player_controller.begin_random(pvsi, r4_dungeon, 0);
         auto value = rval.range(100'00);
         uint16_t matcode = 0;
 
@@ -363,7 +367,9 @@ public:
             target.rows.erase(target.rows.begin() + pos);
         });
 
-        player_controller.end_random(from, rval, r4_dungeon, 0);
+        player_controller.end_random(pvsi, rval, r4_dungeon, 0);
+        player_controller.clear_deferred(pvsi, dtt_dgclear);
+        return only_check;
     }
 
     rule_controller<rdungeon, rdungeon_table>& get_dungeon_rule() {
