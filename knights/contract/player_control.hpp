@@ -295,9 +295,7 @@ public:
         return require_auth(admin_controller.get_coo());
     }
 
-    bool set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
-        return true;
-        /*
+    void set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
         auto deferred_time = iter->get_deferred_time(type);
 
         // 2nd migration
@@ -305,30 +303,22 @@ public:
             playervs.modify(iter, self, [&](auto &target) {
                 target.migrate();
             });
-            return false;
+            return;
         }
 
         if (deferred_time != 0) {
-            if (deferred_time <= time_util::getnow()) {
-                return false;
-            }
-
-            assert_true(false, "duplicated transaction");
+            assert_true(deferred_time <= time_util::getnow(), "duplicated transaction");
         } 
 
         playervs.modify(iter, self, [&](auto &target) {
-            target.set_deferred_time(type, time_util::getnow() + 1);
+            target.set_deferred_time(type, time_util::getnow() + 2);
         });
-        return true;
-        */
     }
 
     void clear_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
-        /*
         playervs.modify(iter, self, [&](auto &target) {
             target.set_deferred_time(type, 0);
         });
-        */
     }
 
     playerv2_table::const_iterator get_playervs(name from) {

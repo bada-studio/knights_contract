@@ -274,7 +274,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_dgclear);
+            player_controller.set_deferred(pvsi, dtt_dgclear);
             
             if (do_dgclear(from, code, orders, delay, pvsi)) {
                 eosio::transaction out{};
