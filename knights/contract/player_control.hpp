@@ -111,9 +111,7 @@ public:
             auto from_player = players.find(from);
             check_blacklist(from);
             
-            if (transfer_data.memo == "investment") {
-                admin_controller.add_investment(transfer_data.quantity);
-            } else if (from_player == players.end()) {
+            if (from_player == players.end()) {
                 // system account could transfer eos to contract
                 // eg) unstake, sellram, etc
                 // add to the revenue for these.
