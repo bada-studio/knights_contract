@@ -356,7 +356,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            player_controller.set_deferred(pvsi, dtt_craft);
+            delay = player_controller.set_deferred(pvsi, dtt_craft);
 
             if (do_craft(player, code, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
@@ -455,7 +455,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            player_controller.set_deferred(pvsi, dtt_itemlvup);
+            delay = player_controller.set_deferred(pvsi, dtt_itemlvup);
 
             if (do_itemlvup(from, id, delay, &knt_id, pvsi)) {
                 eosio::transaction out{};

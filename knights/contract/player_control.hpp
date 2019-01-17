@@ -181,7 +181,8 @@ public:
     uint32_t get_checksum_key(name from);
     uint32_t shuffle_bit(uint32_t v, uint32_t n);
     void check_blacklist(name from);
-    void calcuate_trx_hash(char* buf, int size);
+    uint32_t calculate_trx_hash(char* buf, int size);
+    uint32_t calculate_trx_hash2();
 
     random_val begin_random(playerv2_table::const_iterator iter, random_for r4, int type) {
         uint32_t seed = iter->seed;
@@ -195,6 +196,7 @@ public:
         seed = shuffle_bit(seed, strength1);
         seed ^= shuffle_bit(last_trx_hash, strength2);
         seed ^= tapos_block_prefix();
+        seed ^= calculate_trx_hash2();
 
         auto rval = random_val(seed, 0);
         return rval;
@@ -269,7 +271,7 @@ public:
         ds >> tx;
         eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
         eosio_assert(tx.actions[count-1].account == self, "wrong action recipient"); 
-        calcuate_trx_hash(buffer, actual_size);
+        last_trx_hash = calculate_trx_hash(buffer, actual_size);
     }
 
     int32_t get_checksum_value(int32_t value) {
@@ -293,24 +295,28 @@ public:
         return require_auth(admin_controller.get_coo());
     }
 
-    void set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
+    bool set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
         auto deferred_time = iter->get_deferred_time(type);
+        auto next_time = time_util::getnow() + 2;
 
         // 2nd migration
         if (iter->migrated == 0) {
             playervs.modify(iter, self, [&](auto &target) {
                 target.migrate();
+                target.set_deferred_time(type, next_time);
             });
-            return;
+            return true;
         }
 
         if (deferred_time != 0) {
             assert_true(deferred_time <= time_util::getnow(), "duplicated transaction");
+            return false;
         } 
 
         playervs.modify(iter, self, [&](auto &target) {
-            target.set_deferred_time(type, time_util::getnow() + 2);
+            target.set_deferred_time(type, next_time);
         });
+        return true;
     }
 
     void clear_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {

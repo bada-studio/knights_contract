@@ -270,7 +270,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            player_controller.set_deferred(pvsi, dtt_rebirth);
+            delay = player_controller.set_deferred(pvsi, dtt_rebirth);
 
             if (do_rebirth(from, player, delay, pvsi)) {
                 eosio::transaction out{};
