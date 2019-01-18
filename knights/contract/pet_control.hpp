@@ -422,7 +422,8 @@ public:
         int mw = exp_rule->get_mw(rule->grade);
         mw = mw * duration / time_util::day;
 
-        auto rval = player_controller.begin_random(pvsi, r4_petexp, 0);
+        auto variable = *pvsi;
+        auto rval = player_controller.begin_random(variable);
         int range = (int)rval.range(21) - 10;
         mw += mw * range / 100;
         mw = std::max(0, mw);
@@ -448,8 +449,9 @@ public:
         assert_true(bottie != 0, "invalid material drop");
         material_controller.add_material(from, bottie);
 
-        player_controller.end_random(pvsi, rval, r4_petexp, 0);
-        player_controller.clear_deferred(pvsi, dtt_pexpreturn);
+        player_controller.end_random(variable, rval);
+        variable.set_deferred_time(dtt_pexpreturn, 0);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
@@ -572,7 +574,8 @@ private:
             sum = sum_high;
         }
 
-        auto rval = player_controller.begin_random(pvsi, r4_petgacha, type);
+        auto variable = *pvsi;
+        auto rval = player_controller.begin_random(variable);
         for (int index = 0; index < count; ++index) {
             int pos = rval.range(sum);
             int value = 0;
@@ -595,8 +598,9 @@ private:
             }
         }
 
-        player_controller.end_random(pvsi, rval, r4_petgacha, type);
-        player_controller.clear_deferred(pvsi, dtt_petgacha);
+        player_controller.end_random(variable, rval);
+        variable.set_deferred_time(dtt_petgacha, 0);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 

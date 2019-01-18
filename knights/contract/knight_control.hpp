@@ -575,6 +575,7 @@ private:
     bool do_rebirth(name from, player_table::const_iterator player, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.check_blacklist(from);
         player_controller.require_action_count(1);
+        playerv2 variable = *pvsi;
 
         auto iter = knights.find(from);
         assert_true(iter != knights.cend(), "can not found knight");
@@ -588,6 +589,7 @@ private:
         int total_kill_count = 0;
         auto &mats = material_controller.get_materials(from);
         
+        int old_max_floor = player->maxfloor;
         int exp_mat_count = mats.size() + rows.size();
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
@@ -659,7 +661,7 @@ private:
             powder = 1;
         }
 
-        auto rval = player_controller.begin_random(pvsi, r4_rebirth, 0);
+        auto rval = player_controller.begin_random(variable);
 
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
@@ -678,9 +680,47 @@ private:
             }
         });
 
-        player_controller.end_random(pvsi, rval, r4_rebirth, 0);
-        player_controller.clear_deferred(pvsi, dtt_rebirth);
+        variable.set_deferred_time(dtt_rebirth, 0);
+        if (rows.size() == kt_count-1 && floor > 10) {
+            submit_floor(variable, old_max_floor, floor);
+        }
+
+        player_controller.end_random(variable, rval);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
+    }
+
+    void submit_floor(playerv2 &variable, int old_max_floor, int floor) {
+        int new_count = 0;
+        int new_floor = 0;
+
+        if (variable.floor_submit == 0) {
+            variable.floor_submit = 1;
+
+            new_count++;
+            new_floor = std::max(old_max_floor, floor);
+
+        } else {
+            if (floor > old_max_floor) {
+                new_floor = floor - old_max_floor;
+            }
+        }
+
+        if (new_floor > 0) {
+            globalvar_table table(self, self);
+            if (table.cbegin() == table.cend()) {
+                table.emplace(self, [&](auto &target) {
+                    target.id = 0;
+                    target.floor_sum = new_floor;
+                    target.floor_submit_count = new_count;
+                });
+            } else {
+                table.modify(table.cbegin(), self, [&](auto &target) {
+                    target.floor_sum += new_floor;
+                    target.floor_submit_count += new_count;
+                });
+            }
+        }
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval) {

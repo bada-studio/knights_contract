@@ -62,6 +62,7 @@ using eosio::name;
 #include "table/admin/gift.hpp"
 #include "table/admin/cquest.hpp"
 #include "table/admin/tklog.hpp"
+#include "table/admin/globalvar.hpp"
 #include "table/admin/candybox.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
@@ -580,9 +581,9 @@ public:
     }
 
     //@abi action
-    void addcandy(uint32_t total, uint32_t amount) {
+    void addcandy(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
         require_auth(_self);
-        candy_controller.addcandy(total, amount);
+        candy_controller.addcandy(id, total, remain, amount);
     }
 
     // eosio.token recipient

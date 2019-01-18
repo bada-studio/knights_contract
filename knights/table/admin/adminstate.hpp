@@ -11,11 +11,11 @@ struct adminstate {
     asset va2;
     name coo;
     uint32_t player_count = 0;
-    uint64_t floor_sum = 0;
-    uint32_t floor_sumbit_count = 0;
     uint64_t v1 = 0;
-    uint64_t v2 = 0;
+    uint32_t v2 = 0;
     uint64_t v3 = 0;
+    uint64_t v4 = 0;
+    uint64_t v5 = 0;
 
     adminstate()
         : revenue(0, S(4, EOS))
@@ -44,11 +44,11 @@ struct adminstate {
             (va2)
             (coo)
             (player_count)
-            (floor_sum)
-            (floor_sumbit_count)
             (v1)
             (v2)
             (v3)
+            (v4)
+            (v5)
     )
 };
 

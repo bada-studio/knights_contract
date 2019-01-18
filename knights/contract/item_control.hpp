@@ -517,14 +517,15 @@ public:
 
         // level up success
         bool success = true;
+        auto variable = *pvsi;
         if (lvrule->rate < 10000) {
             if (only_check) {
                 return true;
             }
 
-            auto rval = player_controller.begin_random(pvsi, r4_craft, rule->grade);
+            auto rval = player_controller.begin_random(variable);
             success = (rval.range(10000) < lvrule->rate);
-            player_controller.end_random(pvsi, rval, r4_craft, rule->grade);
+            player_controller.end_random(variable, rval);
         } else {
             only_check = false;
         }
@@ -552,7 +553,8 @@ public:
         });
 
         *knt_id = knight;
-        player_controller.clear_deferred(pvsi, dtt_itemlvup);
+        variable.set_deferred_time(dtt_itemlvup, 0);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
@@ -617,22 +619,24 @@ private:
             return true;
         }
 
-        uint32_t dna = random_dna(*recipe, from, code, pvsi);
+        auto variable = *pvsi;
+        uint32_t dna = random_dna(*recipe, from, code, variable);
         add_item(from, code, dna, 1, 0);
 
-        player_controller.clear_deferred(pvsi, dtt_craft);
+        variable.set_deferred_time(dtt_craft, 0);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
-    uint32_t random_dna(const ritem &rule, name from, int code, playerv2_table::const_iterator pvsi) {
-        auto rval = player_controller.begin_random(pvsi, r4_craft, rule.grade);
+    uint32_t random_dna(const ritem &rule, name from, int code, playerv2 &variable) {
+        auto rval = player_controller.begin_random(variable);
         uint32_t stat1 = rval.range(101);
         uint32_t stat2 = rval.range(101);
         uint32_t stat3 = rval.range(101);
         uint32_t reveal1 = 1;
         uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
         uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
-        player_controller.end_random(pvsi, rval, r4_craft, rule.grade);
+        player_controller.end_random(variable, rval);
 
         uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
         uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;

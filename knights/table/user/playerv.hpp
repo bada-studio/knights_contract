@@ -1,11 +1,3 @@
-enum random_for {
-    r4_rebirth,
-    r4_craft,
-    r4_petgacha,
-    r4_petexp,
-    r4_dungeon,
-};
-
 // deprecated
 //@abi table playerv i64
 struct playerv {
@@ -70,8 +62,11 @@ struct playerv2 {
     uint32_t deferred_dgclear = 0;
     uint32_t deferred_itemlvup = 0;
     uint32_t block = 0;
-    uint64_t v6 = 0;
-    uint64_t v7 = 0;
+    uint8_t floor_submit = 0;
+    uint8_t v2 = 0;
+    uint16_t v3 = 0;
+    uint32_t v4 = 0;
+    uint64_t v5 = 0;
 
     playerv2(name o = name())
     : owner(o) {
@@ -88,8 +83,11 @@ struct playerv2 {
         deferred_petgacha = 0;
         deferred_dgclear = 0;
         deferred_itemlvup = 0;
-        v6 = 0;
-        v7 = 0;
+        floor_submit = 0;
+        v2 = 0;
+        v3 = 0;
+        v4 = 0;
+        v5 = 0;
         migrated = 1;
     }
 
@@ -131,8 +129,11 @@ struct playerv2 {
                      (deferred_dgclear)
                      (deferred_itemlvup)
                      (block)
-                     (v6)
-                     (v7)
+                     (floor_submit)
+                     (v2)
+                     (v3)
+                     (v4)
+                     (v5)
                      )
 };
 
