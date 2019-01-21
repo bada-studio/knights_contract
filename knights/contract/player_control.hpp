@@ -184,30 +184,35 @@ public:
     uint32_t calculate_trx_hash(char* buf, int size);
     uint32_t calculate_trx_hash2();
 
-    random_val begin_random(playerv2_table::const_iterator iter, random_for r4, int type) {
-        uint32_t seed = iter->seed;
+    random_val begin_random(const playerv2 &value) {
+        uint32_t seed = value.seed;
         if (seed == 0) {
-            seed = seed_identity(iter->owner);
+            seed = seed_identity(value.owner);
         }
 
-        seed ^= get_key2(iter->owner);
-        int strength1 = (last_checksum % 13) + (last_trx_hash % 17);
-        int strength2 = (last_checksum % 11) + (last_trx_hash % 19);
+        seed ^= get_key2(value.owner);
+        auto hash2 = calculate_trx_hash2();
+        int strength1 = (last_checksum % 7) + (last_trx_hash % 11) + (hash2 % 13);
+        int strength2 = (last_checksum % 11) + (last_trx_hash % 13) + (hash2 % 7);
         seed = shuffle_bit(seed, strength1);
         seed ^= shuffle_bit(last_trx_hash, strength2);
         seed ^= tapos_block_prefix();
-        seed ^= calculate_trx_hash2();
+        seed ^= hash2;
 
         auto rval = random_val(seed, 0);
         return rval;
     }
 
-    void end_random(playerv2_table::const_iterator iter, const random_val &val, random_for r4, int type) {
-        uint32_t seed = val.seed ^ get_key2(iter->owner);
+    void end_random(playerv2 &value, const random_val &val) {
+        uint32_t seed = val.seed ^ get_key2(value.owner);
+        value.seed = seed;
+    }
+
+    void update_playerv(playerv2_table::const_iterator iter, const playerv2 &value) {
         playervs.modify(iter, self, [&](auto& target) {
-            target.seed = seed;
+            target = value;
         });
-    }    
+    }
 
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
@@ -305,7 +310,8 @@ public:
                 target.migrate();
                 target.set_deferred_time(type, next_time);
             });
-            return true;
+            return false;
+//            return true;
         }
 
         if (deferred_time != 0) {
@@ -316,13 +322,8 @@ public:
         playervs.modify(iter, self, [&](auto &target) {
             target.set_deferred_time(type, next_time);
         });
-        return true;
-    }
-
-    void clear_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
-        playervs.modify(iter, self, [&](auto &target) {
-            target.set_deferred_time(type, 0);
-        });
+        return false;
+//      return true;
     }
 
     playerv2_table::const_iterator get_playervs(name from) {
