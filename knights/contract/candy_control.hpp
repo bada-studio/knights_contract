@@ -18,9 +18,13 @@ public:
     //-------------------------------------------------------------------------
     void getcandy(name from, const std::string &memo) {
         require_auth(N(prochaintech));
-        
+
         auto player = player_controller.get_player(from);
-        assert_true(!player_controller.is_empty_player(player), "#EOSNIGHTSERROR# Please sign up the game first");
+        //assert_true(!player_controller.is_empty_player(player), "#EOSNIGHTSERROR# Please sign up the game first");
+        if (player_controller.is_empty_player(player)) {
+            player_controller.new_player(from);
+            player = player_controller.get_player(from);
+        }
 
         candybox_table table(self, self);
         assert_true(table.cbegin() != table.cend(), "#EOSNIGHTSERROR# No candy data yet");
