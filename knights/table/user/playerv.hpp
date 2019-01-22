@@ -65,7 +65,7 @@ struct playerv2 {
     uint8_t floor_submit = 0;
     uint8_t v2 = 0;
     uint16_t v3 = 0;
-    uint32_t v4 = 0;
+    uint32_t rebrith_factor = 0;
     uint64_t v5 = 0;
 
     playerv2(name o = name())
@@ -86,7 +86,7 @@ struct playerv2 {
         floor_submit = 0;
         v2 = 0;
         v3 = 0;
-        v4 = 0;
+        rebrith_factor = 0;
         v5 = 0;
         migrated = 1;
     }
@@ -132,7 +132,7 @@ struct playerv2 {
                      (floor_submit)
                      (v2)
                      (v3)
-                     (v4)
+                     (rebrith_factor)
                      (v5)
                      )
 };

@@ -581,11 +581,6 @@ private:
         assert_true(iter != knights.cend(), "can not found knight");
         auto &rows = iter->rows;
 
-        int old_total_kill;
-        for (int index = 0; index < rows.size(); index++) {
-            old_total_kill += rows[index].kill_count;
-        }
-
         int total_kill_count = 0;
         auto &mats = material_controller.get_materials(from);
         
@@ -599,9 +594,8 @@ private:
 
         time current = time_util::getnow();
         int elapsed_sec = (int)(current - player->last_rebirth);
-        if (old_total_kill > 0) {
-            assert_true(elapsed_sec >= kv_min_rebirth, "too short to get rebirth");
-        }
+        
+        set_rebirth_factor(player, variable, rows);
 
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
@@ -688,6 +682,41 @@ private:
         player_controller.end_random(variable, rval);
         player_controller.update_playerv(pvsi, variable);
         return only_check;
+    }
+
+    void set_rebirth_factor(player_table::const_iterator player, playerv2 &variable, const std::vector<knightrow> &knights) {
+        time current = time_util::getnow();
+        double rebrith_factor = variable.rebrith_factor / 100;
+        rebrith_factor = std::max(1.0, rebrith_factor);
+        rebrith_factor = std::min(15.0, rebrith_factor);
+
+        int life = 0;
+        int old_total_kill;
+        for (auto iter = knights.cbegin(); iter != knights.cend(); iter++) {
+            auto &knight = *iter;
+            int max_sec = calculate_max_alive_time(knight);
+            life = std::max(life, max_sec);
+            old_total_kill += knight.kill_count;
+        }
+
+        int threshold = std::min<int>(life / 4, 40 * time_util::min);
+        int past = current - player->last_rebirth;
+        if (past < threshold) {
+            double rate = 1 + (threshold - past) / (double)threshold;
+            rebrith_factor *= rate;
+        } else {
+            double rate = 1 + (past - threshold) / (double)threshold;
+            rebrith_factor /= rate;
+        }
+
+        rebrith_factor = std::max(1.0, rebrith_factor);
+        rebrith_factor = std::min(15.0, rebrith_factor);
+        int next = player->last_rebirth + (int)(kv_min_rebirth * rebrith_factor);
+        variable.rebrith_factor = (int)(rebrith_factor * 100);
+
+        if (old_total_kill > 0) {
+            assert_true(current >= next, "too short to get rebirth");
+        }
     }
 
     void submit_floor(playerv2 &variable, int old_max_floor, int floor) {
