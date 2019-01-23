@@ -24,22 +24,6 @@ public:
 
     // internal apis
     //-------------------------------------------------------------------------
-    bool is_paused() {
-        if (adminvalues.cbegin() == adminvalues.cend()) {
-            return false;
-        }
-
-        return adminvalues.cbegin()->pause == 1;
-    }
-
-    void entry_check(name name) {
-        if (name == self) {
-            return;
-        }
-
-        assert_true(!is_paused(), "game is paused");
-    }
-
     name get_coo() {
         assert_true(adminvalues.cbegin() != adminvalues.cend(), "no admin values yet");
         return adminvalues.cbegin()->coo;
@@ -49,13 +33,6 @@ public:
         assert_true(adminvalues.cbegin() != adminvalues.cend(), "no admin values yet");
         adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
             target.player_count++;
-        });
-    }
-
-    void add_investment(const asset& quantity) {
-        assert_true(adminvalues.cbegin() != adminvalues.cend(), "no admin values yet");
-        adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
-            target.investment += quantity;
         });
     }
 

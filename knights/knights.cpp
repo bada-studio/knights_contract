@@ -62,6 +62,8 @@ using eosio::name;
 #include "table/admin/gift.hpp"
 #include "table/admin/cquest.hpp"
 #include "table/admin/tklog.hpp"
+#include "table/admin/globalvar.hpp"
+#include "table/admin/candybox.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -78,6 +80,7 @@ using eosio::name;
 #include "contract/cquest_control.hpp"
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
+#include "contract/candy_control.hpp"
 
 class knights : public eosio::contract, public control_base {
 private:
@@ -94,6 +97,7 @@ private:
     saleslog_control saleslog_controller;
     cquest_control cquest_controller;
     dungeon_control dungeon_controller;
+    candy_control candy_controller; 
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
@@ -119,7 +123,8 @@ public:
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
-    , dungeon_controller(_self, material_controller, player_controller, knight_controller) {
+    , dungeon_controller(_self, material_controller, player_controller, knight_controller)
+    , candy_controller(_self, player_controller) {
     }
 
     // player related actions
@@ -568,6 +573,19 @@ public:
         admin_controller.dividend(amount);
     }
 
+    // etc actions
+    //-------------------------------------------------------------------------
+    //@abi action
+    void getcandy(name from, std::string memo) {
+        candy_controller.getcandy(from, memo);
+    }
+
+    //@abi action
+    void addcandy(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
+        require_auth(_self);
+        candy_controller.addcandy(id, total, remain, amount);
+    }
+
     // eosio.token recipient
     // memo description spec
     // knt:{type}
@@ -683,4 +701,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (getcandy) (addcandy) (transfer) ) // (clrall)

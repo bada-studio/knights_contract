@@ -274,8 +274,8 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            player_controller.set_deferred(pvsi, dtt_dgclear);
-            
+            delay = player_controller.set_deferred(pvsi, dtt_dgclear);
+
             if (do_dgclear(from, code, orders, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
@@ -332,7 +332,8 @@ public:
         }
 
         // determin drop material
-        auto rval = player_controller.begin_random(pvsi, r4_dungeon, 0);
+        auto variable = *pvsi;
+        auto rval = player_controller.begin_random(variable);
         auto value = rval.range(100'00);
         uint16_t matcode = 0;
 
@@ -367,8 +368,10 @@ public:
             target.rows.erase(target.rows.begin() + pos);
         });
 
-        player_controller.end_random(pvsi, rval, r4_dungeon, 0);
-        player_controller.clear_deferred(pvsi, dtt_dgclear);
+        
+        variable.set_deferred_time(dtt_dgclear, 0);
+        player_controller.end_random(variable, rval);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 

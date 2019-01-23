@@ -111,9 +111,7 @@ public:
             auto from_player = players.find(from);
             check_blacklist(from);
             
-            if (transfer_data.memo == "investment") {
-                admin_controller.add_investment(transfer_data.quantity);
-            } else if (from_player == players.end()) {
+            if (from_player == players.end()) {
                 // system account could transfer eos to contract
                 // eg) unstake, sellram, etc
                 // add to the revenue for these.
@@ -183,31 +181,38 @@ public:
     uint32_t get_checksum_key(name from);
     uint32_t shuffle_bit(uint32_t v, uint32_t n);
     void check_blacklist(name from);
-    void calcuate_trx_hash(char* buf, int size);
+    uint32_t calculate_trx_hash(char* buf, int size);
+    uint32_t calculate_trx_hash2();
 
-    random_val begin_random(playerv2_table::const_iterator iter, random_for r4, int type) {
-        uint32_t seed = iter->seed;
+    random_val begin_random(const playerv2 &value) {
+        uint32_t seed = value.seed;
         if (seed == 0) {
-            seed = seed_identity(iter->owner);
+            seed = seed_identity(value.owner);
         }
 
-        seed ^= get_key2(iter->owner);
-        int strength1 = (last_checksum % 13) + (last_trx_hash % 17);
-        int strength2 = (last_checksum % 11) + (last_trx_hash % 19);
+        seed ^= get_key2(value.owner);
+        auto hash2 = calculate_trx_hash2();
+        int strength1 = (last_checksum % 7) + (last_trx_hash % 11) + (hash2 % 13);
+        int strength2 = (last_checksum % 11) + (last_trx_hash % 13) + (hash2 % 7);
         seed = shuffle_bit(seed, strength1);
         seed ^= shuffle_bit(last_trx_hash, strength2);
         seed ^= tapos_block_prefix();
+        seed ^= hash2;
 
         auto rval = random_val(seed, 0);
         return rval;
     }
 
-    void end_random(playerv2_table::const_iterator iter, const random_val &val, random_for r4, int type) {
-        uint32_t seed = val.seed ^ get_key2(iter->owner);
+    void end_random(playerv2 &value, const random_val &val) {
+        uint32_t seed = val.seed ^ get_key2(value.owner);
+        value.seed = seed;
+    }
+
+    void update_playerv(playerv2_table::const_iterator iter, const playerv2 &value) {
         playervs.modify(iter, self, [&](auto& target) {
-            target.seed = seed;
+            target = value;
         });
-    }    
+    }
 
     void new_playervs(name from, int8_t referral, int16_t gift) {
         playervs.emplace(self, [&](auto& target) {
@@ -271,7 +276,7 @@ public:
         ds >> tx;
         eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
         eosio_assert(tx.actions[count-1].account == self, "wrong action recipient"); 
-        calcuate_trx_hash(buffer, actual_size);
+        last_trx_hash = calculate_trx_hash(buffer, actual_size);
     }
 
     int32_t get_checksum_value(int32_t value) {
@@ -295,30 +300,30 @@ public:
         return require_auth(admin_controller.get_coo());
     }
 
-    void set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
+    bool set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
         auto deferred_time = iter->get_deferred_time(type);
+        auto next_time = time_util::getnow() + 2;
 
         // 2nd migration
         if (iter->migrated == 0) {
             playervs.modify(iter, self, [&](auto &target) {
                 target.migrate();
+                target.set_deferred_time(type, next_time);
             });
-            return;
+//            return false;
+            return true;
         }
 
         if (deferred_time != 0) {
             assert_true(deferred_time <= time_util::getnow(), "duplicated transaction");
+            return false;
         } 
 
         playervs.modify(iter, self, [&](auto &target) {
-            target.set_deferred_time(type, time_util::getnow() + 2);
+            target.set_deferred_time(type, next_time);
         });
-    }
-
-    void clear_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
-        playervs.modify(iter, self, [&](auto &target) {
-            target.set_deferred_time(type, 0);
-        });
+//        return false;
+        return true;
     }
 
     playerv2_table::const_iterator get_playervs(name from) {

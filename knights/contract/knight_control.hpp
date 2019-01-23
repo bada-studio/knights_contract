@@ -270,7 +270,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            player_controller.set_deferred(pvsi, dtt_rebirth);
+            delay = player_controller.set_deferred(pvsi, dtt_rebirth);
 
             if (do_rebirth(from, player, delay, pvsi)) {
                 eosio::transaction out{};
@@ -575,19 +575,16 @@ private:
     bool do_rebirth(name from, player_table::const_iterator player, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.check_blacklist(from);
         player_controller.require_action_count(1);
+        playerv2 variable = *pvsi;
 
         auto iter = knights.find(from);
         assert_true(iter != knights.cend(), "can not found knight");
         auto &rows = iter->rows;
 
-        int old_total_kill;
-        for (int index = 0; index < rows.size(); index++) {
-            old_total_kill += rows[index].kill_count;
-        }
-
         int total_kill_count = 0;
         auto &mats = material_controller.get_materials(from);
         
+        int old_max_floor = player->maxfloor;
         int exp_mat_count = mats.size() + rows.size();
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
@@ -597,9 +594,8 @@ private:
 
         time current = time_util::getnow();
         int elapsed_sec = (int)(current - player->last_rebirth);
-        if (old_total_kill > 0) {
-            assert_true(elapsed_sec >= kv_min_rebirth, "too short to get rebirth");
-        }
+        
+        set_rebirth_factor(player, variable, rows);
 
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
@@ -659,7 +655,7 @@ private:
             powder = 1;
         }
 
-        auto rval = player_controller.begin_random(pvsi, r4_rebirth, 0);
+        auto rval = player_controller.begin_random(variable);
 
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
@@ -678,9 +674,82 @@ private:
             }
         });
 
-        player_controller.end_random(pvsi, rval, r4_rebirth, 0);
-        player_controller.clear_deferred(pvsi, dtt_rebirth);
+        variable.set_deferred_time(dtt_rebirth, 0);
+        if (rows.size() == kt_count-1 && floor > 10) {
+            submit_floor(variable, old_max_floor, floor);
+        }
+
+        player_controller.end_random(variable, rval);
+        player_controller.update_playerv(pvsi, variable);
         return only_check;
+    }
+
+    void set_rebirth_factor(player_table::const_iterator player, playerv2 &variable, const std::vector<knightrow> &knights) {
+        time current = time_util::getnow();
+        double rebrith_factor = variable.rebrith_factor / 100.0;
+        rebrith_factor = std::max(1.0, rebrith_factor);
+        rebrith_factor = std::min(15.0, rebrith_factor);
+
+        int life = 0;
+        int old_total_kill;
+        for (auto iter = knights.cbegin(); iter != knights.cend(); iter++) {
+            auto &knight = *iter;
+            int max_sec = calculate_max_alive_time(knight);
+            life = std::max(life, max_sec);
+            old_total_kill += knight.kill_count;
+        }
+
+        if (old_total_kill > 0) {
+            int next = player->last_rebirth + (int)(kv_min_rebirth * rebrith_factor);
+            assert_true(current >= next, "too short to get rebirth");
+        }
+
+        int threshold = std::min<int>(life / 4, 30 * time_util::min);
+        int past = current - player->last_rebirth;
+        if (past < threshold) {
+            double rate = 1 + (threshold - past) / (double)threshold;
+            rebrith_factor *= rate;
+        } else {
+            double rate = 1 + (past - threshold) / (double)threshold;
+            rebrith_factor /= rate;
+        }
+
+        rebrith_factor = std::max(1.0, rebrith_factor);
+        rebrith_factor = std::min(15.0, rebrith_factor);
+        variable.rebrith_factor = (int)(rebrith_factor * 100);
+    }
+
+    void submit_floor(playerv2 &variable, int old_max_floor, int floor) {
+        int new_count = 0;
+        int new_floor = 0;
+
+        if (variable.floor_submit == 0) {
+            variable.floor_submit = 1;
+
+            new_count++;
+            new_floor = std::max(old_max_floor, floor);
+
+        } else {
+            if (floor > old_max_floor) {
+                new_floor = floor - old_max_floor;
+            }
+        }
+
+        if (new_floor > 0) {
+            globalvar_table table(self, self);
+            if (table.cbegin() == table.cend()) {
+                table.emplace(self, [&](auto &target) {
+                    target.id = 0;
+                    target.floor_sum = new_floor;
+                    target.floor_submit_count = new_count;
+                });
+            } else {
+                table.modify(table.cbegin(), self, [&](auto &target) {
+                    target.floor_sum += new_floor;
+                    target.floor_submit_count += new_count;
+                });
+            }
+        }
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval) {
