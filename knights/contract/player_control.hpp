@@ -310,8 +310,8 @@ public:
                 target.migrate();
                 target.set_deferred_time(type, next_time);
             });
-            return false;
-//            return true;
+//            return false;
+            return true;
         }
 
         if (deferred_time != 0) {
@@ -322,8 +322,8 @@ public:
         playervs.modify(iter, self, [&](auto &target) {
             target.set_deferred_time(type, next_time);
         });
-        return false;
-//      return true;
+//        return false;
+        return true;
     }
 
     playerv2_table::const_iterator get_playervs(name from) {
