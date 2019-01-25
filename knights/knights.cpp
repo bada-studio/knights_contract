@@ -61,6 +61,7 @@ using eosio::name;
 #include "table/admin/marketpid.hpp"
 #include "table/admin/gift.hpp"
 #include "table/admin/cquest.hpp"
+#include "table/admin/dquest.hpp"
 #include "table/admin/tklog.hpp"
 #include "table/admin/globalvar.hpp"
 #include "table/admin/candybox.hpp"
@@ -78,6 +79,7 @@ using eosio::name;
 #include "contract/market_control.hpp"
 #include "contract/powder_control.hpp"
 #include "contract/cquest_control.hpp"
+#include "contract/dquest_control.hpp"
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
 #include "contract/candy_control.hpp"
@@ -96,6 +98,7 @@ private:
     admin_control admin_controller;
     saleslog_control saleslog_controller;
     cquest_control cquest_controller;
+    dquest_control dquest_controller;
     dungeon_control dungeon_controller;
     candy_control candy_controller; 
 
@@ -123,7 +126,8 @@ public:
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
-    , dungeon_controller(_self, material_controller, player_controller, knight_controller)
+    , dquest_controller(_self, item_controller, player_controller, admin_controller)
+    , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
     , candy_controller(_self, player_controller) {
     }
 
@@ -176,6 +180,29 @@ public:
     /// @abi action
     void divcquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
         cquest_controller.divcquest(id, no, from, count);
+    }
+
+    // dquest related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void adddquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
+        dquest_controller.adddquest(id, sponsor, start, duration);
+    }
+
+    /// @abi action
+    void removedquest(uint32_t id, bool force) {
+        // it only available there is no user's record
+        dquest_controller.removedquest(id, force);
+    }
+
+    /// @abi action
+    void updatedsubq(uint32_t id, const std::vector<dquestdetail>& details) {
+        dquest_controller.updatedsubq(id, details);
+    }
+
+    /// @abi action
+    void divdquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
+        dquest_controller.divdquest(id, no, from, count);
     }
 
     // knight related actions
@@ -701,4 +728,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (getcandy) (addcandy) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (removedquest) (updatedsubq)  (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (getcandy) (addcandy) (transfer) ) // (clrall)

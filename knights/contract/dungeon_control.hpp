@@ -6,6 +6,7 @@ private:
     material_control &material_controller;
     player_control &player_controller;
     knight_control &knight_controller;
+    dquest_control &dquest_controller;
 
     rule_controller<rdungeon, rdungeon_table> dungeon_rule_controller;
     rule_controller<rdgticket, rdgticket_table> dgticket_rule_controller;
@@ -18,7 +19,8 @@ public:
     dungeon_control(account_name _self,
                     material_control &_material_controller,
                     player_control &_player_controller,
-                    knight_control &_knight_controller)
+                    knight_control &_knight_controller,
+                    dquest_control &_dquest_controller)
         : self(_self)
         , dungeon_rule_controller(_self, N(dungeon))
         , dgticket_rule_controller(_self, N(dgticket))
@@ -26,7 +28,9 @@ public:
         , mobskills_rule_controller(_self, N(mobskills))
         , material_controller(_material_controller)
         , player_controller(_player_controller)
-        , knight_controller(_knight_controller) {
+        , knight_controller(_knight_controller)
+        , dquest_controller(_dquest_controller)
+        {
     }
 
     // actions
@@ -368,6 +372,8 @@ public:
             target.rows.erase(target.rows.begin() + pos);
         });
 
+        // submit quest
+        dquest_controller.submitdquest(from, code, variable);
         
         variable.set_deferred_time(dtt_dgclear, 0);
         player_controller.end_random(variable, rval);

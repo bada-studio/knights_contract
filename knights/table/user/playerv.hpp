@@ -63,10 +63,11 @@ struct playerv2 {
     uint32_t deferred_itemlvup = 0;
     uint32_t block = 0;
     uint8_t floor_submit = 0;
-    uint8_t v2 = 0;
-    uint16_t v3 = 0;
+    uint8_t v1 = 0;
+    uint16_t dquest_no = 0;
     uint32_t rebrith_factor = 0;
-    uint64_t v5 = 0;
+    uint32_t dquest_point = 0;
+    uint32_t v2 = 0;
 
     playerv2(name o = name())
     : owner(o) {
@@ -84,11 +85,12 @@ struct playerv2 {
         deferred_dgclear = 0;
         deferred_itemlvup = 0;
         floor_submit = 0;
-        v2 = 0;
-        v3 = 0;
         rebrith_factor = 0;
-        v5 = 0;
+        dquest_no = 0;
+        dquest_point = 0;
         migrated = 1;
+        v1 = 0;
+        v2 = 0;
     }
 
     uint32_t get_deferred_time(deferred_trx_type type) const {
@@ -130,10 +132,11 @@ struct playerv2 {
                      (deferred_itemlvup)
                      (block)
                      (floor_submit)
-                     (v2)
-                     (v3)
+                     (v1)
+                     (dquest_no)
                      (rebrith_factor)
-                     (v5)
+                     (dquest_point)
+                     (v2)
                      )
 };
 
