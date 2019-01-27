@@ -129,8 +129,10 @@ public:
                 if (tpos >= 0) {
                     auto &ticket = target.tickets[tpos];
                     auto diff = time_now - ticket.free_at;
+                    auto duration = time_util::hour * free_ticket_duration;
+                    duration += (duration / 3) * ((code % 10) - 1);
                     assert_true(ticket.free_count < max_free_count, "free ticket is full");
-                    assert_true(diff > time_util::hour * free_ticket_duration, "need more time to get one");
+                    assert_true(diff > duration, "need more time to get one");
                     ticket.free_at = time_now;
                     ticket.free_count++;
                 } else {

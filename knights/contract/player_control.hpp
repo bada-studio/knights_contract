@@ -359,7 +359,7 @@ public:
     }    
 
     double get_global_drop_factor() {
-        double rular = 1000;
+        double rular = 1000.0;
         double avg_floor = get_global_avg_floor();
         double length = avg_floor / rular;
         if (length < 1.0) {
