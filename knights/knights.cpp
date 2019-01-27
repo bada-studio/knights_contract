@@ -135,6 +135,13 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void signup(name from) {
+        require_auth(from);
+        player_controller.signup(from);
+    }
+
+    /// @abi action
+    void signupbt(name from) {
+        require_auth(N(bastetbastet));
         player_controller.signup(from);
     }
 
@@ -728,4 +735,4 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (removedquest) (updatedsubq)  (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (getcandy) (addcandy) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (removedquest) (updatedsubq)  (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart) (pexpstart2) (pexpreturn) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (getcandy) (addcandy) (transfer) ) // (clrall)

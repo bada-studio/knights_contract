@@ -351,7 +351,6 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void signup(name from) {
-        require_auth(from);
         auto iter = players.find(from);
         eosio_assert(iter == players.end(), "already signed up" );
         new_player(from);
