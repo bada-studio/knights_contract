@@ -353,6 +353,7 @@ public:
 
     bool do_pexpreturn(name from, uint16_t code, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.require_action_count(1);
+        auto gdr = player_controller.get_global_drop_factor();
 
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
@@ -436,7 +437,7 @@ public:
         // determin drop material grade
         int bottie_grade = std::max(1, rule->grade - 1);
         int value = rval.range(100);
-        if (value < exp_rule->get_drop_rate(rule->grade)) {
+        if (value < (int)(exp_rule->get_drop_rate(rule->grade) * gdr)) {
             bottie_grade++;
         }
 

@@ -634,6 +634,7 @@ private:
             }
         });
 
+        auto gdr = player_controller.get_global_drop_factor();
         double powder = 0;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] == 0) {
@@ -650,17 +651,16 @@ private:
         }
         
         // get high floor bonus #23
-        powder = (int)(powder * (1.0 + (std::min(1000, floor) / 500.0)));
+        powder = (int)(powder * (1.0 + (std::min(1000, floor) / 500.0)) * gdr);
         if (powder <= 0) {
             powder = 1;
         }
 
         auto rval = player_controller.begin_random(variable);
-
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] > 0) {
-                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval);
+                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval, gdr);
             }
         }
 
@@ -752,7 +752,7 @@ private:
         }
     }
 
-    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval) {
+    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, double gdr) {
         auto &mat_rules = material_controller.get_rmaterial_rule();
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
 
@@ -779,7 +779,7 @@ private:
         }
 
         for (int index = start_index; index >= 1; --index) {
-            double dr = drop_rates[index] * (drop_rate / 100.0);
+            double dr = drop_rates[index] * (drop_rate / 100.0) * gdr;
             double mdr = 1.0 - pow(1.0 - dr, kill_count);
             if (rand_value < int(mdr * drscale)) {
                 best = index;

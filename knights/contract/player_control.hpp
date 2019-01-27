@@ -348,6 +348,42 @@ public:
         return playervs.find(from);
     }
 
+    double get_global_avg_floor() {
+        globalvar_table table(self, self);
+        if (table.cbegin() == table.cend()) {
+            return 1000;
+        }
+        
+        auto iter = table.cbegin();
+        return (double)iter->floor_sum / (double)iter->floor_submit_count;
+    }    
+
+    double get_global_drop_factor() {
+        double rular = 1000;
+        double avg_floor = get_global_avg_floor();
+        double length = avg_floor / rular;
+        if (length < 1.0) {
+            length = 1.0;
+        }
+
+        double drop_rate = 1.0 / pow(2.0, length - 1.0);
+
+        uint32_t base_time = 48806400;
+        uint32_t now = time_util::getnow();
+        if (now < base_time) {
+            return 1.0;
+        }
+
+        uint32_t diff = now - base_time;
+        uint32_t ease_base = time_util::day * 7;
+        if (diff > ease_base) {
+            return drop_rate;
+        }
+
+        double ease = (double)diff / (double)ease_base;
+        return 1.0 + (drop_rate - 1.0) * ease;
+    }    
+
     // actions
     //-------------------------------------------------------------------------
     void signup(name from) {

@@ -336,23 +336,24 @@ public:
         }
 
         // determin drop material
+        auto gdr = player_controller.get_global_drop_factor();
         auto variable = *pvsi;
         auto rval = player_controller.begin_random(variable);
         auto value = rval.range(100'00);
         uint16_t matcode = 0;
 
-        if (value < rule->mdrop3) {
+        if (value < (int)(rule->mdrop3 * gdr)) {
             matcode = rule->mat3;
-        } else if (value < (rule->mdrop3 + rule->mdrop2)) {
+        } else if (value < (int)(rule->mdrop2 * gdr)) {
             matcode = rule->mat2;
-        } else if (value < (rule->mdrop3 + rule->mdrop2 + rule->mdrop1)) {
+        } else if (value < (int)(rule->mdrop1 * gdr)) {
             matcode = rule->mat1;
         } else {
             auto grade = ig_rare;
             auto value2 = rval.range(100'00);
-            if (value2 < rule->legendary_drop) {
+            if (value2 < (int)(rule->legendary_drop * gdr)) {
                 grade = ig_legendary;
-            } else if (value2 < (rule->legendary_drop + rule->unique_drop)) {
+            } else if (value2 < (int)(rule->unique_drop * gdr)) {
                 grade = ig_unique;
             }
 
