@@ -65,9 +65,12 @@ struct playerv2 {
     uint8_t floor_submit = 0;
     uint8_t v1 = 0;
     uint16_t dquest_no = 0;
-    uint32_t rebrith_factor = 0;
-    uint32_t dquest_point = 0;
-    uint32_t v2 = 0;
+    uint16_t rebrith_factor = 0;
+    uint16_t dq_p0 = 0;
+    uint16_t dq_p1 = 0;
+    uint16_t dq_p2 = 0;
+    uint16_t dq_p3 = 0;
+    uint16_t dq_p4 = 0;
 
     playerv2(name o = name())
     : owner(o) {
@@ -87,10 +90,41 @@ struct playerv2 {
         floor_submit = 0;
         rebrith_factor = 0;
         dquest_no = 0;
-        dquest_point = 0;
         migrated = 1;
-        v1 = 0;
-        v2 = 0;
+        dq_p0 = 0;
+        dq_p1 = 0;
+        dq_p2 = 0;
+        dq_p3 = 0;
+        dq_p4 = 0;
+    }
+
+    void clear_dungeon_quest_point() {
+        dq_p0 = 0;
+        dq_p1 = 0;
+        dq_p2 = 0;
+        dq_p3 = 0;
+        dq_p4 = 0;
+    }
+
+    void set_dungeon_quest_point(int mode, uint16_t point) {
+        switch (mode) {
+            case 0: dq_p0 = point; break;
+            case 1: dq_p1 = point; break;
+            case 2: dq_p2 = point; break;
+            case 3: dq_p3 = point; break;
+            case 4: dq_p4 = point; break;
+        }
+    }
+
+    uint16_t get_dungeon_quest_point(int mode) {
+        switch (mode) {
+            case 0: return dq_p0;
+            case 1: return dq_p1;
+            case 2: return dq_p2;
+            case 3: return dq_p3;
+            case 4: return dq_p4;
+        }
+        return 0;
     }
 
     uint32_t get_deferred_time(deferred_trx_type type) const {
@@ -135,8 +169,11 @@ struct playerv2 {
                      (v1)
                      (dquest_no)
                      (rebrith_factor)
-                     (dquest_point)
-                     (v2)
+                     (dq_p0)
+                     (dq_p1)
+                     (dq_p2)
+                     (dq_p3)
+                     (dq_p4)
                      )
 };
 

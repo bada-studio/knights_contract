@@ -36,13 +36,13 @@ public:
 
         if (last->id != variable.dquest_no) {
             variable.dquest_no = last->id;
-            variable.dquest_point = 0;
+            variable.clear_dungeon_quest_point();
         }
-        
+
         // calculation point
         auto mode = code % 100;
-        auto point = variable.dquest_point + 10 + code / 100;
-        variable.dquest_point = point;
+        auto point = variable.get_dungeon_quest_point(mode) + 5 + code / 100;
+        variable.set_dungeon_quest_point(mode, point);
 
         // find subquest index
         int subq_index = -1;
