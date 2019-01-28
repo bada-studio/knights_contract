@@ -368,7 +368,7 @@ public:
 
         double drop_rate = 1.0 / pow(2.0, length - 1.0);
 
-        uint32_t base_time = 48806400;
+        uint32_t base_time = 48892800;
         uint32_t now = time_util::getnow();
         if (now < base_time) {
             return 1.0;
