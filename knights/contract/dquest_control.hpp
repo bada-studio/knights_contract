@@ -22,7 +22,7 @@ public:
 
     // internal apis
     //-------------------------------------------------------------------------
-    void submitdquest(name from, uint8_t code, playerv2 &variable) {
+    void submitdquest(name from, uint16_t code, playerv2 &variable) {
         dquest_table table(self, self);
         if (table.cbegin() == table.cend()) {
             return;
@@ -41,7 +41,7 @@ public:
 
         // calculation point
         auto mode = code % 100;
-        auto point = variable.get_dungeon_quest_point(mode) + 5 + code / 100;
+        auto point = variable.get_dungeon_quest_point(mode) + 5 + (code / 100) - 1;
         variable.set_dungeon_quest_point(mode, point);
 
         // find subquest index
@@ -65,7 +65,7 @@ public:
         if (current_size < max_count) {
             new_record = true;
         } else {
-            if (subq.records[current_size-1].point > point) {
+            if (subq.records[current_size-1].point < point) {
                 new_record = true;
             }
         }
@@ -80,7 +80,9 @@ public:
         for (int k = 0; k < current_size; k++) {
             auto &record = subq.records[k];
             if (record.point < point) {
-                pos = k;
+                if (k < pos) {
+                    pos = k;
+                }
             }
 
             if (record.owner == from) {
@@ -99,7 +101,7 @@ public:
                 record.point = point;
                 record.paid = false;
                 subquest.records.insert(subquest.records.cbegin() + pos, record);
-                if (subquest.records.size() > max_count) {
+                if (subquest.records.size() >= max_count) {
                     subquest.records.erase(--subquest.records.cend());
                 }
             } else {
@@ -230,18 +232,19 @@ public:
         // get a subquest
         assert_true(no >= 0 && no < dquest->subquests.size(), "incorrect no");
         auto &subquest = dquest->subquests[no];
+        auto &records = subquest.records;
 
         long sum = 0;
-        for (int index = 0; index < subquest.records.size(); index++) {
-            sum += subquest.records[index].point;
+        for (int index = 0; index < records.size(); index++) {
+            sum += records[index].point;
         }
 
         int current = 0;
         asset quantity1(0, subquest.detail.reward.symbol);
         asset quantity2(0, subquest.detail.reward2.symbol);
 
-        for (int index = from; index < subquest.records.size(); index++) {
-            auto &record = subquest.records[index];
+        for (int index = from; index < records.size(); index++) {
+            auto &record = records[index];
             if (record.paid) {
                 continue;
             }

@@ -66,11 +66,11 @@ struct playerv2 {
     uint8_t v1 = 0;
     uint16_t dquest_no = 0;
     uint16_t rebrith_factor = 0;
-    uint16_t dq_p0 = 0;
     uint16_t dq_p1 = 0;
     uint16_t dq_p2 = 0;
     uint16_t dq_p3 = 0;
     uint16_t dq_p4 = 0;
+    uint16_t dq_p5 = 0;
 
     playerv2(name o = name())
     : owner(o) {
@@ -91,39 +91,42 @@ struct playerv2 {
         rebrith_factor = 0;
         dquest_no = 0;
         migrated = 1;
-        dq_p0 = 0;
         dq_p1 = 0;
         dq_p2 = 0;
         dq_p3 = 0;
         dq_p4 = 0;
+        dq_p5 = 0;
     }
 
     void clear_dungeon_quest_point() {
-        dq_p0 = 0;
         dq_p1 = 0;
         dq_p2 = 0;
         dq_p3 = 0;
         dq_p4 = 0;
+        dq_p5 = 0;
     }
 
     void set_dungeon_quest_point(int mode, uint16_t point) {
         switch (mode) {
-            case 0: dq_p0 = point; break;
             case 1: dq_p1 = point; break;
             case 2: dq_p2 = point; break;
             case 3: dq_p3 = point; break;
             case 4: dq_p4 = point; break;
+            case 5: dq_p5 = point; break;
+            default: eosio_assert(0, "can not set to un-defined mode");
         }
     }
 
     uint16_t get_dungeon_quest_point(int mode) {
         switch (mode) {
-            case 0: return dq_p0;
             case 1: return dq_p1;
             case 2: return dq_p2;
             case 3: return dq_p3;
             case 4: return dq_p4;
+            case 5: return dq_p5;
         }
+
+        eosio_assert(0, "can not read from un-defined mode");
         return 0;
     }
 
@@ -169,11 +172,11 @@ struct playerv2 {
                      (v1)
                      (dquest_no)
                      (rebrith_factor)
-                     (dq_p0)
                      (dq_p1)
                      (dq_p2)
                      (dq_p3)
                      (dq_p4)
+                     (dq_p5)
                      )
 };
 
