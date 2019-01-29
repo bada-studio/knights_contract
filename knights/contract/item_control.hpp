@@ -356,7 +356,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_craft);
+            delay = player_controller.set_deferred(pvsi);
 
             if (do_craft(player, code, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
@@ -455,7 +455,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_itemlvup);
+            delay = player_controller.set_deferred(pvsi);
 
             if (do_itemlvup(from, id, delay, &knt_id, pvsi)) {
                 eosio::transaction out{};
@@ -553,7 +553,7 @@ public:
         });
 
         *knt_id = knight;
-        variable.set_deferred_time(dtt_itemlvup, 0);
+        variable.clear_deferred_time();
         player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
@@ -623,7 +623,7 @@ private:
         uint32_t dna = random_dna(*recipe, from, code, variable);
         add_item(from, code, dna, 1, 0);
 
-        variable.set_deferred_time(dtt_craft, 0);
+        variable.clear_deferred_time();
         player_controller.update_playerv(pvsi, variable);
         return only_check;
     }

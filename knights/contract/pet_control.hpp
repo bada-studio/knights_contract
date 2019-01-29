@@ -142,7 +142,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_petgacha);
+            delay = player_controller.set_deferred(pvsi);
 
             if (do_petgacha(player, type, count, delay, pvsi)) {
                 eosio::transaction out{};
@@ -328,7 +328,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_pexpreturn);
+            delay = player_controller.set_deferred(pvsi);
 
             if (do_pexpreturn(from, code, delay, pvsi)) {
                 eosio::transaction out{};
@@ -451,7 +451,7 @@ public:
         material_controller.add_material(from, bottie);
 
         player_controller.end_random(variable, rval);
-        variable.set_deferred_time(dtt_pexpreturn, 0);
+        variable.clear_deferred_time();
         player_controller.update_playerv(pvsi, variable);
         return only_check;
     }
@@ -600,7 +600,7 @@ private:
         }
 
         player_controller.end_random(variable, rval);
-        variable.set_deferred_time(dtt_petgacha, 0);
+        variable.clear_deferred_time();
         player_controller.update_playerv(pvsi, variable);
         return only_check;
     }

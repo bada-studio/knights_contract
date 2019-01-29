@@ -280,7 +280,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_dgclear);
+            delay = player_controller.set_deferred(pvsi);
 
             if (do_dgclear(from, code, orders, delay, pvsi)) {
                 eosio::transaction out{};
@@ -378,7 +378,7 @@ public:
         // submit quest
         dquest_controller.submitdquest(from, code, variable);
         
-        variable.set_deferred_time(dtt_dgclear, 0);
+        variable.clear_deferred_time();
         player_controller.end_random(variable, rval);
         player_controller.update_playerv(pvsi, variable);
         return only_check;

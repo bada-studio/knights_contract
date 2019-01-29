@@ -270,7 +270,7 @@ public:
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi, dtt_rebirth);
+            delay = player_controller.set_deferred(pvsi);
 
             if (do_rebirth(from, player, delay, pvsi)) {
                 eosio::transaction out{};
@@ -674,7 +674,7 @@ private:
             }
         });
 
-        variable.set_deferred_time(dtt_rebirth, 0);
+        variable.clear_deferred_time();
         if (rows.size() == kt_count-1 && floor > 10) {
             submit_floor(variable, old_max_floor, floor);
         }

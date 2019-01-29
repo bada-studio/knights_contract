@@ -297,17 +297,21 @@ public:
         return require_auth(admin_controller.get_coo());
     }
 
-    bool set_deferred(playerv2_table::const_iterator iter, deferred_trx_type type) {
-        auto deferred_time = iter->get_deferred_time(type);
-        auto next_time = time_util::getnow() + 2;
+    bool set_deferred(playerv2_table::const_iterator iter) {
+        auto deferred_time = iter->next_deferred_time;
+        auto next_time = time_util::getnow() + 5;
 
         // 2nd migration
-        if (iter->migrated == 0) {
+        if (iter->migrated != 2) {
             playervs.modify(iter, self, [&](auto &target) {
-                target.migrate();
-                target.set_deferred_time(type, next_time);
+                if (target.migrated == 0) {
+                    target.migrate0to2();
+                } else if (target.migrated == 1) {
+                    target.migrate1to2();
+                }
+
+                target.next_deferred_time = next_time;
             });
-//            return false;
             return true;
         }
 
@@ -317,9 +321,8 @@ public:
         } 
 
         playervs.modify(iter, self, [&](auto &target) {
-            target.set_deferred_time(type, next_time);
+            target.next_deferred_time = next_time;
         });
-//        return false;
         return true;
     }
 
@@ -336,7 +339,7 @@ public:
                 target.seed = oldv->from;
                 target.referral = oldv->referral;
                 target.gift = oldv->gift;
-                target.migrated = 0;
+                target.migrated = 2;
             });
 
             playervs_old.erase(oldv);
