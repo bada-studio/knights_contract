@@ -634,7 +634,8 @@ private:
             }
         });
 
-        auto gdr = player_controller.get_global_drop_factor();
+        auto avg_floor = player_controller.get_global_avg_floor();
+        auto gdr = player_controller.get_global_drop_factor(avg_floor);
         double powder = 0;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] == 0) {
@@ -651,7 +652,7 @@ private:
         }
         
         // get high floor bonus #23
-        powder = (int)(powder * (1.0 + (std::min(1000, floor) / 500.0)) * gdr);
+        powder = (int)(powder * (1.0 + (std::min((int)(avg_floor * 2), floor) / avg_floor)) * gdr);
         if (powder <= 0) {
             powder = 1;
         }
