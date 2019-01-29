@@ -262,7 +262,7 @@ public:
     /// Player who requested rebirth
     /// @param checksum
     /// To prevent bots
-    void rebirth(name from, uint32_t checksum, bool delay) {
+    void rebirth(name from, uint32_t checksum, bool delay, bool need_help) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
@@ -280,7 +280,7 @@ public:
                     std::make_tuple(from, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(player_controller.get_last_trx_hash(), need_help ? self : from);
             }
         } else {
             if (USE_DEFERRED == 1) {

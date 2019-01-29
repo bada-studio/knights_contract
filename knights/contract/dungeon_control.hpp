@@ -275,7 +275,7 @@ public:
         player_controller.increase_powder(player, rule->losemw);
     }
 
-    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay) {
+    void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay, bool need_help) {
         auto pvsi = player_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
@@ -290,7 +290,7 @@ public:
                     std::make_tuple(from, code, orders, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(player_controller.get_last_trx_hash(), need_help ? self : from);
             }
         } else {
             if (USE_DEFERRED == 1) {

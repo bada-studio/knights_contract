@@ -222,17 +222,14 @@ public:
         });
     }
 
-    void checksum_gateway(name from, uint32_t block, uint32_t checksum) {
+    bool checksum_gateway(name from, uint32_t block, uint32_t checksum) {
         last_checksum = checksum;
         int32_t v1 = (checksum >> 16);
-        if (v1 & 0x8000) {
-            test_checksum_v2(from, block, checksum);
-        } else {
-            assert_true(false, "checksum failed");
-        }
+        test_checksum(from, block, checksum);
+        return (v1 & 0x8000) > 0;
     }
     
-    void test_checksum_v2(name from, uint32_t block, uint32_t checksum) {
+    void test_checksum(name from, uint32_t block, uint32_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
         int32_t num = time_util::getnow();
 

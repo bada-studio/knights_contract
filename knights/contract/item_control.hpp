@@ -348,7 +348,7 @@ public:
     /// item code which you want to craft
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
-    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay) {
+    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay, bool need_help) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
@@ -366,7 +366,7 @@ public:
                     std::make_tuple(from, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(player_controller.get_last_trx_hash(), need_help ? self : from);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -449,7 +449,7 @@ public:
     /// Player who requested level up action
     /// @param id
     /// Target item
-    int8_t itemlvup(name from, uint32_t id, uint32_t checksum, bool delay) {
+    int8_t itemlvup(name from, uint32_t id, uint32_t checksum, bool delay, bool need_help) {
         auto pvsi = player_controller.get_playervs(from);
         int8_t knt_id = 0;
 
@@ -465,7 +465,7 @@ public:
                     std::make_tuple(from, id, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(player_controller.get_last_trx_hash(), need_help ? self : from);
                 return 0;
             }
         } else {
