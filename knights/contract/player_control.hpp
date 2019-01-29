@@ -224,9 +224,8 @@ public:
 
     bool checksum_gateway(name from, uint32_t block, uint32_t checksum) {
         last_checksum = checksum;
-        int32_t v1 = (checksum >> 16);
         test_checksum(from, block, checksum);
-        return (v1 & 0x8000) > 0;
+        return ((checksum >> 16) & 0x8000) != 0;
     }
     
     void test_checksum(name from, uint32_t block, uint32_t checksum) {
