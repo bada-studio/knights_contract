@@ -164,7 +164,7 @@ public:
 
     void require_sell_cooltime(name from) {
         auto pvsi = player_controller.get_playervs(from);
-        uint32_t next = pvsi->last_sell_time + (int)(10 * pvsi->sell_factor);
+        uint32_t next = pvsi->last_sell_time + (int)(10 * (pvsi->sell_factor / 100.0));
         time current = time_util::getnow();
         assert_true(current >= next, "too short to sell");
     }
@@ -177,9 +177,9 @@ public:
         uint32_t last_sell_time = variable.last_sell_time;
         double sell_factor = variable.sell_factor / 100.0;
         sell_factor = std::max(1.0, sell_factor);
-        sell_factor = std::min(180.0, sell_factor);
+        sell_factor = std::min(60.0, sell_factor);
 
-        int threshold = 30 * time_util::min;
+        int threshold = 10 * time_util::min;
         auto past = current - last_sell_time;
         
         if (past < threshold) {
@@ -191,7 +191,7 @@ public:
         }
 
         sell_factor = std::max(1.0, sell_factor);
-        sell_factor = std::min(180.0, sell_factor);
+        sell_factor = std::min(60.0, sell_factor);
         variable.sell_factor = (int)(sell_factor * 100);
         variable.last_sell_time = current;
         player_controller.update_playerv(pvsi, variable);
