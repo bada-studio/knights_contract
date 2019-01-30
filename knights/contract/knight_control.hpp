@@ -701,7 +701,7 @@ private:
         }
 
         if (old_total_kill > 0) {
-            int next = player->last_rebirth + (int)(kv_min_rebirth * rebrith_factor);
+            uint32_t next = player->last_rebirth + (int)(kv_min_rebirth * rebrith_factor);
             assert_true(current >= next, "too short to get rebirth");
         }
 

@@ -109,6 +109,7 @@ public:
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
         player_controller.check_blacklist(from);
+        require_sell_cooltime(from);
 
         auto &rows = item_controller.get_items(from);
         auto &item = item_controller.get_item(rows, itemid);
@@ -158,6 +159,42 @@ public:
 
         item_controller.cancel_sale(from, saleid);
         items.erase(saleitem);
+        set_sell_factor(from);
+    }
+
+    void require_sell_cooltime(name from) {
+        auto pvsi = player_controller.get_playervs(from);
+        uint32_t next = pvsi->last_sell_time + (int)(10 * pvsi->sell_factor);
+        time current = time_util::getnow();
+        assert_true(current >= next, "too short to sell");
+    }
+
+    void set_sell_factor(name from) {
+        auto pvsi = player_controller.get_playervs(from);
+        auto variable = *pvsi;
+
+        time current = time_util::getnow();
+        uint32_t last_sell_time = variable.last_sell_time;
+        double sell_factor = variable.sell_factor / 100.0;
+        sell_factor = std::max(1.0, sell_factor);
+        sell_factor = std::min(180.0, sell_factor);
+
+        int threshold = 30 * time_util::min;
+        auto past = current - last_sell_time;
+        
+        if (past < threshold) {
+            double rate = 1 + (threshold - past) / (double)threshold;
+            sell_factor *= rate;
+        } else {
+            double rate = 1 + (past - threshold) / (double)threshold;
+            sell_factor /= rate;
+        }
+
+        sell_factor = std::max(1.0, sell_factor);
+        sell_factor = std::min(180.0, sell_factor);
+        variable.sell_factor = (int)(sell_factor * 100);
+        variable.last_sell_time = current;
+        player_controller.update_playerv(pvsi, variable);
     }
 
     asset buyitem(name from, const transfer_action &ad) {
@@ -250,6 +287,7 @@ public:
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
         player_controller.check_blacklist(from);
+        require_sell_cooltime(from);
 
         auto &rows = material_controller.get_materials(from);
         auto &mat = material_controller.get_material(rows, matid);
@@ -284,6 +322,7 @@ public:
 
         material_controller.cancel_sale(from, saleid);
         materials.erase(salemat);
+        set_sell_factor(from);
     }
 
     asset buymat(name from, const transfer_action &ad) {

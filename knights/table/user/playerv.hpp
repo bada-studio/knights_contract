@@ -50,18 +50,19 @@ struct playerv2 {
     uint32_t v1 = 0;
     uint32_t v2 = 0;
     uint32_t v3 = 0;
-    uint32_t v4 = 0;
-    uint32_t v5 = 0;
+    uint32_t last_sell_time = 0;
+    uint16_t sell_factor = 0;
+    uint16_t rebrith_factor = 0;
     uint32_t block = 0;
     uint8_t floor_submit = 0;
-    uint8_t v6 = 0;
+    uint8_t v4 = 0;
     uint16_t dquest_no = 0;
-    uint16_t rebrith_factor = 0;
     uint16_t dq_p1 = 0;
     uint16_t dq_p2 = 0;
     uint16_t dq_p3 = 0;
     uint16_t dq_p4 = 0;
     uint16_t dq_p5 = 0;
+    uint16_t v5 = 0;
 
     playerv2(name o = name())
     : owner(o) {
@@ -78,9 +79,10 @@ struct playerv2 {
         v3 = 0;
         v4 = 0;
         v5 = 0;
-        v6 = 0;
-        floor_submit = 0;
+        last_sell_time = 0;
+        sell_factor = 0;
         rebrith_factor = 0;
+        floor_submit = 0;
         dquest_no = 0;
         dq_p1 = 0;
         dq_p2 = 0;
@@ -96,7 +98,6 @@ struct playerv2 {
         v3 = 0;
         v4 = 0;
         v5 = 0;
-        v6 = 0;
         migrated = 2;
     }
 
@@ -147,18 +148,19 @@ struct playerv2 {
                      (v1)
                      (v2)
                      (v3)
-                     (v4)
-                     (v5)
+                     (last_sell_time)
+                     (sell_factor)
+                     (rebrith_factor)
                      (block)
                      (floor_submit)
-                     (v6)
+                     (v4)
                      (dquest_no)
-                     (rebrith_factor)
                      (dq_p1)
                      (dq_p2)
                      (dq_p3)
                      (dq_p4)
                      (dq_p5)
+                     (v5)
                      )
 };
 
