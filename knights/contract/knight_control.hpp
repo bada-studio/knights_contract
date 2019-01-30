@@ -571,6 +571,27 @@ private:
         }
     }
 
+    double get_bonus_floor_bonus(int floor, double avg_floor) {
+        auto res_old = std::min(1000, floor) / 500.0;
+        auto base_floor = avg_floor * 5;
+        auto res_new = std::min((int)(base_floor), floor) / (base_floor * 0.5);
+
+        uint32_t base_time = 48892800;
+        uint32_t now = time_util::getnow();
+        if (now < base_time) {
+            return res_old;
+        }
+
+        uint32_t diff = now - base_time;
+        uint32_t ease_base = time_util::day * 7;
+        if (diff > ease_base) {
+            return res_new;
+        }
+
+        double ease = (double)diff / (double)ease_base;
+        return res_old + (res_new - res_old) * ease;
+    }
+
     /// rebirth common logic
     bool do_rebirth(name from, player_table::const_iterator player, bool only_check, playerv2_table::const_iterator pvsi) {
         player_controller.check_blacklist(from);
@@ -652,7 +673,7 @@ private:
         }
         
         // get high floor bonus #23
-        powder = (int)(powder * (1.0 + (std::min((int)(avg_floor * 2), floor) / avg_floor)) * gdr);
+        powder = (int)(powder * (1.0 + get_bonus_floor_bonus(floor, avg_floor)) * gdr);
         if (powder <= 0) {
             powder = 1;
         }
