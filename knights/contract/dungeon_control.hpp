@@ -85,6 +85,7 @@ public:
             table.modify(iter, self, [&](auto& target) {
                 int tpos = target.find_ticket(code);
                 if (tpos >= 0) {
+                    assert_true(target.tickets[tpos].count < kv_dungeon_max_ticket, "ticket is full");
                     target.tickets[tpos].count++;
                 } else {
                     dgticket ticket;
