@@ -223,8 +223,8 @@ public:
 
     /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
-        bool need_help = player_controller.checksum_gateway(from, block, checksum);
-        knight_controller.rebirth(from, checksum, true, need_help);
+        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        knight_controller.rebirth(from, checksum, true, frompay);
     }
 
     /// @abi action
@@ -270,8 +270,8 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        bool need_help = player_controller.checksum_gateway(from, block, checksum);
-        item_controller.craft(from, code, mat_ids, checksum, true, need_help);
+        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        item_controller.craft(from, code, mat_ids, checksum, true, frompay);
     }
 
     /// @abi action
@@ -301,8 +301,8 @@ public:
 
     /// @abi action
     void itemlvup2(name from, uint32_t id, uint32_t block, uint32_t checksum) {
-        bool need_help = player_controller.checksum_gateway(from, block, checksum);
-        int8_t knight = item_controller.itemlvup(from, id, checksum, true, need_help);
+        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        int8_t knight = item_controller.itemlvup(from, id, checksum, true, frompay);
         if (knight > 0) {
             knight_controller.refresh_stat(from, knight);
         }
@@ -321,10 +321,10 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
-        bool need_help = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = player_controller.checksum_gateway(from, block, checksum);
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "hire knight first!");
-        pet_controller.petgacha(from, type, count, checksum, true, need_help);
+        pet_controller.petgacha(from, type, count, checksum, true, frompay);
     }
 
     /// @abi action
@@ -355,8 +355,8 @@ public:
 
     /// @abi action
     void pexpreturn2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        bool need_help = player_controller.checksum_gateway(from, block, checksum);
-        pet_controller.pexpreturn(from, code, checksum, true, need_help);
+        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        pet_controller.pexpreturn(from, code, checksum, true, frompay);
     }
 
     /// @abi action
@@ -413,8 +413,8 @@ public:
 
     /// @abi action
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t block, uint32_t checksum) {
-        bool need_help = player_controller.checksum_gateway(from, block, checksum);
-        dungeon_controller.dgclear(from, code, orders, checksum, true, need_help);
+        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        dungeon_controller.dgclear(from, code, orders, checksum, true, frompay);
     }
 
     /// @abi action

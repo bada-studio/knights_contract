@@ -134,7 +134,7 @@ public:
     /// Gocha request count
     /// @param checksum
     /// To prevent bots
-    void petgacha(name from, uint16_t type, uint8_t count, uint32_t checksum, bool delay, bool need_help) {
+    void petgacha(name from, uint16_t type, uint8_t count, uint32_t checksum, bool delay, bool frompay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
@@ -152,7 +152,7 @@ public:
                     std::make_tuple(from, type, count, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), need_help ? self : from);
+                out.send(player_controller.get_last_trx_hash(), frompay ? from : self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -323,7 +323,7 @@ public:
         }
     }
 
-    void pexpreturn(name from, uint16_t code, uint32_t checksum, bool delay, bool need_help) {
+    void pexpreturn(name from, uint16_t code, uint32_t checksum, bool delay, bool frompay) {
         auto pvsi = player_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
@@ -338,7 +338,7 @@ public:
                     std::make_tuple(from, code, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), need_help ? self : from);
+                out.send(player_controller.get_last_trx_hash(), frompay ? from : self);
             }
         } else {
             if (USE_DEFERRED == 1) {
