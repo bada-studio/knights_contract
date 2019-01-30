@@ -129,6 +129,26 @@ public:
         return iter->rows[0];
     }
 
+    void new_free_knight(name from) {
+        auto rule = knight_rule_controller.get_table().find(kt_knight);
+        assert_true(rule != knight_rule_controller.get_table().cend(), "no knight rule");
+
+        knightrow knight;
+        knight.type = kt_knight;
+        knight.level = 1;
+        knight.attack = rule->attack;
+        knight.defense = rule->defense;
+        knight.hp = rule->hp;
+        knight.luck = rule->luck;
+
+        int count = 1;
+        auto iter = knights.find(from);
+        knights.emplace(self, [&](auto &target) {
+            target.owner = from;
+            target.rows.push_back(knight);
+        });
+    }
+
     // actions
     //-------------------------------------------------------------------------
     /// @brief

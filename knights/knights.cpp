@@ -137,12 +137,14 @@ public:
     void signup(name from) {
         require_auth(from);
         player_controller.signup(from);
+        knight_controller.new_free_knight(from);
     }
 
     /// @abi action
     void signupbt(name from) {
         require_auth(N(bastetbastet));
         player_controller.signup(from);
+        knight_controller.new_free_knight(from);
     }
 
     /// @abi action
