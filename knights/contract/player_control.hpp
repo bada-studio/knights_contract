@@ -109,6 +109,7 @@ public:
         } else if (transfer_data.to == self) {
             auto from = to_name(transfer_data.from);
             auto from_player = players.find(from);
+            auto &memo = transfer_data.memo;
             check_blacklist(from);
             
             if (from_player == players.end()) {
@@ -123,20 +124,23 @@ public:
             } else {
                 // player's deposit action
                 transfer_action res;
-                size_t center = transfer_data.memo.find(':');
-                size_t next = transfer_data.memo.find(':', center + 1);
+                size_t n1 = memo.find(':');
+                size_t n2 = memo.find(':', n1 + 1);
                 res.from = from;
-                res.action = transfer_data.memo.substr(0, center);
+                res.action = memo.substr(0, n1);
 
-                if (next != std::string::npos) {
-                    res.param = transfer_data.memo.substr(center + 1);
+                if (n2 == std::string::npos) {
+                    res.param = memo.substr(n1 + 1);
                 } else {
-                    // param:type:seller;
-                    res.param = transfer_data.memo.substr(center + 1, next - (center + 1));
-                    size_t next2 = transfer_data.memo.find(':', next + 1);
-                    size_t next3 = transfer_data.memo.find(':', next2 + 1);
-                    res.type = atoi(transfer_data.memo.substr(next2 + 1, next3 - (next2 + 1)).c_str());
-                    res.seller = to_name(atoll(transfer_data.memo.substr(next3 + 1).c_str()));
+                    // param:type:seller:block:checksum
+                    size_t n3 = memo.find(':', n2 + 1);
+                    size_t n4 = memo.find(':', n3 + 1);
+                    size_t n5 = memo.find(':', n4 + 1);
+                    res.param    =                 memo.substr(n1 + 1, n2 - (n1 + 1));
+                    res.type     =            atoi(memo.substr(n2 + 1, n3 - (n2 + 1)).c_str());
+                    res.seller   =   to_name(atoll(memo.substr(n3 + 1, n4 - (n3 + 1)).c_str()));
+                    res.block    = (uint32_t)atoll(memo.substr(n4 + 1, n5 - (n4 + 1)).c_str());
+                    res.checksum = (uint32_t)atoll(memo.substr(n5 + 1).c_str());
                 }
 
                 res.quantity = transfer_data.quantity;       

@@ -199,6 +199,7 @@ public:
 
     asset buyitem(name from, const transfer_action &ad) {
         require_auth(from);
+        player_controller.checksum_gateway(from, ad.block, ad.checksum);
 
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;
@@ -327,6 +328,7 @@ public:
 
     asset buymat(name from, const transfer_action &ad) {
         require_auth(from);
+        player_controller.checksum_gateway(from, ad.block, ad.checksum);
 
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;

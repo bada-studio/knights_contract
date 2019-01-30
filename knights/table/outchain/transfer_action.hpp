@@ -5,4 +5,6 @@ struct transfer_action {
     uint32_t type;
     name seller;
     asset quantity;
+    uint32_t block;
+    uint32_t checksum;
 };
