@@ -208,7 +208,7 @@ public:
         assert_true(saleitem != items.end(), "could not find item");
         assert_true(saleitem->player != from, "it's your item");
         if (ad.seller.value > 0) {
-            assert_true(saleitem->player == ad.seller, "seller not matching");
+            //assert_true(saleitem->player == ad.seller, "seller not matching");
         }
 
         auto &players = player_controller.get_players();

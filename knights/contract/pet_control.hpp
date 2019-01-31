@@ -152,7 +152,7 @@ public:
                     std::make_tuple(from, type, count, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), frompay ? from : self);
+                out.send(player_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -338,7 +338,7 @@ public:
                     std::make_tuple(from, code, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), frompay ? from : self);
+                out.send(player_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
