@@ -349,7 +349,7 @@ public:
         assert_true(salemat != materials.end(), "could not find mat");
         assert_true(salemat->player != from, "it's your mat");
         if (ad.seller.value > 0) {
-            assert_true(salemat->player == ad.seller, "seller not matching");
+            //assert_true(salemat->player == ad.seller, "seller not matching");
         }
 
         material_controller.remove_salematerial(salemat->player, salemat->cid);

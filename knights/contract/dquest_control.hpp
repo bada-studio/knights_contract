@@ -101,7 +101,7 @@ public:
                 record.point = point;
                 record.paid = false;
                 subquest.records.insert(subquest.records.cbegin() + pos, record);
-                if (subquest.records.size() >= max_count) {
+                if (subquest.records.size() > max_count) {
                     subquest.records.erase(--subquest.records.cend());
                 }
             } else {
