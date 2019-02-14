@@ -36,6 +36,7 @@ using eosio::name;
 #include "table/rule/rdgticket.hpp"
 #include "table/rule/rmob.hpp"
 #include "table/rule/rmobskill.hpp"
+#include "table/nft/skin.hpp"
 #include "table/user/player.hpp"
 #include "table/user/playerv.hpp"
 #include "table/user/knight.hpp"
@@ -48,6 +49,7 @@ using eosio::name;
 #include "table/user/revenue.hpp"
 #include "table/user/kntskill.hpp"
 #include "table/user/dungeon.hpp"
+#include "table/user/pskin.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
@@ -83,6 +85,7 @@ using eosio::name;
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
 #include "contract/candy_control.hpp"
+#include "contract/skin_control.hpp"
 
 class knights : public eosio::contract, public control_base {
 private:
@@ -101,6 +104,7 @@ private:
     dquest_control dquest_controller;
     dungeon_control dungeon_controller;
     candy_control candy_controller; 
+    skin_control skin_controller;
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
@@ -128,7 +132,8 @@ public:
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
     , dquest_controller(_self, item_controller, player_controller, admin_controller)
     , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
-    , candy_controller(_self, player_controller) {
+    , candy_controller(_self, player_controller)
+    , skin_controller(_self, player_controller) {
     }
 
     // player related actions
