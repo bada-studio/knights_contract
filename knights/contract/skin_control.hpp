@@ -107,6 +107,10 @@ public:
         auto &skin = iter->rows[pos];
         assert_true(skin.state != ss_selling, "already on sale");
 
+        table.modify(iter, self, [&](auto &target) {
+            target.rows[pos].state = ss_selling;
+        });
+
         skin4sale_table mtable(self, self);
         auto miter = mtable.find(code);
         if (miter != mtable.cend()) {
@@ -152,6 +156,7 @@ public:
     asset skbuy(name from, const transfer_action &ad) {
         require_auth(from);
 
+        // find skin in market 
         skin4sale_table mtable(self, self);
         auto miter = mtable.find(ad.type);
         assert_true(miter != mtable.cend(), "can not found skin");
@@ -163,10 +168,51 @@ public:
         auto &mskin = miter->rows[mpos];
         assert_true(ad.quantity == mskin.price, "price not matching");
 
-        mtable.emplace(self, [&](auto &target) {
+        mtable.modify(miter, self, [&](auto &target) {
             target.rows.erase(miter->rows.begin() + mpos);
         });
 
+        // move skin
+        skin_table table(self, self);
+        auto iter = table.find(mskin.seller);
+        assert_true(iter != table.cend(), "can not found skin");
+
+        auto pos = iter->get_skin(mskin.cid);
+        assert_true(pos >= 0, "can not found skin");
+
+        auto &skin = iter->rows[pos];
+        assert_true(skin.state == ss_selling, "not on sale");
+
+        // remove from seller
+        table.modify(iter, self, [&](auto &target) {
+            target.rows.erase(target.rows.begin() + pos);
+        });
+
+        // add to buyer
+        auto iter2 = table.find(from);
+        if (iter2 != table.cend()) {
+            int pos2 = iter2->get_skin_by_code(mskin.code);
+            assert_true(pos2 < 0, "already have same skin");
+
+            table.modify(iter2, self, [&](auto &target) {
+                skinrow row;
+                row.cid = mskin.cid;
+                row.code = mskin.code;
+                row.state = ss_normal;
+                target.rows.push_back(row);
+            });
+        } else {
+            table.emplace(self, [&](auto &target) {
+                skinrow row;
+                row.cid = mskin.cid;
+                row.code = mskin.code;
+                row.state = ss_normal;
+                target.owner = from;
+                target.rows.push_back(row);
+            });
+        }
+
+        // calcuate tax
         int tax_rate = kv_market_tax_rate;
         if (mskin.seller == self) {
             tax_rate = 0;
@@ -182,14 +228,17 @@ public:
             price -= tax;
         }
 
-        auto message = std::string("eosknights:skin-sale:") + 
-                       std::to_string(mskin.code) + ":" + 
-                       std::to_string(mskin.cid) + ":" + 
-                       from.to_string();
-        action(permission_level{ self, N(active) },
-               N(eosio.token), N(transfer),
-               std::make_tuple(self, mskin.seller, price, message)
-        ).send();
+        // send token
+        if (mskin.seller != self) {
+            auto message = std::string("eosknights:skin-sale:") + 
+                        std::to_string(mskin.code) + ":" + 
+                        std::to_string(mskin.cid) + ":" + 
+                        from.to_string();
+            action(permission_level{ self, N(active) },
+                N(eosio.token), N(transfer),
+                std::make_tuple(self, mskin.seller, price, message)
+            ).send();
+        }
         
         return tax;
     }

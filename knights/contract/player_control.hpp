@@ -143,7 +143,7 @@ public:
                     res.checksum = (uint32_t)atoll(memo.substr(n5 + 1).c_str());
                 }
 
-                res.quantity = transfer_data.quantity;       
+                res.quantity = transfer_data.quantity;
                 func(res);
             }
         }

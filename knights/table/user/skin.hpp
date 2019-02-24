@@ -30,6 +30,16 @@ struct skin {
         return -1;
     }
 
+    int get_skin_by_code(uint16_t code) const {
+        for (int index = 0; index < rows.size(); index++) {
+            if (rows[index].code == code) { 
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
     EOSLIB_SERIALIZE(
             skin,
             (owner)

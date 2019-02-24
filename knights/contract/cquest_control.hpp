@@ -72,6 +72,7 @@ public:
         }
     }
 
+    /*
     void removecquest(uint32_t id, bool force) {
         player_controller.require_coo_auth();
 
@@ -87,6 +88,7 @@ public:
 
         table.erase(iter);
     }
+    */
 
     void updatesubq(uint32_t id, const std::vector<cquestdetail>& details) {
         player_controller.require_coo_auth();

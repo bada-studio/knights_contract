@@ -114,6 +114,7 @@ public:
     /// Coo can issue admin materials to market
     /// @param name
     /// coo account name
+    /*
     void setcoo(name name) {
         require_auth(self);
 
@@ -144,7 +145,7 @@ public:
             target.pause = pause;
         });
     }
-
+    */
 
     /// @brief
     /// Register stock holder
