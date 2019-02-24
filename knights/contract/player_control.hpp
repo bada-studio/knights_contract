@@ -7,7 +7,6 @@ private:
     playerv2_table playervs;
 
     account_name self;
-    rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
     variable_control &variable_controller;
@@ -21,7 +20,10 @@ private:
 
     uint32_t last_checksum;
     uint32_t last_trx_hash;
-    
+
+public:
+    rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
+
 public:
     // constructor
     //-------------------------------------------------------------------------
@@ -165,7 +167,7 @@ public:
     }
 
     void new_player(name from) {
-        auto& variables = variable_controller.get_rvariable_rule();
+        auto& variables = variable_controller.rvariable_controller;
         auto& rules = variables.get_table();
         auto rule = rules.find(vt_init_powder);
         eosio_assert(rule != rules.end(), "can not found powder rule" );
@@ -584,9 +586,5 @@ public:
         players.modify(player, self, [&](auto& target) {
             target.mat_ivn_up = ts;
         });
-    }
-
-    rule_controller<rivnprice, rivnprice_table>& get_inventory_price_rule() {
-        return  rivnprice_controller;
     }
 };

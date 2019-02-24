@@ -242,4 +242,32 @@ public:
         
         return tax;
     }
+
+    void skwear(name from, uint32_t knt, uint32_t cid) {
+        skin_table table(self, self);
+        auto iter = table.find(from);
+        assert_true(iter != table.cend(), "can not found skin");
+
+        int pos = -1;
+        if (cid > 0) {
+            pos = iter->get_skin(cid);
+            assert_true(pos >= 0, "can not found skin");
+
+            auto &skin = iter->rows[pos];
+            assert_true(skin.state == ss_normal, "available only when normal");
+        }
+
+        table.modify(iter, self, [&](auto &target) {
+            for (int index = 0; index < target.rows.size(); index++) {
+                int current_knt = target.rows[index].code / 10;
+                if (current_knt == knt && target.rows[index].state == ss_wear) {
+                    target.rows[index].state = ss_normal;
+                }
+            }
+
+            if (cid > 0) {
+                target.rows[pos].state = ss_wear;
+            }
+        });        
+    }
 };

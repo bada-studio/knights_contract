@@ -5,14 +5,16 @@ private:
     account_name self;
 
     pet_table pets;
-    rule_controller<rpet, rpet_table> rpet_controller;
-    rule_controller<rpetlv, rpetlv_table> rpetlv_controller;
-    rule_controller<rpetexp, rpetexp_table> rpetexp_controller;
     player_control &player_controller;
     material_control &material_controller;
     saleslog_control &saleslog_controller;
 
     std::vector<petrow> empty_petrows;
+
+public:
+    rule_controller<rpet, rpet_table> rpet_controller;
+    rule_controller<rpetlv, rpetlv_table> rpetlv_controller;
+    rule_controller<rpetexp, rpetexp_table> rpetexp_controller;
 
 public:
     // constructor
@@ -401,7 +403,7 @@ public:
         }
 
         assert_true(found, "can not found pet data");
-        auto &exp_rules = get_pet_exp_rule().get_table();
+        auto &exp_rules = rpetexp_controller.get_table();
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 
@@ -479,30 +481,6 @@ public:
         }
 
         return true;
-    }
-
-    /// @brief
-    /// Returns a controller that can CRUD the rule.
-    /// @return
-    /// Rule controller for pet rule
-    rule_controller<rpet, rpet_table>& get_pet_rule() {
-        return rpet_controller;
-    }
-
-    /// @brief
-    /// Returns a controller that can CRUD the rule.
-    /// @return
-    /// Rule controller for pet level rule
-    rule_controller<rpetlv, rpetlv_table>& get_pet_level_rule() {
-        return rpetlv_controller;
-    }
-
-    /// @brief
-    /// Returns a controller that can CRUD the rule.
-    /// @return
-    /// Rule controller for pet expedition rule
-    rule_controller<rpetexp, rpetexp_table>& get_pet_exp_rule() {
-        return rpetexp_controller;
     }
 
 private:

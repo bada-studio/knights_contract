@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 class candy_control : public control_base {
@@ -65,3 +66,4 @@ public:
         }
     }
 };
+*/

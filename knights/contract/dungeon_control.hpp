@@ -8,6 +8,7 @@ private:
     knight_control &knight_controller;
     dquest_control &dquest_controller;
 
+public:
     rule_controller<rdungeon, rdungeon_table> dungeon_rule_controller;
     rule_controller<rdgticket, rdgticket_table> dgticket_rule_controller;
     rule_controller<rmobs, rmobs_table> mobs_rule_controller;
@@ -383,22 +384,6 @@ public:
         player_controller.end_random(variable, rval);
         player_controller.update_playerv(pvsi, variable);
         return only_check;
-    }
-
-    rule_controller<rdungeon, rdungeon_table>& get_dungeon_rule() {
-        return dungeon_rule_controller;
-    }
-
-    rule_controller<rdgticket, rdgticket_table>& get_dgticket_rule() {
-        return dgticket_rule_controller;
-    }
-
-    rule_controller<rmobs, rmobs_table>& get_mobs_rule() {
-        return mobs_rule_controller;
-    }
-
-    rule_controller<rmobskills, rmobskills_table>& get_mobskills_rule() {
-        return mobskills_rule_controller;
     }
 
 private:

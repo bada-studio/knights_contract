@@ -90,7 +90,7 @@ public:
             id = 1;
         }
 
-        auto &rule_table = material_controller.get_rmaterial_rule().get_table();
+        auto &rule_table = material_controller.material_rule_controller.get_table();
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "could not find material rule");
 
@@ -116,7 +116,7 @@ public:
         assert_true(item.saleid == 0, "already on sale");
         assert_true(item.knight == 0, "equipped item can not be sold");
 
-        auto &item_rules = item_controller.get_ritem_rule().get_table();
+        auto &item_rules = item_controller.item_rule_controller.get_table();
         auto item_rule = item_rules.find(item.code);
         assert_true(item_rule != item_rules.cend(), "can not found item grade");
         validate_price(price, item_rule->grade);
@@ -294,7 +294,7 @@ public:
         auto &mat = material_controller.get_material(rows, matid);
         assert_true(mat.saleid == 0, "already on sale");
 
-        auto &mat_rules = material_controller.get_rmaterial_rule().get_table();
+        auto &mat_rules = material_controller.material_rule_controller.get_table();
         auto mat_rule = mat_rules.find(mat.code);
         assert_true(mat_rule != mat_rules.cend(), "can not found material grade");
         validate_price(price, mat_rule->grade);

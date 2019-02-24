@@ -4,12 +4,14 @@ class material_control : public control_base {
 private:
     account_name self;
     material_table materials;
-    rule_controller<rmaterial, rmaterial_table> material_rule_controller;
     player_control &player_controller;
 
     std::vector<matrow> empty_matrows;
     matrow empty_matrow;
 
+public:
+    rule_controller<rmaterial, rmaterial_table> material_rule_controller;
+    
 public:
     // constructor
     //-------------------------------------------------------------------------
@@ -244,10 +246,6 @@ public:
 
     // actions
     //-------------------------------------------------------------------------
-    rule_controller<rmaterial, rmaterial_table>& get_rmaterial_rule() {
-        return material_rule_controller;
-    }
-
     void remove(name from, const std::vector<uint32_t> &mat_ids) {
         require_auth(from);
 

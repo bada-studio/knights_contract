@@ -114,7 +114,6 @@ public:
     /// Coo can issue admin materials to market
     /// @param name
     /// coo account name
-    /*
     void setcoo(name name) {
         require_auth(self);
 
@@ -130,7 +129,8 @@ public:
             });
         }
     }
-    
+
+    /*    
     /// @brief
     /// Pause game
     /// User can not play this game until to pause valse is set to false.

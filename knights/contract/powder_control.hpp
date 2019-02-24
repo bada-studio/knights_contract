@@ -3,9 +3,11 @@
 class powder_control : public control_base {
 private:
     account_name self;
-    rule_controller<rmpgoods, rmpgoods_table> mp_goods_rule_controller;
     player_control &player_controller;
     saleslog_control &saleslog_controller;
+
+public:
+    rule_controller<rmpgoods, rmpgoods_table> mp_goods_rule_controller;
 
 public:
     /// @brief
@@ -17,14 +19,6 @@ public:
             , mp_goods_rule_controller(_self, N(mpgoods))
             , player_controller(_player_controller)
             , saleslog_controller(_saleslog_controller) {
-    }
-
-    /// @brief
-    /// Returns a controller that can CRUD the rule.
-    /// @return
-    /// Rule controller for magic powder goods rule
-    rule_controller<rmpgoods, rmpgoods_table>& get_mpgoods_rule() {
-        return mp_goods_rule_controller;
     }
 
     /// @brief

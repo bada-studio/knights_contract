@@ -11,13 +11,15 @@ private:
     player_control &player_controller;
     pet_control &pet_controller;
     saleslog_control &saleslog_controller;
+    std::vector<knightrow> empty_knightrows;
+    std::vector<kntskill> empty_kntskill;
+
+public:
     rule_controller<rknt, rknt_table> knight_rule_controller;
     rule_controller<rkntlv, rkntlv_table> knight_level_rule_controller;
     rule_controller<rkntprice, rkntprice_table> knight_price_rule_controller;
     rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller;
     rule_controller<rstage, rstage_table> stage_rule_controller;
-    std::vector<knightrow> empty_knightrows;
-    std::vector<kntskill> empty_kntskill;
 
 public:
     // constructor
@@ -366,7 +368,7 @@ public:
         auto &item = item_controller.get_item(rows, id);
         assert_true(item.saleid == 0, "item is on sale");
 
-        auto &rule_table = item_controller.get_ritem_rule().get_table();
+        auto &rule_table = item_controller.item_rule_controller.get_table();
         auto rule = rule_table.find(item.code);
         assert_true(rule != rule_table.cend(), "could not find rule");
         assert_true(is_valid_for((knight_type)to, (item_sub_type)rule->sub_type), "it's invalid knight to attach");
@@ -517,26 +519,6 @@ public:
         auto player = player_controller.get_player(from);
         assert_true(player_controller.is_empty_player(player) == false, "could not find player");
         player_controller.decrease_powder(player, kv_skill_reset_price);
-    }
-
-    rule_controller<rknt, rknt_table>& get_knight_rule_controller() {
-        return knight_rule_controller;
-    }
-
-    rule_controller<rkntlv, rkntlv_table>& get_knight_level_rule_controller() {
-        return knight_level_rule_controller;
-    }
-
-    rule_controller<rkntprice, rkntprice_table>& get_knight_price_rule_controller() {
-        return knight_price_rule_controller;
-    }
-
-    rule_controller<rkntskills, rkntskills_table>& get_knight_skill_rule_controller() {
-        return knight_skill_rule_controller;
-    }
-
-    rule_controller<rstage, rstage_table>& get_stage_rule_controller() {
-        return stage_rule_controller;
     }
 
 private:
@@ -795,7 +777,7 @@ private:
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, double gdr) {
-        auto &mat_rules = material_controller.get_rmaterial_rule();
+        auto &mat_rules = material_controller.material_rule_controller;
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
 
         // add floor bonus drop rate

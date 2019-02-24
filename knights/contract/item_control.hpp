@@ -5,15 +5,17 @@ private:
     account_name self;
     item_table items;
 
-    rule_controller<ritem, ritem_table> item_rule_controller;
-    rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller;
-    rule_controller<ritemset, ritemset_table> itemset_rule_controller;
     material_control &material_controller;
     player_control &player_controller;
     saleslog_control &saleslog_controller;
 
     std::vector<itemrow> empty_itemrows;
     itemrow empty_itemrow;
+
+public:
+    rule_controller<ritem, ritem_table> item_rule_controller;
+    rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller;
+    rule_controller<ritemset, ritemset_table> itemset_rule_controller;
 
 public:
     // constructor
@@ -106,7 +108,7 @@ public:
 
         // apply set item stat
         if (setid > 0 && setcount == 3) {
-            auto &table = get_ritemset_rule().get_table();
+            auto &table = itemset_rule_controller.get_table();
             auto iter = table.find(setid);
             if (iter == table.cend()) {
                 return;
@@ -556,18 +558,6 @@ public:
         variable.clear_deferred_time();
         player_controller.update_playerv(pvsi, variable);
         return only_check;
-    }
-
-    rule_controller<ritem, ritem_table>& get_ritem_rule() {
-        return item_rule_controller;
-    }
-
-    rule_controller<ritemlv, ritemlv_table>& get_ritemlv_rule() {
-        return itemlv_rule_controller;
-    }
-
-    rule_controller<ritemset, ritemset_table>& get_ritemset_rule() {
-        return itemset_rule_controller;
     }
 
 private:
