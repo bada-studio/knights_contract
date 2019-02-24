@@ -5,7 +5,7 @@ enum rv_type {
     rv_mp, 
     rv_mat_iventory_up, 
     rv_item_iventory_up, 
-    rv_coo_mat,
+    rv_skin,
     rv_system,
 };
 
@@ -18,7 +18,7 @@ struct revenuedt {
     asset mp;
     asset mat_iventory_up;
     asset item_iventory_up; 
-    asset coo_mat;
+    asset skin;
     asset system;
 
     revenuedt()
@@ -28,7 +28,7 @@ struct revenuedt {
         , mp(0, S(4, EOS))
         , mat_iventory_up(0, S(4, EOS))
         , item_iventory_up(0, S(4, EOS))
-        , coo_mat(0, S(4, EOS))
+        , skin(0, S(4, EOS))
         , system(0, S(4, EOS)) {
     }
 
@@ -45,7 +45,7 @@ struct revenuedt {
             (mp)
             (mat_iventory_up)
             (item_iventory_up)
-            (coo_mat)
+            (skin)
             (system)
     )
 };

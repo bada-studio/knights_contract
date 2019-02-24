@@ -66,8 +66,8 @@ public:
                 case rv_mp: target.mp += revenue; break;
                 case rv_mat_iventory_up: target.mat_iventory_up += revenue; break;
                 case rv_item_iventory_up: target.item_iventory_up += revenue; break;
-                case rv_coo_mat: target.coo_mat += revenue; break;
                 case rv_system: target.system += revenue; break;
+                case rv_skin: target.skin += revenue; break;
             }
         });
     }

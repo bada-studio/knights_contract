@@ -1,0 +1,40 @@
+enum skin_state {
+    ss_normal = 0,
+    ss_wear,
+    ss_selling,
+};
+
+// 16 bytes
+struct skinrow {
+    uint32_t cid = 0;
+    uint16_t code = 0;
+    uint8_t state = 0; // 0: normal, 1: wear, 2: selling
+};
+
+//@abi table skin i64
+struct skin {
+    name owner;
+    std::vector<skinrow> rows;
+
+    uint64_t primary_key() const {
+        return owner;
+    }
+
+    int get_skin(uint32_t cid) const {
+        for (int index = 0; index < rows.size(); index++) {
+            if (rows[index].cid == cid) { 
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    EOSLIB_SERIALIZE(
+            skin,
+            (owner)
+            (rows)
+    )
+};
+
+typedef eosio::multi_index< N(skin), skin > skin_table;

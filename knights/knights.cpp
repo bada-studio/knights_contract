@@ -36,7 +36,6 @@ using eosio::name;
 #include "table/rule/rdgticket.hpp"
 #include "table/rule/rmob.hpp"
 #include "table/rule/rmobskill.hpp"
-#include "table/nft/skin.hpp"
 #include "table/user/player.hpp"
 #include "table/user/playerv.hpp"
 #include "table/user/knight.hpp"
@@ -49,7 +48,9 @@ using eosio::name;
 #include "table/user/revenue.hpp"
 #include "table/user/kntskill.hpp"
 #include "table/user/dungeon.hpp"
-#include "table/user/pskin.hpp"
+#include "table/user/skin.hpp"
+#include "table/user/skin4sale.hpp"
+#include "table/user/skininfo.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
@@ -84,7 +85,7 @@ using eosio::name;
 #include "contract/dquest_control.hpp"
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
-#include "contract/candy_control.hpp"
+//#include "contract/candy_control.hpp"
 #include "contract/skin_control.hpp"
 
 class knights : public eosio::contract, public control_base {
@@ -103,13 +104,14 @@ private:
     cquest_control cquest_controller;
     dquest_control dquest_controller;
     dungeon_control dungeon_controller;
-    candy_control candy_controller; 
+    //candy_control candy_controller; 
     skin_control skin_controller;
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
     const char* ta_item = "item";
     const char* ta_mat = "mat";
+    const char* ta_skin = "skin";
     const char* ta_ivn = "ivn";
     const char* tp_item = "item";
     const char* tp_mat = "mat";
@@ -132,7 +134,7 @@ public:
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
     , dquest_controller(_self, item_controller, player_controller, admin_controller)
     , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
-    , candy_controller(_self, player_controller)
+    //, candy_controller(_self, player_controller)
     , skin_controller(_self, player_controller) {
     }
 
@@ -174,11 +176,10 @@ public:
         cquest_controller.addcquest(id, sponsor, start, duration);
     }
 
-    /// @abi action
-    void removecquest(uint32_t id, bool force) {
-        // it only available there is no user's record
-        cquest_controller.removecquest(id, force);
-    }
+    // void removecquest(uint32_t id, bool force) {
+    //    // it only available there is no user's record
+    //    cquest_controller.removecquest(id, force);
+    //}
 
     /// @abi action
     void updatesubq(uint32_t id, const std::vector<cquestdetail>& details) {
@@ -203,11 +204,10 @@ public:
         dquest_controller.adddquest(id, sponsor, start, duration);
     }
 
-    /// @abi action
-    void removedquest(uint32_t id, bool force) {
-        // it only available there is no user's record
-        dquest_controller.removedquest(id, force);
-    }
+    //void removedquest(uint32_t id, bool force) {
+    //    // it only available there is no user's record
+    //    dquest_controller.removedquest(id, force);
+    //}
 
     /// @abi action
     void updatedsubq(uint32_t id, const std::vector<dquestdetail>& details) {
@@ -425,6 +425,23 @@ public:
         dungeon_controller.dgleave(from, code);
     }    
 
+    // skin related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void skissue(uint16_t code, uint32_t count, asset price) {
+        skin_controller.skissue(code, count, price);
+    }
+
+    /// @abi action
+    void sksell(name from, uint64_t cid, uint16_t code, asset price) {
+        skin_controller.sksell(from, cid, code, price);
+    }
+
+    /// @abi action
+    void skcsell(name from, uint16_t code, uint64_t mid) {
+        skin_controller.skcsell(from, code, mid);
+    }
+
     // rule related actions
     //-------------------------------------------------------------------------
     /// @abi action
@@ -569,15 +586,13 @@ public:
 
     // admin related actions
     //-------------------------------------------------------------------------
-    /// @abi action
-    void setpause(uint8_t pid) {
-        admin_controller.setpause(pid);
-    }
+    // void setpause(uint8_t pid) {
+    //    admin_controller.setpause(pid);
+    // }
 
-    /// @abi action
-    void setcoo(name coo) {
-        admin_controller.setcoo(coo);
-    }
+    // void setcoo(name coo) {
+    //    admin_controller.setcoo(coo);
+    // }
 
     /// @abi action
     void regsholder(name holder, uint16_t share) {
@@ -591,16 +606,14 @@ public:
 
     // etc actions
     //-------------------------------------------------------------------------
-    //@abi action
-    void getcandy(name from, std::string memo) {
-        candy_controller.getcandy(from, memo);
-    }
+    // void getcandy(name from, std::string memo) {
+    //     candy_controller.getcandy(from, memo);
+    // }
 
-    //@abi action
-    void addcandy(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
-        require_auth(_self);
-        candy_controller.addcandy(id, total, remain, amount);
-    }
+    // void addcandy(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
+    //    require_auth(_self);
+    //    candy_controller.addcandy(id, total, remain, amount);
+    //}
 
     // eosio.token recipient
     // memo description spec
@@ -634,6 +647,10 @@ public:
                 asset tax = market_controller.buymat(ad.from, ad);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
+            } else if (ad.action == ta_skin) {
+                asset tax = skin_controller.skbuy(ad.from, ad);
+                admin_controller.add_revenue(tax, rv_skin);
+                admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_ivn) {
                 if (ad.param == tp_item) {
                     player_controller.itemivnup(ad.from, ad.quantity);
@@ -644,10 +661,6 @@ public:
                 } else {
                     assert_true(false, "invalid inventory");
                 }
-                
-            } else if (ad.action == ta_eosknights && ad.param == tp_mat_sale) {
-                // coo material sales revenue
-                admin_controller.add_revenue(ad.quantity, rv_coo_mat);
             } else {
                 assert_true(false, "invalid transfer");
             }
@@ -717,4 +730,5 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (removecquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (removedquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (setpause) (setcoo) (regsholder) (dividend) (getcandy) (addcandy) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) (trule) (regsholder) (dividend) (transfer) ) // (clrall)
+// (removecquest) (removedquest) (setcoo) (setpause) (getcandy) (addcandy) 
