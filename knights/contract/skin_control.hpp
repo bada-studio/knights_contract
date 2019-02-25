@@ -26,11 +26,12 @@ public:
         require_auth(self);
 
         // get info
-        uint32_t cid = 1;
+        uint32_t base_cid = (uint32_t)code * 10000;
+        uint32_t cid = base_cid + 1;
         skininfo_table itable(self, self);
         auto iiter = itable.find(code);
         if (iiter != itable.cend()) {
-            cid = iiter->count + 1;
+            cid = base_cid + iiter->count + 1;
             itable.modify(iiter, self, [&](auto &target) {
                 target.count += count;
             });
@@ -100,7 +101,7 @@ public:
 
     void sksell(name from, uint32_t cid, asset price) {
         skin_table table(self, self);
-        auto iter = table.find(self);
+        auto iter = table.find(from);
         auto pos = iter->get_skin(cid);
         assert_true(pos >= 0, "can not found skin");
 
@@ -143,12 +144,12 @@ public:
 
     void skcsell(name from, uint32_t cid) {
         skin_table table(self, self);
-        auto iter = table.find(self);
+        auto iter = table.find(from);
         auto pos = iter->get_skin(cid);
         assert_true(pos >= 0, "can not found skin");
 
         auto &skin = iter->rows[pos];
-        assert_true(skin.state != ss_selling, "already on sale");
+        assert_true(skin.state == ss_selling, "not on sale");
 
         // set normal
         table.modify(iter, self, [&](auto &target) {
@@ -182,10 +183,6 @@ public:
 
         auto &mskin = miter->rows[mpos];
         assert_true(ad.quantity == mskin.price, "price not matching");
-
-        mtable.modify(miter, self, [&](auto &target) {
-            target.rows.erase(miter->rows.begin() + mpos);
-        });
 
         // move skin
         skin_table table(self, self);
@@ -226,6 +223,11 @@ public:
                 target.rows.push_back(row);
             });
         }
+
+        // remove from market
+        mtable.modify(miter, self, [&](auto &target) {
+            target.rows.erase(miter->rows.begin() + mpos);
+        });
 
         // calcuate tax
         int tax_rate = kv_market_tax_rate;
