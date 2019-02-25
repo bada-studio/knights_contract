@@ -98,7 +98,7 @@ public:
         }
     }
 
-    void sksell(name from, uint64_t cid, uint16_t code, asset price) {
+    void sksell(name from, uint32_t cid, asset price) {
         skin_table table(self, self);
         auto iter = table.find(self);
         auto pos = iter->get_skin(cid);
@@ -111,6 +111,7 @@ public:
             target.rows[pos].state = ss_selling;
         });
 
+        uint16_t code = skin.code;
         skin4sale_table mtable(self, self);
         auto miter = mtable.find(code);
         if (miter != mtable.cend()) {
@@ -140,12 +141,26 @@ public:
         }
     }
 
-    void skcsell(name from, uint16_t code, uint64_t mid) {
+    void skcsell(name from, uint32_t cid) {
+        skin_table table(self, self);
+        auto iter = table.find(self);
+        auto pos = iter->get_skin(cid);
+        assert_true(pos >= 0, "can not found skin");
+
+        auto &skin = iter->rows[pos];
+        assert_true(skin.state != ss_selling, "already on sale");
+
+        // set normal
+        table.modify(iter, self, [&](auto &target) {
+            target.rows[pos].state = ss_normal;
+        });
+        
+        // remove form market table
         skin4sale_table mtable(self, self);
-        auto miter = mtable.find(code);
+        auto miter = mtable.find(skin.code);
         assert_true(miter != mtable.cend(), "can not found skin");
 
-        auto mpos = miter->get_skin_by_mid(mid);
+        auto mpos = miter->get_skin_by_cid(cid);
         assert_true(mpos >= 0, "can not found skin");
 
         mtable.emplace(self, [&](auto &target) {

@@ -433,13 +433,13 @@ public:
     }
 
     /// @abi action
-    void sksell(name from, uint64_t cid, uint16_t code, asset price) {
-        skin_controller.sksell(from, cid, code, price);
+    void sksell(name from, uint32_t cid, asset price) {
+        skin_controller.sksell(from, cid, price);
     }
 
     /// @abi action
-    void skcsell(name from, uint16_t code, uint64_t mid) {
-        skin_controller.skcsell(from, code, mid);
+    void skcsell(name from, uint32_t cid) {
+        skin_controller.skcsell(from, cid);
     }
 
     /// @abi action
