@@ -135,7 +135,7 @@ public:
     , dquest_controller(_self, item_controller, player_controller, admin_controller)
     , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
     //, candy_controller(_self, player_controller)
-    , skin_controller(_self, player_controller) {
+    , skin_controller(_self, player_controller, saleslog_controller) {
     }
 
     // player related actions

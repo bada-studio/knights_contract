@@ -11,6 +11,35 @@ protected:
         res.value = target;
         return res;
     }
+
+    void validate_price(asset price, int grade) {
+        assert_true(price.symbol == S(4,EOS) , "only EOS token allowed");
+        assert_true(price.is_valid(), "invalid price");
+        assert_true(price.amount > 0, "must price positive quantity");
+
+        assert_true(price.amount >= get_min_market_price(grade), "too small price");
+        assert_true(price.amount <= kv_max_market_price, "too big price");
+    }
+
+    int get_min_market_price(int grade) {
+        int price = kv_min_market_price;
+        int scaler = kv_min_market_price_scaler;
+        
+        if (grade >= ig_rare) {
+            price *= (scaler & 0xF);
+        } 
+        if (grade >= ig_unique) {
+            price *= ((scaler >> 4) & 0xF);
+        } 
+        if (grade >= ig_legendary) {
+            price *= ((scaler >> 8) & 0xF);
+        } 
+        if (grade >= ig_ancient) {
+            price *= ((scaler >> 12) & 0xF);
+        }
+
+        return price;
+    }    
 };
 
 class drop_control_base : public control_base {

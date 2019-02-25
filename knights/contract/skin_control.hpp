@@ -5,6 +5,7 @@ private:
     account_name self;
 
     player_control &player_controller;
+    saleslog_control &saleslog_controller;
 
 public:
     // constructor
@@ -12,9 +13,11 @@ public:
     /// @brief
     /// Constructor
     skin_control(account_name _self,
-                player_control &_player_controller)
+                player_control &_player_controller,
+                saleslog_control &_saleslog_controller)
             : self(_self)
-            , player_controller(_player_controller) {
+            , player_controller(_player_controller)
+            , saleslog_controller(_saleslog_controller) {
     }
 
     // internal apis
@@ -104,6 +107,7 @@ public:
         auto iter = table.find(from);
         auto pos = iter->get_skin(cid);
         assert_true(pos >= 0, "can not found skin");
+        validate_price(price, ig_ancient);
 
         auto &skin = iter->rows[pos];
         assert_true(skin.state != ss_selling, "already on sale");
@@ -164,7 +168,7 @@ public:
         auto mpos = miter->get_skin_by_cid(cid);
         assert_true(mpos >= 0, "can not found skin");
 
-        mtable.emplace(self, [&](auto &target) {
+        mtable.modify(miter, self, [&](auto &target) {
             target.rows.erase(miter->rows.begin() + mpos);
         });
     }
@@ -256,6 +260,35 @@ public:
                 std::make_tuple(self, mskin.seller, price, message)
             ).send();
         }
+
+        auto dt = time_util::getnow();
+
+        if (mskin.seller != self) {
+            selllog slog;
+            slog.buyer = from;
+            slog.dt = dt;
+            slog.type = ct_skin;
+            slog.pid = mskin.cid;
+            slog.code = mskin.code;
+            slog.dna = 0;
+            slog.level = 0;
+            slog.exp = 0;
+            slog.price = mskin.price;
+            slog.taxrate = tax_rate;
+            saleslog_controller.add_saleslog(slog, mskin.seller);
+        }
+
+        buylog blog;
+        blog.seller = mskin.seller;
+        blog.dt = dt;
+        blog.type = ct_skin;
+        blog.pid = mskin.cid;
+        blog.code = mskin.code;
+        blog.dna = 0;
+        blog.level = 0;
+        blog.exp = 0;
+        blog.price = mskin.price;
+        saleslog_controller.add_buylog(blog, from);
         
         return tax;
     }
