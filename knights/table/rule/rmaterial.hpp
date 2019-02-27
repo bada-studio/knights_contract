@@ -15,6 +15,21 @@ const double drop_rates[drop_rates_length] = {
     0.0000005012146938, // 10
 };
 
+const double drop_rates_raw[drop_rates_length] = {
+    67108864, // 0
+    33554432, // 1
+    16777216, // 2
+    8388608, // 3
+    1048576, // 4
+    524288, // 5
+    262144, // 6
+    16384, // 7
+    8192, // 8
+    1024, // 9
+    64, // 10
+};
+
+
 enum material_type {
     mt_none = 0,
     mt_nature, // 1

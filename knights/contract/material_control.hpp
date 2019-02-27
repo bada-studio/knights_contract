@@ -1,6 +1,6 @@
 #pragma once
 
-class material_control : public control_base {
+class material_control : public drop_control_base {
 private:
     account_name self;
     material_table materials;
@@ -11,7 +11,7 @@ private:
 
 public:
     rule_controller<rmaterial, rmaterial_table> material_rule_controller;
-    
+
 public:
     // constructor
     //-------------------------------------------------------------------------
@@ -257,5 +257,149 @@ public:
         players.modify(player, self, [&](auto& target) {
             target.powder += powder;
         });
+    }
+
+    void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay, bool frompay) {
+        auto pvsi = player_controller.get_playervs(from);
+
+        if (delay && USE_DEFERRED == 1) {
+            require_auth(from);
+            delay = player_controller.set_deferred(pvsi);
+
+            if (do_alchemist(from, grade, mat_ids, delay, pvsi)) {
+                eosio::transaction out{};
+                out.actions.emplace_back(
+                    permission_level{ self, N(active) }, 
+                    self, N(alchemisti), 
+                    std::make_tuple(from, grade, mat_ids, checksum)
+                );
+                out.delay_sec = 1;
+                out.send(player_controller.get_last_trx_hash(), self);
+                return;
+            }
+        } else {
+            if (USE_DEFERRED == 1) {
+                require_auth(self);
+            } else {
+                require_auth(from);
+            }
+
+            do_alchemist(from, grade, mat_ids, false, pvsi);
+        }
+    }
+
+    bool do_alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
+        player_controller.require_action_count(1);
+
+        auto variable = *pvsi;
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+        assert_true(player != players.cend(), "can not found player");
+
+        int min_count = kv_alchemist_count & 0xFF;
+        int max_count = (kv_alchemist_count >> 8) & 0xFF;
+        assert_true(mat_ids.size() >= min_count, "invalid mat count");
+        assert_true(mat_ids.size() <= max_count, "invalid mat count");
+
+        auto iter = materials.find(from);
+        assert_true(iter != materials.cend(), "can not found material");
+
+        auto &materials = iter->rows;
+        double rate = calculate_alchemist_rate(grade, materials, mat_ids);
+        if (only_check) {
+            return only_check;
+        }
+
+        auto rval = player_controller.begin_random(variable);
+        auto success = (rval.range(10000) < rate * 10000);
+        remove_mats(from, mat_ids);
+
+        int code = 1;
+        if (success) {
+            code = get_bottie(*player, grade, rval);
+        } else {
+            code = get_bottie(*player, grade - 1, rval);
+        }
+
+        add_material(from, code);
+        player_controller.end_random(variable, rval);
+
+        variable.clear_deferred_time();
+        player_controller.update_playerv(pvsi, variable);
+        return only_check;
+    }
+
+private:
+    int get_grade_base_rate(int grade) {
+        switch (grade) {
+            case ig_normal: return drop_rates_raw[0];
+            case ig_rare: return drop_rates_raw[4];
+            case ig_unique: return drop_rates_raw[7];
+            case ig_legendary: return drop_rates_raw[9];
+            case ig_ancient: return drop_rates_raw[10];
+        }
+
+        return 0;
+    }
+
+    int get_alchemist_rate(int grade) {
+        int data = kv_alchemist_rate;
+        int shift = 0;
+
+        if (grade == ig_unique) {
+            shift = 8;
+        } else if (grade == ig_legendary) {
+            shift = 16;
+        }
+        
+        return (data >> shift) & 0xFF;
+    }
+
+    int get_field_material_grade(int code) {
+        if (code > 200) {
+            return ig_none;
+        }
+
+        int index = code % 20;
+        if (index <= 4) {
+            return ig_normal;
+        }
+        
+        if (index <= 7) {
+            return ig_rare;
+        }
+        
+        if (index <= 9) {
+            return ig_unique;
+        }
+
+        if (index <= 10) {
+            return ig_legendary;
+        }
+        
+        if (index <= 11) {
+            return ig_ancient;
+        }
+
+        return ig_none;
+    }
+
+    double calculate_alchemist_rate(int grade, const std::vector<matrow> &materials, const std::vector<uint32_t>& mat_ids) {
+        int normal_rate = get_grade_base_rate(ig_normal);
+        int next_rate = normal_rate / get_grade_base_rate(grade);
+        double failure = 1;
+
+        for (int index = 0; index < mat_ids.size(); index++) {
+            int id = mat_ids[index];
+            auto &mat = get_material(materials, id);
+            auto current_grade = get_field_material_grade(mat.code);
+            assert_true((int)current_grade == (int)grade-1, "it has a invalid grade material");
+
+            int rate = drop_rates_raw[(mat.code % 20) - 1];
+            failure *= 1.0 - (rate / (double) next_rate);
+        }
+
+        double rate = (1 - failure) * (get_alchemist_rate(grade) / 100.0);
+        return rate;
     }
 };
