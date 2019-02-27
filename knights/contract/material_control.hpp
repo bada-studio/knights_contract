@@ -394,6 +394,7 @@ private:
             auto &mat = get_material(materials, id);
             auto current_grade = get_field_material_grade(mat.code);
             assert_true((int)current_grade == (int)grade-1, "it has a invalid grade material");
+            assert_true(mat.saleid == 0, "can not use on sale material");
 
             int rate = drop_rates_raw[(mat.code % 20) - 1];
             failure *= 1.0 - (rate / (double) next_rate);

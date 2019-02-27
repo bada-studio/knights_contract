@@ -492,7 +492,7 @@ public:
     void cstage(const std::vector<rstage> &rules, bool truncate) {
         knight_controller.stage_rule_controller.create_rules(rules, truncate);
     }
-
+    */
     /// @abi action
     void cvariable(const std::vector<rvariable> &rules, bool truncate) {
         variable_controller.rvariable_controller.create_rules(rules, truncate);
@@ -503,6 +503,7 @@ public:
         item_controller.item_rule_controller.create_rules(rules, truncate);
     }
 
+    /*
     /// @abi action
     void citemlv(const std::vector<ritemlv> &rules, bool truncate) {
         item_controller.itemlv_rule_controller.create_rules(rules, truncate);
@@ -517,7 +518,8 @@ public:
     void cmaterial(const std::vector<rmaterial> &rules, bool truncate) {
         material_controller.material_rule_controller.create_rules(rules, truncate);
     }
-
+    */
+    
     /// @abi action
     void cpet(const std::vector<rpet> &rules, bool truncate) {
         pet_controller.rpet_controller.create_rules(rules, truncate);
@@ -533,6 +535,7 @@ public:
         pet_controller.rpetexp_controller.create_rules(rules, truncate);
     }
 
+    /*
     /// @abi action
     void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
         powder_controller.mp_goods_rule_controller.create_rules(rules, truncate);
@@ -750,6 +753,6 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) 
 // (removecquest) (removedquest) (setpause) (getcandy) (addcandy) 
