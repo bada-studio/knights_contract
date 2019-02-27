@@ -300,6 +300,8 @@ public:
         int max_count = (kv_alchemist_count >> 8) & 0xFF;
         assert_true(mat_ids.size() >= min_count, "invalid mat count");
         assert_true(mat_ids.size() <= max_count, "invalid mat count");
+        assert_true(grade >= ig_rare, "invalid grade");
+        assert_true(grade <= ig_legendary, "invalid grade");
 
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "can not found material");
