@@ -357,35 +357,6 @@ private:
         return (data >> shift) & 0xFF;
     }
 
-    int get_field_material_grade(int code) {
-        if (code > 200) {
-            return ig_none;
-        }
-
-        int index = code % 20;
-        if (index <= 4) {
-            return ig_normal;
-        }
-        
-        if (index <= 7) {
-            return ig_rare;
-        }
-        
-        if (index <= 9) {
-            return ig_unique;
-        }
-
-        if (index <= 10) {
-            return ig_legendary;
-        }
-        
-        if (index <= 11) {
-            return ig_ancient;
-        }
-
-        return ig_none;
-    }
-
     double calculate_alchemist_rate(int grade, const std::vector<matrow> &materials, const std::vector<uint32_t>& mat_ids) {
         int normal_rate = get_grade_base_rate(ig_normal);
         int next_rate = normal_rate / get_grade_base_rate(grade);

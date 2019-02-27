@@ -123,6 +123,30 @@ public:
         }
     }
 
+    int get_pet_grade(int code) {
+        if (code <= 0) {
+            return ig_none;
+        }
+
+        if (code <= 8) {
+            return ig_normal;
+        }
+        if (code <= 16) {
+            return ig_rare;
+        }
+        if (code <= 20) {
+            return ig_unique;
+        }
+        if (code <= 24) {
+            return ig_legendary;
+        }
+        if (code <= 26) {
+            return ig_ancient;
+        }
+        
+        return ig_none;
+    }
+
     // actions
     //-------------------------------------------------------------------------
     /// @brief

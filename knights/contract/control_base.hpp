@@ -40,6 +40,35 @@ protected:
 
         return price;
     }    
+
+    int get_field_material_grade(int code) {
+        if (code > 200) {
+            return ig_none;
+        }
+
+        int index = code % 20;
+        if (index <= 4) {
+            return ig_normal;
+        }
+        
+        if (index <= 7) {
+            return ig_rare;
+        }
+        
+        if (index <= 9) {
+            return ig_unique;
+        }
+
+        if (index <= 10) {
+            return ig_legendary;
+        }
+        
+        if (index <= 11) {
+            return ig_ancient;
+        }
+
+        return ig_none;
+    }
 };
 
 class drop_control_base : public control_base {

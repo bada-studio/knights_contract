@@ -680,11 +680,14 @@ private:
             powder = 1;
         }
 
+        auto &pets = pet_controller.get_pets(from);
         auto rval = player_controller.begin_random(variable);
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
+            int pet_code = get_pet_for_knight(pets, index);
+
             if (kill_counts[index] > 0) {
-                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval, gdr);
+                botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval, pet_code, gdr);
             }
         }
 
@@ -743,6 +746,16 @@ private:
         variable.rebrith_factor = (int)(rebrith_factor * 100);
     }
 
+    int get_pet_for_knight(const std::vector<petrow>& rows, int knt) {
+        for (int index = 0; index < rows.size(); index++) {
+            if (rows[index].knight == knt) {
+                return rows[index].code;
+            }
+        }
+
+        return 0;
+    }
+
     void submit_floor(playerv2 &variable, int old_max_floor, int floor) {
         int new_count = 0;
         int new_floor = 0;
@@ -776,9 +789,10 @@ private:
         }
     }
 
-    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, double gdr) {
+    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, int pet_code, double gdr) {
         auto &mat_rules = material_controller.material_rule_controller;
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
+        int bonus_grade = pet_controller.get_pet_grade(pet_code);
 
         // add floor bonus drop rate
         double floor_drop_bonus = kv_floor_bonus_1000 * (floor / 1000.0);
@@ -804,7 +818,15 @@ private:
 
         for (int index = start_index; index >= 1; --index) {
             double dr = drop_rates[index] * (drop_rate / 100.0) * gdr;
+
+            // same pet bonus
+            int current_grade = get_field_material_grade(index + 1);
+            if (bonus_grade == current_grade) {
+                dr *= (kv_pet_attach_bonus / 100.0);
+            }
+
             double mdr = 1.0 - pow(1.0 - dr, kill_count);
+
             if (rand_value < int(mdr * drscale)) {
                 best = index;
                 break;

@@ -148,9 +148,9 @@ public:
         uint32_t last_sell_time = variable.last_sell_time;
         double sell_factor = variable.sell_factor / 100.0;
         sell_factor = std::max(1.0, sell_factor);
-        sell_factor = std::min(18.0, sell_factor);
+        sell_factor = std::min(6.0, sell_factor);
 
-        int threshold = 3 * time_util::min;
+        int threshold = time_util::min;
         auto past = current - last_sell_time;
         
         if (past < threshold) {
@@ -162,7 +162,7 @@ public:
         }
 
         sell_factor = std::max(1.0, sell_factor);
-        sell_factor = std::min(18.0, sell_factor);
+        sell_factor = std::min(6.0, sell_factor);
         variable.sell_factor = (int)(sell_factor * 100);
         variable.last_sell_time = current;
         player_controller.update_playerv(pvsi, variable);
