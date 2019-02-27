@@ -515,10 +515,10 @@ private:
         //@ warning for the performance issue, drop rates are hard coded here,
         // be careful for the data sync issue with pet rule.
         const uint32_t sum_low = 233600;
-        const uint32_t sum_high = 28960;
+        const uint32_t sum_high = 28968;
         const uint32_t rare_start = 8;
         const uint32_t legend_start = 20;
-        const uint32_t pet_total_count = 24;
+        const uint32_t pet_total_count = 26;
         const uint32_t pet_drop_rate[pet_total_count] = {
             25600,
             25600,
@@ -544,6 +544,8 @@ private:
             40,
             40,
             40,
+            4,
+            4,
         };
 
         int sum = 0;
@@ -603,7 +605,7 @@ private:
     }
 
     int32_t get_pet_exp_duration(int grade) {
-        return ((kv_pet_exp_duration >> (grade - 1) * 4) & 0xF) * 4 * time_util::hour;
+        return ((kv_pet_exp_duration >> (grade - 1) * 4) & 0xF) * 6 * time_util::hour;
     }
 
     int32_t get_pex_slots(int level) {

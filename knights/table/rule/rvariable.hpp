@@ -26,7 +26,7 @@ const int kv_init_powder = 100;
 const int kv_min_rebirth = 120;
 const int kv_floor_bonus_1000 = 20;
 const int kv_max_sales_log_size = 5;
-const int kv_pet_exp_duration = 0x654322;
+const int kv_pet_exp_duration = 0x85432;
 const int kv_dungeon_free_ticket = 0x1808;
 const int kv_dungeon_max_ticket = 8;
 const int kv_required_floor_for_ancient = 500;   // @deprecated
@@ -34,7 +34,7 @@ const int kv_referral_bonus = 1000;
 const int kv_referral_max = 100;
 const int kv_bonus_sell1_floor =  700;
 const int kv_bonus_sell2_floor = 1500;
-const int kv_pet_max_up = 0x24678;
+const int kv_pet_max_up = 0x35789;
 const int kv_pet_exp_require_level = 0xa731;
 
 const int32_t checksum_mask = 2042423;
