@@ -188,23 +188,8 @@ public:
         auto &mskin = miter->rows[mpos];
         assert_true(ad.quantity == mskin.price, "price not matching");
 
-        // move skin
-        skin_table table(self, self);
-        auto iter = table.find(mskin.seller);
-        assert_true(iter != table.cend(), "can not found skin");
-
-        auto pos = iter->get_skin(mskin.cid);
-        assert_true(pos >= 0, "can not found skin");
-
-        auto &skin = iter->rows[pos];
-        assert_true(skin.state == ss_selling, "not on sale");
-
-        // remove from seller
-        table.modify(iter, self, [&](auto &target) {
-            target.rows.erase(target.rows.begin() + pos);
-        });
-
         // add to buyer
+        skin_table table(self, self);
         auto iter2 = table.find(from);
         if (iter2 != table.cend()) {
             int pos2 = iter2->get_skin_by_code(mskin.code);
@@ -228,9 +213,19 @@ public:
             });
         }
 
-        // remove from market
-        mtable.modify(miter, self, [&](auto &target) {
-            target.rows.erase(miter->rows.begin() + mpos);
+        // move skin
+        auto iter = table.find(mskin.seller);
+        assert_true(iter != table.cend(), "can not found skin");
+
+        auto pos = iter->get_skin(mskin.cid);
+        assert_true(pos >= 0, "can not found skin");
+
+        auto &skin = iter->rows[pos];
+        assert_true(skin.state == ss_selling, "not on sale");
+
+        // remove from seller
+        table.modify(iter, self, [&](auto &target) {
+            target.rows.erase(target.rows.begin() + pos);
         });
 
         // calcuate tax
@@ -240,7 +235,7 @@ public:
         }
 
         asset tax(0, S(4, EOS));
-        asset price = mskin.price;
+        asset price = ad.quantity;
         if (tax_rate > 0) {
             tax = price * tax_rate / 100;
             if (tax.amount == 0) {
@@ -261,8 +256,12 @@ public:
             ).send();
         }
 
-        auto dt = time_util::getnow();
+        // remove from market
+        mtable.modify(miter, self, [&](auto &target) {
+            target.rows.erase(miter->rows.begin() + mpos);
+        });
 
+        auto dt = time_util::getnow();
         if (mskin.seller != self) {
             selllog slog;
             slog.buyer = from;
