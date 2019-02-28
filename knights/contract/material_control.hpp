@@ -360,16 +360,16 @@ private:
     double calculate_alchemist_rate(int grade, const std::vector<matrow> &materials, const std::vector<uint32_t>& mat_ids) {
         int normal_rate = get_grade_base_rate(ig_normal);
         int next_rate = normal_rate / get_grade_base_rate(grade);
-        double failure = 1;
+        double failure = 1.0;
 
         for (int index = 0; index < mat_ids.size(); index++) {
-            int id = mat_ids[index];
-            auto &mat = get_material(materials, id);
+            auto &mat = get_material(materials, mat_ids[index]);
             auto current_grade = get_field_material_grade(mat.code);
             assert_true((int)current_grade == (int)grade-1, "it has a invalid grade material");
             assert_true(mat.saleid == 0, "can not use on sale material");
+            assert_true(mat.code > 0, "invalid material");
 
-            int rate = drop_rates_raw[(mat.code % 20) - 1];
+            int rate = normal_rate / drop_rates_raw[(mat.code % 20) - 1];
             failure *= 1.0 - (rate / (double) next_rate);
         }
 
