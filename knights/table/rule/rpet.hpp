@@ -55,3 +55,44 @@ struct rpet {
 };
 
 typedef eosio::multi_index< N(rpet), rpet> rpet_table;
+
+
+struct rpet2 {
+    uint64_t code = 0;
+    uint8_t grade = 0;
+    uint8_t stat1_type = 0;
+    uint8_t stat2_type = 0;
+    uint8_t stat3_type = 0;
+    uint16_t stat1 = 0;
+    uint16_t stat2 = 0;
+    uint16_t stat3 = 0;
+    uint16_t stat1_up_per_level = 0;
+    uint16_t stat2_up_per_level = 0;
+    uint16_t stat3_up_per_level = 0;
+    uint32_t relative_drop_rate = 0;
+
+    rpet2() {
+    }
+
+    uint64_t primary_key() const {
+        return code;
+    }
+
+    EOSLIB_SERIALIZE(
+            rpet2,
+            (code)
+            (grade)
+            (stat1_type)
+            (stat2_type)
+            (stat3_type)
+            (stat1)
+            (stat2)
+            (stat3)
+            (stat1_up_per_level)
+            (stat2_up_per_level)
+            (stat3_up_per_level)
+            (relative_drop_rate)
+    )
+};
+
+typedef eosio::multi_index< N(rpet2), rpet2> rpet2_table;

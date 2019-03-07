@@ -256,11 +256,6 @@ public:
             ).send();
         }
 
-        // remove from market
-        mtable.modify(miter, self, [&](auto &target) {
-            target.rows.erase(miter->rows.begin() + mpos);
-        });
-
         auto dt = time_util::getnow();
         if (mskin.seller != self) {
             selllog slog;
@@ -288,7 +283,16 @@ public:
         blog.exp = 0;
         blog.price = mskin.price;
         saleslog_controller.add_buylog(blog, from);
-        
+
+        // remove from market
+        mtable.modify(miter, self, [&](auto &target) {
+            target.rows.erase(miter->rows.begin() + mpos);
+        });
+
+        if (mskin.seller == self) {
+            return ad.quantity;
+        }
+
         return tax;
     }
 

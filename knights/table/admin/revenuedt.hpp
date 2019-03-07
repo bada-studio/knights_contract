@@ -18,7 +18,7 @@ struct revenuedt {
     asset mp;
     asset mat_iventory_up;
     asset item_iventory_up; 
-    asset skin;
+    asset coo_mat;
     asset system;
 
     revenuedt()
@@ -28,7 +28,7 @@ struct revenuedt {
         , mp(0, S(4, EOS))
         , mat_iventory_up(0, S(4, EOS))
         , item_iventory_up(0, S(4, EOS))
-        , skin(0, S(4, EOS))
+        , coo_mat(0, S(4, EOS))
         , system(0, S(4, EOS)) {
     }
 
@@ -45,7 +45,7 @@ struct revenuedt {
             (mp)
             (mat_iventory_up)
             (item_iventory_up)
-            (skin)
+            (coo_mat)
             (system)
     )
 };

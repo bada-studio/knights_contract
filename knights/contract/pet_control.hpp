@@ -13,6 +13,7 @@ private:
 
 public:
     rule_controller<rpet, rpet_table> rpet_controller;
+    rule_controller<rpet2, rpet2_table> rpet2_controller;
     rule_controller<rpetlv, rpetlv_table> rpetlv_controller;
     rule_controller<rpetexp, rpetexp_table> rpetexp_controller;
 
@@ -28,6 +29,7 @@ public:
             : self(_self)
             , pets(_self, _self)
             , rpet_controller(_self, N(pet))
+            , rpet2_controller(_self, N(pet2))
             , rpetlv_controller(_self, N(petlv))
             , rpetexp_controller(_self, N(petexp))
             , player_controller(_player_controller)

@@ -1,11 +1,11 @@
-//@abi table candybox i64
-struct candybox {
+//@abi table novaevt i64
+struct novaevt {
     uint64_t id = 0;
     uint32_t total = 0;
     uint32_t remain = 0;
     uint32_t amount = 0;
 
-    candybox() {
+    novaevt() {
     }
 
     uint64_t primary_key() const {
@@ -13,7 +13,7 @@ struct candybox {
     }
 
     EOSLIB_SERIALIZE(
-            candybox,
+            novaevt,
             (id)
             (total)
             (remain)
@@ -21,4 +21,4 @@ struct candybox {
     )
 };
 
-typedef eosio::multi_index< N(candybox), candybox> candybox_table;
+typedef eosio::multi_index< N(novaevt), novaevt> novaevt_table;

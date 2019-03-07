@@ -67,7 +67,7 @@ public:
                 case rv_mat_iventory_up: target.mat_iventory_up += revenue; break;
                 case rv_item_iventory_up: target.item_iventory_up += revenue; break;
                 case rv_system: target.system += revenue; break;
-                case rv_skin: target.skin += revenue; break;
+                case rv_skin: target.coo_mat += revenue; break;
             }
         });
     }
@@ -105,6 +105,17 @@ public:
     bool is_stock_holder(name owner) {
         auto sh = stockholders.find(owner);
         return sh != stockholders.cend();
+    }
+
+    void autodividend() {
+        if (adminvalues.cbegin() == adminvalues.cend()) {
+            return;
+        }
+
+        if (adminvalues.cbegin()->revenue.amount > 1100'0000) {
+            asset amount(100'0000, S(4, EOS));
+            dividend(amount);
+        }
     }
 
     // actions
@@ -178,7 +189,6 @@ public:
     /// @param amount
     /// Amount of token to withdraw
     void dividend(asset amount) {
-        require_auth(self);
         assert_true(adminvalues.cbegin() != adminvalues.cend(), "no revenue yet");
 
         std::vector<dividendto> logs;
@@ -204,6 +214,16 @@ public:
             target.at = current;
             target.amount = total;
             target.to.insert(target.to.end(), logs.begin(), logs.end());
+        });
+    }
+
+    void add_loss(const asset& revenue, const asset& loss) {
+        require_auth(self);
+        assert_true(adminvalues.cbegin() != adminvalues.cend(), "there is no user admin value");
+        adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
+            target.revenue += revenue;
+            target.revenue -= loss;
+            target.loss += loss;
         });
     }
 };

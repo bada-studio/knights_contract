@@ -67,7 +67,7 @@ using eosio::name;
 #include "table/admin/dquest.hpp"
 #include "table/admin/tklog.hpp"
 #include "table/admin/globalvar.hpp"
-#include "table/admin/candybox.hpp"
+#include "table/admin/novaevt.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -85,7 +85,7 @@ using eosio::name;
 #include "contract/dquest_control.hpp"
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
-//#include "contract/candy_control.hpp"
+#include "contract/novaevt_control.hpp"
 #include "contract/skin_control.hpp"
 
 class knights : public eosio::contract, public control_base {
@@ -104,7 +104,7 @@ private:
     cquest_control cquest_controller;
     dquest_control dquest_controller;
     dungeon_control dungeon_controller;
-    //candy_control candy_controller; 
+    novaevt_control novaevt_controller; 
     skin_control skin_controller;
 
     const char* ta_knt = "knt";
@@ -134,7 +134,7 @@ public:
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
     , dquest_controller(_self, item_controller, player_controller, admin_controller)
     , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
-    //, candy_controller(_self, player_controller)
+    , novaevt_controller(_self, player_controller)
     , skin_controller(_self, player_controller, saleslog_controller) {
     }
 
@@ -526,6 +526,11 @@ public:
     }
 
     /// @abi action
+    void cpet2(const std::vector<rpet2> &rules, bool truncate) {
+        pet_controller.rpet2_controller.create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void cpetlv(const std::vector<rpetlv> &rules, bool truncate) {
         pet_controller.rpetlv_controller.create_rules(rules, truncate);
     }
@@ -624,19 +629,25 @@ public:
 
     /// @abi action
     void dividend(asset amount) {
+        require_auth(_self);
         admin_controller.dividend(amount);
+    }
+
+    /// @abi action
+    void addloss(asset revenue, asset loss) {
+        admin_controller.add_loss(revenue, loss);
     }
 
     // etc actions
     //-------------------------------------------------------------------------
-    // void getcandy(name from, std::string memo) {
-    //     candy_controller.getcandy(from, memo);
-    // }
+    void getnova(name from, std::string memo) {
+        novaevt_controller.getnova(from, memo);
+    }
 
-    // void addcandy(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
-    //    require_auth(_self);
-    //    candy_controller.addcandy(id, total, remain, amount);
-    //}
+    void addnova(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
+        require_auth(_self);
+        novaevt_controller.addnova(id, total, remain, amount);
+    }
 
     // eosio.token recipient
     // memo description spec
@@ -687,6 +698,8 @@ public:
             } else {
                 assert_true(false, "invalid transfer");
             }
+
+            admin_controller.autodividend();
         });
     }
 
@@ -753,6 +766,6 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpet2) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (addloss) (getnova) (addnova) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) 
-// (removecquest) (removedquest) (setpause) (getcandy) (addcandy) 
+// (removecquest) (removedquest) (setpause) 

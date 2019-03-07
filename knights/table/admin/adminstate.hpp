@@ -7,8 +7,8 @@ struct adminstate {
     asset expenses;
     asset investment;
     asset tradingvol;
-    asset va1;
-    asset va2;
+    asset loss;
+    asset va2; 
     name coo;
     uint32_t player_count = 0;
     uint64_t v1 = 0;
@@ -23,7 +23,7 @@ struct adminstate {
         , dividend(0, S(4, EOS))
         , investment(0, S(4, EOS))
         , tradingvol(0, S(4, EOS)) 
-        , va1(0, S(4, EOS)) 
+        , loss(0, S(4, EOS)) 
         , va2(0, S(4, EOS)) {
     }
 
@@ -40,7 +40,7 @@ struct adminstate {
             (expenses)
             (investment)
             (tradingvol)
-            (va1)
+            (loss)
             (va2)
             (coo)
             (player_count)
