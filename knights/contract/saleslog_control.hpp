@@ -10,6 +10,15 @@ public:
         : self(_self)
         , revenues(_self, _self) {
     }
+    
+    void remove_selling(name from, asset amount) {
+        auto iter = revenues.find(from);
+        assert_true(iter != revenues.cend(), "Can not found");
+
+        revenues.modify(iter, self, [&](auto& target) {
+            target.selling -= amount;
+        });
+    }
 
     void add_saleslog(selllog log, name from) {
         auto iter = revenues.find(from);
