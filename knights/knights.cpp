@@ -628,12 +628,6 @@ public:
         admin_controller.dividend(amount);
     }
 
-    /// @abi action
-    void rmrevenue(name from, asset amount) {
-        require_auth(_self);
-        saleslog_controller.remove_selling(from, amount);
-    }
-
     // etc actions
     //-------------------------------------------------------------------------
     void getnova(name from, std::string memo) {
@@ -762,6 +756,6 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (rmrevenue) (getnova) (addnova) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (getnova) (addnova) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) 
 // (removecquest) (removedquest) (setpause) 
