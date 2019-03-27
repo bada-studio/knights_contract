@@ -278,6 +278,8 @@ public:
     }
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay, bool frompay) {
+        player_controller.check_blacklist(from);
+
         auto pvsi = player_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {

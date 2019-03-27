@@ -38,6 +38,7 @@ using eosio::name;
 #include "table/rule/rmobskill.hpp"
 #include "table/user/player.hpp"
 #include "table/user/playerv.hpp"
+#include "table/user/comment.hpp"
 #include "table/user/knight.hpp"
 #include "table/user/material.hpp"
 #include "table/user/mat4sale.hpp"
@@ -167,6 +168,26 @@ public:
     /// @abi action
     void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
         player_controller.addgift(no, type, amount, to);
+    }
+
+    /// @abi action
+    void addcomment(name from, const std::string& message, const std::string& link) {
+        player_controller.addcomment(from, message, link);
+    }
+
+    /// @abi action
+    void reportofs(name from, name to) {
+        player_controller.reportofs(from, to);
+    }
+
+    /// @abi action
+    void addblackcmt(name to) {
+        player_controller.addblackcmt(to);
+    }
+
+    /// @abi action
+    void removedgn(name to) {
+        dquest_controller.removeplayer(to);
     }
 
     // cquest related actions
@@ -756,6 +777,6 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (getnova) (addnova) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (getnova) (addnova) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) 
 // (removecquest) (removedquest) (setpause) 

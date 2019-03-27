@@ -587,4 +587,93 @@ public:
             target.mat_ivn_up = ts;
         });
     }
+
+    void addblackcmt(name to) {
+        require_coo_auth();
+
+        comment_table table(self, self);
+        auto iter = table.find(to);
+        assert_true(iter != table.cend(), "can not found comment");
+
+        table.modify(iter, self, [&](auto &target) {
+            target.black = true;
+        });
+
+        rcomment_table rtable(self, self);
+        auto riter = rtable.find(to);
+        if (riter == rtable.cend()) {
+            rtable.emplace(self, [&](auto &target) {
+                target.owner = to;
+                target.report = 1;
+                target.black = true;
+            });
+        } else {
+            rtable.modify(riter, self, [&](auto &target) {
+                target.black = true;
+            });
+        }
+    }
+
+    void addcomment(name from, const std::string& message, const std::string& link) {
+        require_auth(from);
+        assert_true(message.size() <= 100, "exceed maximum comment length");
+        assert_true(link.size() <= 64, "exceed maximum link length");
+
+        comment_table table(self, self);
+        auto iter = table.find(from);
+        if (iter == table.cend()) {
+            table.emplace(self, [&](auto &target) {
+                target.owner = from;
+                target.message = message;
+                target.revision = 1;
+                target.link = link;
+            });
+        } else {
+            auto player = get_player(from);
+            auto black = iter->black;
+            if (black) {
+                decrease_powder(player, kv_comment_cost);
+                rcomment_table rtable(self, self);
+                auto riter = rtable.find(from);
+                if (riter != rtable.cend()) {
+                    rtable.erase(riter);
+                }
+            }
+
+            table.modify(iter, self, [&](auto &target) {
+                target.message = message;
+                target.link = link;
+                target.revision++;
+                if (black) {
+                    target.report = 0;
+                    target.black = false;
+                }
+            });
+        }
+    }
+
+    void reportofs(name from, name to) {
+        require_auth(from);
+
+        comment_table table(self, self);
+        auto iter = table.find(to);
+        assert_true(iter != table.cend(), "can not found comment");
+        table.modify(iter, self, [&](auto &target) {
+            target.report++;
+        });
+
+        rcomment_table rtable(self, self);
+        auto riter = rtable.find(to);
+        if (riter == rtable.cend()) {
+            rtable.emplace(self, [&](auto &target) {
+                target.owner = from;
+                target.report = 1;
+            });
+        } else {
+            rtable.modify(riter, self, [&](auto &target) {
+                target.owner = from;
+                target.report++;
+            });
+        }
+    }
 };

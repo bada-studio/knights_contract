@@ -34,7 +34,7 @@ struct dgticket {
     uint32_t v3 = 0;
 
     uint32_t get_total_count() const {
-        return count + free_at;
+        return count + free_count;
     }
 
     void reduce_count(uint32_t amount) {
