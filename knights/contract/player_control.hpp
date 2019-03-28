@@ -619,6 +619,9 @@ public:
         assert_true(message.size() <= 100, "exceed maximum comment length");
         assert_true(link.size() <= 64, "exceed maximum link length");
 
+        auto player = get_player(from);
+        assert_true(!is_empty_player(player), "sign up first!");
+
         comment_table table(self, self);
         auto iter = table.find(from);
         if (iter == table.cend()) {
@@ -629,7 +632,6 @@ public:
                 target.link = link;
             });
         } else {
-            auto player = get_player(from);
             auto black = iter->black;
             if (black) {
                 decrease_powder(player, kv_comment_cost);
