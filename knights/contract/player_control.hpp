@@ -666,12 +666,11 @@ public:
         auto riter = rtable.find(to);
         if (riter == rtable.cend()) {
             rtable.emplace(self, [&](auto &target) {
-                target.owner = from;
+                target.owner = to;
                 target.report = 1;
             });
         } else {
             rtable.modify(riter, self, [&](auto &target) {
-                target.owner = from;
                 target.report++;
             });
         }

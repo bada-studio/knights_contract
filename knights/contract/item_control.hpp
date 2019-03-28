@@ -351,6 +351,8 @@ public:
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
     void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay, bool frompay) {
+        assert_true(mat_ids.size() > 0, "needs material for the crafting!");
+
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");

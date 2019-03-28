@@ -67,9 +67,10 @@ struct ritem {
     uint8_t mat4_count;
     uint32_t rarity;
     uint8_t setid;
+    uint8_t state;
+    uint8_t sponsor;
     uint8_t v1;
-    uint16_t v2;
-    uint32_t v3;
+    uint32_t v2;
 
     ritem() {
     }
@@ -107,9 +108,10 @@ struct ritem {
             (mat4_count)
             (rarity)
             (setid)
+            (state)
+            (sponsor)
             (v1)
             (v2)
-            (v3)
     )
 };
 
