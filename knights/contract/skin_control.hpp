@@ -256,7 +256,7 @@ public:
             ).send();
         }
 
-        auto dt = time_util::getnow();
+        auto dt = time_util::now_shifted();
         if (mskin.seller != self) {
             selllog slog;
             slog.buyer = from;

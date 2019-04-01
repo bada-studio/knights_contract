@@ -49,7 +49,7 @@ public:
 
         buylog blog;
         blog.seller = seller;
-        blog.dt = time_util::getnow();
+        blog.dt = time_util::now_shifted();
         blog.type = ct_mp;
         blog.pid = rule->pid;
         blog.code = 0;

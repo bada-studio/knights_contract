@@ -105,7 +105,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        auto time_now = time_util::getnow();
+        auto time_now = time_util::now_shifted();
 
         // get variable
         auto free_ticket_duration = kv_dungeon_free_ticket >> 8;
@@ -153,7 +153,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        auto time_now = time_util::getnow();
+        auto time_now = time_util::now_shifted();
 
         // required floor check
         auto &rule_table = dungeon_rule_controller.get_table();
@@ -246,7 +246,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        auto time_now = time_util::getnow();
+        auto time_now = time_util::now_shifted();
 
         // get dungeon table
         dungeons_table table(self, self);
@@ -314,7 +314,7 @@ public:
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        auto time_now = time_util::getnow();
+        auto time_now = time_util::now_shifted();
 
         // check inventory size;
         auto &mats = material_controller.get_materials(from);

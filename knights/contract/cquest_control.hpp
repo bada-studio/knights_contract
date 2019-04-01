@@ -37,7 +37,7 @@ public:
 
             // check last one is still opened
             if (table.cbegin() != table.cend()) {
-                auto now = time_util::getnow();
+                auto now = time_util::now_shifted();
                 auto last = --table.cend();
                 assert_true(last->get_end() < now, "there is already a cquest");
             }
@@ -123,7 +123,7 @@ public:
         assert_true(table.cbegin() != table.cend(), "no cquest exist");
         auto cquest = --table.cend();
 
-        auto now = time_util::getnow();
+        auto now = time_util::now_shifted();
         assert_true(cquest->id == cquest_id, "incorrect cquest id");
         assert_true(cquest->is_cquest_period(now), "it is not in the quest period");
         assert_true(no >= 0 && no < cquest->subquests.size(), "incorrect no");
@@ -199,7 +199,7 @@ public:
         assert_true(cquest != table.cend(), "no cquest exist");
 
         // finish check
-        auto now = time_util::getnow();
+        auto now = time_util::now_shifted();
         assert_true(cquest->get_end() < now, "cquest is still doing");
 
         // get a subquest

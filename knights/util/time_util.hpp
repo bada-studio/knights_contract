@@ -8,8 +8,12 @@ public:
     static uint32_t min;
 
 public:
-    static uint32_t getnow() {
+    static uint32_t now_shifted() {
         return publication_time() / 1'000'000 - origin;
+    }
+
+    static uint64_t now() {
+        return publication_time() / 1'000'000;
     }
 };
 

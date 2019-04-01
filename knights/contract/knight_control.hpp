@@ -210,7 +210,7 @@ public:
 
         buylog blog;
         blog.seller = seller;
-        blog.dt = time_util::getnow();
+        blog.dt = time_util::now_shifted();
         blog.type = ct_knight;
         blog.pid = 0;
         blog.code = type;
@@ -224,7 +224,7 @@ public:
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
-        time current = time_util::getnow();
+        time current = time_util::now_shifted();
         players.modify(player, self, [&](auto& target) {
             target.last_rebirth = current;
         });
@@ -579,7 +579,7 @@ private:
         auto res_new = std::min((int)(base_floor), floor) / (base_floor * 0.5);
 
         uint32_t base_time = 48892800;
-        uint32_t now = time_util::getnow();
+        uint32_t now = time_util::now_shifted();
         if (now < base_time) {
             return res_old;
         }
@@ -615,7 +615,7 @@ private:
         auto stagerule = stage_rule_controller.get_table().find(player->current_stage);
         assert_true(stagerule != stage_rule_controller.get_table().cend(), "no stage rule");
 
-        time current = time_util::getnow();
+        time current = time_util::now_shifted();
         int elapsed_sec = (int)(current - player->last_rebirth);
         
         set_rebirth_factor(player, variable, rows);
@@ -712,7 +712,7 @@ private:
     }
 
     void set_rebirth_factor(player_table::const_iterator player, playerv2 &variable, const std::vector<knightrow> &knights) {
-        time current = time_util::getnow();
+        time current = time_util::now_shifted();
         double rebrith_factor = variable.rebrith_factor / 100.0;
         rebrith_factor = std::max(1.0, rebrith_factor);
         rebrith_factor = std::min(15.0, rebrith_factor);

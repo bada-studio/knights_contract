@@ -236,7 +236,7 @@ public:
     
     void test_checksum(name from, uint32_t block, uint32_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
-        int32_t num = time_util::getnow();
+        int32_t num = time_util::now_shifted();
 
         int32_t v0 = block ^ get_checksum_key(from);
         int32_t v1 = (v0 % k);
@@ -304,7 +304,7 @@ public:
 
     bool set_deferred(playerv2_table::const_iterator iter) {
         auto deferred_time = iter->next_deferred_time;
-        auto next_time = time_util::getnow() + 5;
+        auto next_time = time_util::now_shifted() + 5;
 
         // 2nd migration
         if (iter->migrated != 2) {
@@ -321,7 +321,7 @@ public:
         }
 
         if (deferred_time != 0) {
-            assert_true(deferred_time <= time_util::getnow(), "duplicated transaction");
+            assert_true(deferred_time <= time_util::now_shifted(), "duplicated transaction");
             return false;
         } 
 
@@ -377,7 +377,7 @@ public:
         double drop_rate = 1.0 / pow(2.0, length - 1.0);
 
         uint32_t base_time = 48892800;
-        uint32_t now = time_util::getnow();
+        uint32_t now = time_util::now_shifted();
         if (now < base_time) {
             return 1.0;
         }
@@ -486,7 +486,7 @@ public:
     void getgift(name from, int16_t no) {
         require_auth(from);
 
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         gift_table gifts(self, self);
         assert_true(gifts.cbegin() != gifts.cend(), "invalid gift");
         assert_true(gifts.cbegin()->no == no, "invalid gift");
@@ -538,7 +538,7 @@ public:
 
         buylog blog;
         blog.seller = seller;
-        blog.dt = time_util::getnow();
+        blog.dt = time_util::now_shifted();
         blog.type = ct_item_iventory_up;
         blog.pid = ts;
         blog.code = 0;
@@ -572,7 +572,7 @@ public:
 
         buylog blog;
         blog.seller = seller;
-        blog.dt = time_util::getnow();
+        blog.dt = time_util::now_shifted();
         blog.type = ct_mat_iventory_up;
         blog.pid = ts;
         blog.code = 0;

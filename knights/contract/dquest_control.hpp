@@ -29,7 +29,7 @@ public:
         }
 
         auto last = --table.cend();
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         if(current < last->start || last->get_end() < current) {
             return;
         }
@@ -123,7 +123,7 @@ public:
         }
 
         auto last = --table.cend();
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         if(current < last->start || last->get_end() < current) {
             return;
         }
@@ -159,7 +159,7 @@ public:
 
             // check last one is still opened
             if (table.cbegin() != table.cend()) {
-                auto now = time_util::getnow();
+                auto now = time_util::now_shifted();
                 auto last = --table.cend();
                 assert_true(last->get_end() < now, "there is already a dquest");
             }
@@ -256,7 +256,7 @@ public:
         assert_true(dquest != table.cend(), "no dquest exist");
 
         // finish check
-        auto now = time_util::getnow();
+        auto now = time_util::now_shifted();
         assert_true(dquest->get_end() < now, "dquest is still doing");
 
         // get a subquest

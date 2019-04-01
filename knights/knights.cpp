@@ -68,7 +68,8 @@ using eosio::name;
 #include "table/admin/dquest.hpp"
 #include "table/admin/tklog.hpp"
 #include "table/admin/globalvar.hpp"
-#include "table/admin/novaevt.hpp"
+//#include "table/admin/novaevt.hpp"
+#include "table/admin/itemevt.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -86,7 +87,8 @@ using eosio::name;
 #include "contract/dquest_control.hpp"
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
-#include "contract/novaevt_control.hpp"
+//#include "contract/novaevt_control.hpp"
+#include "contract/itemevt_control.hpp"
 #include "contract/skin_control.hpp"
 
 class knights : public eosio::contract, public control_base {
@@ -105,7 +107,7 @@ private:
     cquest_control cquest_controller;
     dquest_control dquest_controller;
     dungeon_control dungeon_controller;
-    novaevt_control novaevt_controller; 
+    itemevt_control itemevt_controller; 
     skin_control skin_controller;
 
     const char* ta_knt = "knt";
@@ -135,7 +137,7 @@ public:
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
     , dquest_controller(_self, item_controller, player_controller, admin_controller)
     , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
-    , novaevt_controller(_self, player_controller)
+    , itemevt_controller(_self, player_controller)
     , skin_controller(_self, player_controller, saleslog_controller) {
     }
 
@@ -651,13 +653,13 @@ public:
 
     // etc actions
     //-------------------------------------------------------------------------
-    void getnova(name from, std::string memo) {
-        novaevt_controller.getnova(from, memo);
+    void getevtitem(name from) {
+        itemevt_controller.getevtitem(from);
     }
 
-    void addnova(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
+    void addevtitem(uint64_t id, uint32_t code, uint32_t from, uint32_t day) {
         require_auth(_self);
-        novaevt_controller.addnova(id, total, remain, amount);
+        itemevt_controller.addevtitem(id, code, from, day);
     }
 
     // eosio.token recipient
@@ -777,6 +779,6 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (getnova) (addnova) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cmpgoods) (cdungeon) (cdgticket) (cmobs) (cmobskills) 
 // (removecquest) (removedquest) (setpause) 

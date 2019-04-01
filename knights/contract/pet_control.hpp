@@ -307,7 +307,7 @@ public:
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
         auto duration = get_pet_exp_duration(rule->grade);
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         int max_slots = get_pex_slots(knight_max_level);
 
         petexprow row;
@@ -389,7 +389,7 @@ public:
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
         auto duration = get_pet_exp_duration(rule->grade);
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         if (only_check && rule->grade < pg_unique) {
             only_check = false;
         }
@@ -490,7 +490,7 @@ public:
         }
 
         auto &rows = exp_iter->rows;
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
 
         for (int index = 0; index < rows.size(); index++) {
             auto &pet = rows[index];

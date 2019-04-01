@@ -82,7 +82,7 @@ public:
         });
 
         auto no = expenseslogs.available_primary_key();
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         expenseslogs.emplace(self, [&](auto &target) {
             target.no = no;
             target.at = current;
@@ -208,7 +208,7 @@ public:
         }
 
         auto no = dividendlogs.available_primary_key();
-        auto current = time_util::getnow();
+        auto current = time_util::now_shifted();
         dividendlogs.emplace(self, [&](auto &target) {
             target.no = no;
             target.at = current;

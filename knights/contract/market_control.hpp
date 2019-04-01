@@ -136,7 +136,7 @@ public:
     void require_sell_cooltime(name from) {
         auto pvsi = player_controller.get_playervs(from);
         uint32_t next = pvsi->last_sell_time + (int)(10 * (pvsi->sell_factor / 100.0));
-        time current = time_util::getnow();
+        time current = time_util::now_shifted();
         assert_true(current >= next, "too short to sell");
     }
 
@@ -144,7 +144,7 @@ public:
         auto pvsi = player_controller.get_playervs(from);
         auto variable = *pvsi;
 
-        time current = time_util::getnow();
+        time current = time_util::now_shifted();
         uint32_t last_sell_time = variable.last_sell_time;
         double sell_factor = variable.sell_factor / 100.0;
         sell_factor = std::max(1.0, sell_factor);
@@ -207,7 +207,7 @@ public:
 
         asset price = saleitem->price;
         assert_true(quantity.amount == price.amount, "item price does not match");
-        auto dt = time_util::getnow();
+        auto dt = time_util::now_shifted();
 
         selllog slog;
         slog.buyer = from;
@@ -335,7 +335,7 @@ public:
         asset price = salemat->price;
         assert_true(quantity.amount == price.amount, "material price does not match");
         
-        auto dt = time_util::getnow();
+        auto dt = time_util::now_shifted();
 
         selllog slog;
         slog.buyer = from;
