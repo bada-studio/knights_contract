@@ -55,7 +55,7 @@ struct playerv2 {
     uint16_t rebrith_factor = 0;
     uint32_t block = 0;
     uint8_t floor_submit = 0;
-    uint8_t v4 = 0;
+    uint8_t itemevt = 0;
     uint16_t dquest_no = 0;
     uint16_t dq_p1 = 0;
     uint16_t dq_p2 = 0;
@@ -77,13 +77,13 @@ struct playerv2 {
         v1 = 0;
         v2 = 0;
         v3 = 0;
-        v4 = 0;
         v5 = 0;
         last_sell_time = 0;
         sell_factor = 0;
         rebrith_factor = 0;
         floor_submit = 0;
         dquest_no = 0;
+        itemevt = 0;
         dq_p1 = 0;
         dq_p2 = 0;
         dq_p3 = 0;
@@ -96,9 +96,9 @@ struct playerv2 {
         v1 = 0;
         v2 = 0;
         v3 = 0;
-        v4 = 0;
         v5 = 0;
         migrated = 2;
+        itemevt = 0;
     }
 
     void clear_dungeon_quest_point() {
@@ -153,7 +153,7 @@ struct playerv2 {
                      (rebrith_factor)
                      (block)
                      (floor_submit)
-                     (v4)
+                     (itemevt)
                      (dquest_no)
                      (dq_p1)
                      (dq_p2)

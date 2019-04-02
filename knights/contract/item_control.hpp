@@ -562,6 +562,21 @@ public:
         return only_check;
     }
 
+    uint32_t random_dna(const ritem &rule, name from, int code, playerv2 &variable) {
+        auto rval = player_controller.begin_random(variable);
+        uint32_t stat1 = rval.range(101);
+        uint32_t stat2 = rval.range(101);
+        uint32_t stat3 = rval.range(101);
+        uint32_t reveal1 = 1;
+        uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
+        uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
+        player_controller.end_random(variable, rval);
+
+        uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
+        uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;
+        return dna;
+    }
+
 private:
     bool do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
@@ -618,21 +633,6 @@ private:
         variable.clear_deferred_time();
         player_controller.update_playerv(pvsi, variable);
         return only_check;
-    }
-
-    uint32_t random_dna(const ritem &rule, name from, int code, playerv2 &variable) {
-        auto rval = player_controller.begin_random(variable);
-        uint32_t stat1 = rval.range(101);
-        uint32_t stat2 = rval.range(101);
-        uint32_t stat3 = rval.range(101);
-        uint32_t reveal1 = 1;
-        uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
-        uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
-        player_controller.end_random(variable, rval);
-
-        uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
-        uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;
-        return dna;
     }
 
     int get_variation_value(int amount, int rate) {

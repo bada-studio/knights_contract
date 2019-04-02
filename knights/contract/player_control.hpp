@@ -57,6 +57,10 @@ public:
         return player == players.end();
     }
 
+    bool is_empty_playerv(playerv2_table::const_iterator iter) {
+        return iter == playervs.cend();
+    }
+    
     void increase_powder(player_table::const_iterator player, uint32_t powder) {
         // modify powder
         players.modify(player, self, [&](auto& target) {
@@ -233,7 +237,7 @@ public:
         test_checksum(from, block, checksum);
         return ((checksum >> 16) & 0x8000) != 0;
     }
-    
+
     void test_checksum(name from, uint32_t block, uint32_t checksum) {
         int32_t k = (checksum_mask & 0xFFFF);
         int32_t num = time_util::now_shifted();
@@ -331,8 +335,16 @@ public:
         return true;
     }
 
-    playerv2_table::const_iterator get_playervs(name from) {
-        return playervs.find(from);
+    playerv2_table::const_iterator get_playervs(name from, bool create_when_empty = false) {
+        auto res = playervs.find(from);
+        if (res == playervs.cend()) {
+            if (create_when_empty) {
+                new_playervs(from, 0, 0);
+                return playervs.find(from);
+            }
+        }
+
+        return res;
     }
 
     playerv2_table::const_iterator migrate_playerv(name from) {
