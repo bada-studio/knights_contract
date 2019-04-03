@@ -20,6 +20,8 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void getevtitem(name from) {
+        require_auth(N(bastetbastet));
+
         // get player info
         auto player = player_controller.get_player(from);
         assert_true(!player_controller.is_empty_player(player), "no player");
