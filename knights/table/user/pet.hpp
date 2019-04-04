@@ -23,3 +23,23 @@ struct pet {
 };
 
 typedef eosio::multi_index< N(pet), pet > pet_table;
+
+//@abi table spet i64
+struct spet {
+    name owner;
+    uint32_t season;
+    std::vector<petrow> rows;
+
+    uint64_t primary_key() const {
+        return owner;
+    }
+
+    EOSLIB_SERIALIZE(
+            spet,
+            (owner)
+            (season)
+            (rows)
+    )
+};
+
+typedef eosio::multi_index< N(spet), spet > spet_table;

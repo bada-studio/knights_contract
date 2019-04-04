@@ -25,5 +25,24 @@ struct knight {
     )
 };
 
-
 typedef eosio::multi_index<N(knight), knight> knight_table;
+
+//@abi table sknight i64
+struct sknight {
+    name owner;
+    uint32_t season;
+    std::vector<knightrow> rows;
+
+    uint64_t primary_key() const {
+        return owner;
+    }
+
+    EOSLIB_SERIALIZE(
+            sknight,
+            (owner)
+            (season)
+            (rows)
+    )
+};
+
+typedef eosio::multi_index<N(sknight), sknight> sknight_table;
