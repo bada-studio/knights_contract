@@ -151,6 +151,20 @@ public:
         });
     }
 
+    knightrow new_knight(uint8_t type) {
+        auto rule = knight_rule_controller.get_table().find(type);
+        assert_true(rule != knight_rule_controller.get_table().cend(), "no knight rule");
+
+        knightrow knight;
+        knight.type = type;
+        knight.level = 1;
+        knight.attack = rule->attack;
+        knight.defense = rule->defense;
+        knight.hp = rule->hp;
+        knight.luck = rule->luck;
+        return knight;
+    }
+
     // actions
     //-------------------------------------------------------------------------
     /// @brief
@@ -163,16 +177,7 @@ public:
         require_auth(from);
         assert_true(type > 0 && type < kt_count, "invalid knight type");
 
-        auto rule = knight_rule_controller.get_table().find(type);
-        assert_true(rule != knight_rule_controller.get_table().cend(), "no knight rule");
-
-        knightrow knight;
-        knight.type = type;
-        knight.level = 1;
-        knight.attack = rule->attack;
-        knight.defense = rule->defense;
-        knight.hp = rule->hp;
-        knight.luck = rule->luck;
+        knightrow knight = new_knight(type);
 
         int count = 1;
         auto iter = knights.find(from);

@@ -6,6 +6,7 @@ private:
     item_control &item_controller;
     admin_control &admin_controller;
     player_control &player_controller;
+    knight_control &knight_controller;
 
 public:
     // constructor
@@ -13,10 +14,12 @@ public:
     season_control(account_name _self,
                    item_control &_item_controller,
                    player_control &_player_controller,
+                   knight_control &_knight_controller, 
                    admin_control &_admin_controller)
         : self(_self)
         , item_controller(_item_controller)
         , player_controller(_player_controller)
+        , knight_controller(_knight_controller)
         , admin_controller(_admin_controller) {
     }
 
@@ -25,9 +28,18 @@ public:
 
     // actions
     //-------------------------------------------------------------------------
-    void addseason(uint32_t id, uint32_t start, uint32_t duration,
-                   uint32_t speed, uint32_t share, uint32_t rankcnt) {
+    void devreset() {
+        require_auth(self);
+        season_table table(self, self);
+        auto iter = table.begin();
+        while (iter != table.cend()) {
+            iter = table.erase(iter);
+        }
+    }
 
+    void addseason(uint32_t id, uint64_t start, uint32_t day, uint32_t speed, 
+                   uint32_t dmw, asset spending_limit, 
+                   const std::vector<asset> &rewards, const std::vector<std::string> &sponsors) {
         player_controller.require_coo_auth();
 
         season_table table(self, self);
@@ -50,10 +62,12 @@ public:
             table.emplace(self, [&](auto& target) {
                 target.id = id;
                 target.start = start;
-                target.duration = duration;
+                target.duration = day * time_util::day;
                 target.speed = speed;
-                target.share = share;
-                target.rankcnt = rankcnt;
+                target.init_dmw = dmw;
+                target.spending_limit = spending_limit;
+                target.rewards = rewards;
+                target.sponsors = sponsors;
             });
 
             // add version to rule
@@ -73,17 +87,111 @@ public:
             // update info
             table.modify(iter, self, [&](auto& target) {
                 target.start = start;
-                target.duration = duration;
+                target.duration = day * time_util::day;
                 target.speed = speed;
-                target.share = share;
-                target.rankcnt = rankcnt;
+                target.init_dmw = dmw;
+                target.spending_limit = spending_limit;
+                target.rewards = rewards;
+                target.sponsors = sponsors;
             });
         }
     }
 
-    void joinseason(name owner) {
+    void joinseason(name from) {
+        season_table table(self, self);
+        assert_true(table.cbegin() != table.cend(), "no season yet");
+
+        // check season
+        auto now = time_util::now();
+        auto season = --table.cend();
+        assert_true(season->is_in(now), "no season period");
+
+        // check full party
+        require_auth(from);
+        auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() == kt_count - 1, "you need all of knights");
+
+        // initialize
+        ready_player(from, season->id, season->init_dmw);
+        ready_knight(from, season->id);
+        ready_item(from, season->id);
+        ready_material(from, season->id);
+        ready_pet(from, season->id);
     }
 
-    void getsreward(name owner, const std::vector<uint32_t>& item_ids) {
+private:
+    void ready_player(name from, uint32_t sid, uint32_t dmw) {
+        splayer_table table(self, self);
+        auto iter = table.find(from);
+        if (iter != table.cend()) {
+            assert_true(iter->season < sid, "already in season");
+            table.erase(iter);
+        }
+
+        table.emplace(self, [&](auto &target) {
+            target.owner = from;
+            target.season = sid;
+            target.dmw = dmw;
+        });
+    }
+
+    void ready_knight(name from, uint32_t sid) {
+        sknight_table table(self, self);
+        auto iter = table.find(from);
+        if (iter != table.cend()) {
+            assert_true(iter->season < sid, "already in season");
+            table.erase(iter);
+        }
+
+        table.emplace(self, [&](auto &target) {
+            target.owner = from;
+            target.season = sid;
+
+            target.rows.push_back(knight_controller.new_knight(kt_knight));
+            target.rows.push_back(knight_controller.new_knight(kt_archer));
+            target.rows.push_back(knight_controller.new_knight(kt_mage));
+        });
+    }
+
+    void ready_item(name from, uint32_t sid) {
+        sitem_table table(self, self);
+        auto iter = table.find(from);
+        if (iter != table.cend()) {
+            assert_true(iter->season < sid, "already in season");
+            table.erase(iter);
+        }
+
+        table.emplace(self, [&](auto &target) {
+            target.owner = from;
+            target.season = sid;            
+        });
+    }
+
+    void ready_material(name from, uint32_t sid) {
+        smaterial_table table(self, self);
+        auto iter = table.find(from);
+        if (iter != table.cend()) {
+            assert_true(iter->season < sid, "already in season");
+            table.erase(iter);
+        }
+
+        table.emplace(self, [&](auto &target) {
+            target.owner = from;
+            target.season = sid;            
+        });
+    }
+
+    void ready_pet(name from, uint32_t sid) {
+        spet_table table(self, self);
+        auto iter = table.find(from);
+        if (iter != table.cend()) {
+            assert_true(iter->season < sid, "already in season");
+            table.erase(iter);
+        }
+
+        table.emplace(self, [&](auto &target) {
+            target.owner = from;
+            target.season = sid;            
+        });
     }
 };
