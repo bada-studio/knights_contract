@@ -137,7 +137,7 @@ public:
     , player_controller(_self, saleslog_controller, admin_controller, variable_controller)
     , material_controller(_self, player_controller)
     , item_controller(_self, material_controller, player_controller)
-    , pet_controller(_self, player_controller, material_controller, saleslog_controller)
+    , pet_controller(_self, player_controller, material_controller)
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
     , powder_controller(_self, player_controller, saleslog_controller)
@@ -522,28 +522,33 @@ public:
     /*/
     /// @abi action
     void cknt(const std::vector<rknt> &rules, bool truncate) {
-        knight_controller.knight_rule_controller.create_rules(rules, truncate);
+        rule_controller<rknt, rknt_table> knight_rule_controller(_self, N(knt));
+        knight_rule_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
     void ckntlv(const std::vector<rkntlv> &rules, bool truncate) {
-        knight_controller.knight_level_rule_controller.create_rules(rules, truncate);
+        rule_controller<rkntlv, rkntlv_table> knight_level_rule_controller(_self, N(kntlv));
+        knight_level_rule_controller.create_rules(rules, truncate);
     }
 
     /*
     /// @abi action
     void ckntprice(const std::vector<rkntprice> &rules, bool truncate) {
-        knight_controller.knight_price_rule_controller.create_rules(rules, truncate);
+        rule_controller<rkntprice, rkntprice_table> knight_price_rule_controller(_self, N(kntprice));
+        knight_price_rule_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
     void ckntskills(const std::vector<rkntskills> &rules, bool truncate) {
-        knight_controller.knight_skill_rule_controller.create_rules(rules, truncate);
+        rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller(_self, N(kntskills));
+        knight_skill_rule_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
     void cstage(const std::vector<rstage> &rules, bool truncate) {
-        knight_controller.stage_rule_controller.create_rules(rules, truncate);
+        rule_controller<rstage, rstage_table> stage_rule_controller(_self, N(stage));
+        stage_rule_controller.create_rules(rules, truncate);
     }
     */
     /// @abi action
@@ -591,7 +596,8 @@ public:
 
     /// @abi action
     void cpetexp(const std::vector<rpetexp> &rules, bool truncate) {
-        pet_controller.rpetexp_controller.create_rules(rules, truncate);
+        rule_controller<rpetexp, rpetexp_table> rpetexp_controller(_self, N(petexp));
+        rpetexp_controller.create_rules(rules, truncate);
     }
 
     /*
@@ -626,15 +632,20 @@ public:
         if (table == N(ivnprice)) {
             player_controller.rivnprice_controller.truncate_rules(size);
         } else if (table == N(knt)) {
-            knight_controller.knight_rule_controller.truncate_rules(size);
+            rule_controller<rknt, rknt_table> knight_rule_controller(_self, N(knt));
+            knight_rule_controller.truncate_rules(size);
         } else if (table == N(kntlv)) {
-            knight_controller.knight_level_rule_controller.truncate_rules(size);
+            rule_controller<rkntlv, rkntlv_table> knight_level_rule_controller(_self, N(kntlv));
+            knight_level_rule_controller.truncate_rules(size);
         } else if (table == N(kntprice)) {
-            knight_controller.knight_price_rule_controller.truncate_rules(size);
+            rule_controller<rkntprice, rkntprice_table> knight_price_rule_controller(_self, N(kntprice));
+            knight_price_rule_controller.truncate_rules(size);
         } else if (table == N(kntskills)) {
-            knight_controller.knight_skill_rule_controller.truncate_rules(size);
+            rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller(_self, N(kntskills));
+            knight_skill_rule_controller.truncate_rules(size);
         } else if (table == N(stage)) {
-            knight_controller.stage_rule_controller.truncate_rules(size);
+            rule_controller<rstage, rstage_table> stage_rule_controller(_self, N(stage));
+            stage_rule_controller.truncate_rules(size);
         } else if (table == N(variable)) {
             variable_controller.rvariable_controller.truncate_rules(size);
         } else if (table == N(item)) {
@@ -656,7 +667,8 @@ public:
             rule_controller<rpetlv, rpetlv_table> rpetlv_controller(_self, N(petlv));
             rpetlv_controller.truncate_rules(size);
         } else if (table == N(petexp)) {
-            pet_controller.rpetexp_controller.truncate_rules(size);
+            rule_controller<rpetexp, rpetexp_table> rpetexp_controller(_self, N(petexp));
+            rpetexp_controller.truncate_rules(size);
         } else if (table == N(mpgoods)) {
             powder_controller.mp_goods_rule_controller.truncate_rules(size);
         } else if (table == N(dungeon)) {

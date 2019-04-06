@@ -11,22 +11,16 @@ private:
     std::vector<petrow> empty_petrows;
 
 public:
-    rule_controller<rpetexp, rpetexp_table> rpetexp_controller;
-
-public:
     // constructor
     //-------------------------------------------------------------------------
     /// @brief
     /// Constructor
     pet_control(account_name _self,
                 player_control &_player_controller,
-                material_control &_material_controller,
-                saleslog_control &_saleslog_controller)
+                material_control &_material_controller)
             : self(_self)
-            , rpetexp_controller(_self, N(petexp))
             , player_controller(_player_controller)
-            , material_controller(_material_controller)
-            , saleslog_controller(_saleslog_controller) {
+            , material_controller(_material_controller) {
     }
 
     // internal apis
@@ -422,7 +416,7 @@ public:
         }
 
         assert_true(found, "can not found pet data");
-        auto &exp_rules = rpetexp_controller.get_table();
+        rpetexp_table exp_rules(self, self);
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 

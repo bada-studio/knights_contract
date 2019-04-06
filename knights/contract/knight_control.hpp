@@ -15,13 +15,6 @@ private:
     std::vector<kntskill> empty_kntskill;
 
 public:
-    rule_controller<rknt, rknt_table> knight_rule_controller;
-    rule_controller<rkntlv, rkntlv_table> knight_level_rule_controller;
-    rule_controller<rkntprice, rkntprice_table> knight_price_rule_controller;
-    rule_controller<rkntskills, rkntskills_table> knight_skill_rule_controller;
-    rule_controller<rstage, rstage_table> stage_rule_controller;
-
-public:
     // constructor
     //-------------------------------------------------------------------------
     knight_control(account_name _self,
@@ -33,11 +26,6 @@ public:
             : self(_self)
             , knights(_self, _self)
             , skills(_self, _self)
-            , knight_rule_controller(_self, N(knt))
-            , knight_level_rule_controller(_self, N(kntlv))
-            , knight_price_rule_controller(_self, N(kntprice))
-            , knight_skill_rule_controller(_self, N(kntskills))
-            , stage_rule_controller(_self, N(stage))
             , material_controller(_material_controller)
             , item_controller(_item_controller)
             , pet_controller(_pet_controller)
@@ -48,8 +36,9 @@ public:
     // internal apis
     //-------------------------------------------------------------------------
     knight_stats calculate_stat(name from, const knightrow &knight) {
-        auto rule = knight_rule_controller.get_table().find(knight.type);
-        assert_true(rule != knight_rule_controller.get_table().cend(), "no knight rule");
+        rknt_table rules(self, self);
+        auto rule = rules.find(knight.type);
+        assert_true(rule != rules.cend(), "no knight rule");
 
         knight_stats res;
         res.attack = rule->attack + rule->gattack * (knight.level - 1);
@@ -132,8 +121,9 @@ public:
     }
 
     void new_free_knight(name from) {
-        auto rule = knight_rule_controller.get_table().find(kt_knight);
-        assert_true(rule != knight_rule_controller.get_table().cend(), "no knight rule");
+        rknt_table rules(self, self);
+        auto rule = rules.find(kt_knight);
+        assert_true(rule != rules.cend(), "no knight rule");
 
         knightrow knight;
         knight.type = kt_knight;
@@ -152,8 +142,9 @@ public:
     }
 
     knightrow new_knight(uint8_t type) {
-        auto rule = knight_rule_controller.get_table().find(type);
-        assert_true(rule != knight_rule_controller.get_table().cend(), "no knight rule");
+        rknt_table rules(self, self);
+        auto rule = rules.find(type);
+        assert_true(rule != rules.cend(), "no knight rule");
 
         knightrow knight;
         knight.type = type;
@@ -203,8 +194,9 @@ public:
             assert_true(found == false, "you have already same knight");
         }
 
-        auto price_itr = knight_price_rule_controller.get_table().find(count);
-        assert_true(price_itr != knight_price_rule_controller.get_table().cend(), "could not find price rule");
+        rkntprice_table prices(self, self);
+        auto price_itr = prices.find(count);
+        assert_true(price_itr != prices.cend(), "could not find price rule");
 
         // pay the cost
         asset price = price_itr->price;
@@ -255,7 +247,7 @@ public:
         uint64_t level = knight.level + 1;
         assert_true(level <= kv_max_knight_level, "already max level");
 
-        auto &rule_table = knight_level_rule_controller.get_table();
+        rkntlv_table rule_table(self, self);
         auto rule = rule_table.find(level);
         assert_true(rule != rule_table.cend(), "there is no level rule");
 
@@ -331,8 +323,9 @@ public:
     void setkntstage(name from, uint8_t stage) {
         require_auth(from);
 
-        auto stagerule = stage_rule_controller.get_table().find(stage);
-        assert_true(stagerule != stage_rule_controller.get_table().cend(), "no stage rule");
+        rstage_table rules(self, self);
+        auto stagerule = rules.find(stage);
+        assert_true(stagerule != rules.cend(), "no stage rule");
 
         int minlv = stagerule->lvfrom;
         bool pass = false;
@@ -437,8 +430,8 @@ public:
         bool is_first_skill = ((id % 10) == 1);
 
         // remain point check
-        assert_true(knight_skill_rule_controller.is_empty() == false, "empty rule");
-        const auto &rule = knight_skill_rule_controller.get_table().begin()->get_rule(id);
+        rkntskills_table rules(self, self);
+        const auto &rule = rules.begin()->get_rule(id);
 
         // required level check
         assert_true(rule.requiredlv <= knight.level, "not enough knight level");
@@ -617,8 +610,9 @@ private:
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
-        auto stagerule = stage_rule_controller.get_table().find(player->current_stage);
-        assert_true(stagerule != stage_rule_controller.get_table().cend(), "no stage rule");
+        rstage_table rules(self, self);
+        auto stagerule = rules.find(player->current_stage);
+        assert_true(stagerule != rules.cend(), "no stage rule");
 
         time current = time_util::now_shifted();
         int elapsed_sec = (int)(current - player->last_rebirth);
