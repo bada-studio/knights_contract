@@ -7,31 +7,20 @@ private:
 
     material_control &material_controller;
     player_control &player_controller;
-    saleslog_control &saleslog_controller;
 
     std::vector<itemrow> empty_itemrows;
     itemrow empty_itemrow;
-
-public:
-    rule_controller<ritem, ritem_table> item_rule_controller;
-    rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller;
-    rule_controller<ritemset, ritemset_table> itemset_rule_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
     item_control(account_name _self,
                  material_control &_material_controller,
-                 player_control &_player_controller,
-                 saleslog_control &_saleslog_controller)
+                 player_control &_player_controller)
             : self(_self)
             , items(_self, _self)
-            , item_rule_controller(_self, N(item))
-            , itemlv_rule_controller(_self, N(itemlv))
-            , itemset_rule_controller(_self, N(itemset))
             , material_controller(_material_controller)
-            , player_controller(_player_controller) 
-            , saleslog_controller(_saleslog_controller) {
+            , player_controller(_player_controller)  {
     }
 
     // internal apis
@@ -48,8 +37,8 @@ public:
     }
 
     void apply_equip_stats(knight_stats &stat, name from, uint64_t knight) {
-        auto &rule_table = item_rule_controller.get_table();
-        auto &lvrules = itemlv_rule_controller.get_table();
+        ritem_table rule_table(self, self);
+        ritemlv_table lvrules(self, self);
 
         auto &rows = get_items(from);
         int32_t setid = 0;
@@ -108,7 +97,8 @@ public:
 
         // apply set item stat
         if (setid > 0 && setcount == 3) {
-            auto &table = itemset_rule_controller.get_table();
+            ritemset_table table(self, self);
+
             auto iter = table.find(setid);
             if (iter == table.cend()) {
                 return;
@@ -249,7 +239,7 @@ public:
     }
 
     uint32_t remove_items(name from, const std::vector<uint32_t> &item_ids) {
-        auto &item_rule = item_rule_controller.get_table();
+        ritem_table item_rule(self, self);
         auto iter = items.find(from);
         assert_true(iter != items.cend(), "could not found item");
 
@@ -315,7 +305,7 @@ public:
     }
 
     int calculate_item_score(uint16_t code, uint32_t dna) {
-        auto &rule_table = item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "could not find rule");
 
@@ -419,7 +409,7 @@ public:
         auto &item = get_item(rows, id);
         assert_true(item.saleid == 0, "item is on sale");
 
-        auto &rtable = itemlv_rule_controller.get_table();
+        ritemlv_table rtable(self, self);
         auto &last = *--rtable.cend();
         assert_true(item.exp < last.count, "already full exp");
 
@@ -494,7 +484,7 @@ public:
         assert_true(item.saleid == 0, "item is on sale");
         int8_t knight = item.knight;
 
-        auto &lvtable = itemlv_rule_controller.get_table();
+        ritemlv_table lvtable(self, self);
         auto lvrulec = lvtable.find(item.level);
         auto lvrule = lvtable.find(item.level + 1);
         assert_true(lvrulec != lvtable.cend(), "can not found next level rule");
@@ -502,7 +492,7 @@ public:
         assert_true(item.exp >= lvrule->count, "insufficient item exp");
         auto required = lvrule->count - lvrulec->count;
 
-        auto &rtable = item_rule_controller.get_table();
+        ritem_table rtable(self, self);
         auto rule = rtable.find(item.code);
         assert_true(rule != rtable.end(), "no item rule");
 
@@ -582,7 +572,7 @@ private:
         name from = player->owner;
         player_controller.require_action_count(1);
 
-        auto &rule_table = item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto recipe = rule_table.find(code);
         assert_true(recipe != rule_table.cend(), "could not find recipe");
         if (only_check && recipe->grade < ig_unique) {

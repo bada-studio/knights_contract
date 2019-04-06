@@ -319,7 +319,7 @@ public:
             do_rebirth(from, player, false, pvsi);
         }
     }
-    
+
     /// @brief
     /// Change knight battle stage
     /// @param from
@@ -373,7 +373,7 @@ public:
         auto &item = item_controller.get_item(rows, id);
         assert_true(item.saleid == 0, "item is on sale");
 
-        auto &rule_table = item_controller.item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto rule = rule_table.find(item.code);
         assert_true(rule != rule_table.cend(), "could not find rule");
         assert_true(is_valid_for((knight_type)to, (item_sub_type)rule->sub_type), "it's invalid knight to attach");
@@ -795,7 +795,7 @@ private:
     }
 
     int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, int pet_code, double gdr) {
-        auto &mat_rules = material_controller.material_rule_controller;
+        rmaterial_table mat_rules(self, self);
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
         int bonus_grade = pet_controller.get_pet_grade(pet_code);
 

@@ -13,7 +13,8 @@ struct season {
     uint64_t start = 0; // start from
     uint32_t duration = 0; // event duration
     uint32_t speed = 0; // game speed
-    uint32_t init_dmw = 0; // init dark magic water
+    uint32_t init_powder = 0; // init dark magic water
+    uint32_t stage = 0;
     asset spending_limit;
     std::vector<asset> rewards;
     std::vector<std::string> sponsors;
@@ -43,7 +44,8 @@ struct season {
             (start)
             (duration)
             (speed)
-            (init_dmw)
+            (init_powder)
+            (stage)
             (spending_limit)
             (rewards)
             (sponsors)

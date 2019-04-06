@@ -28,25 +28,4 @@ struct item {
 };
 
 typedef eosio::multi_index< N(item), item > item_table;
-
-//@abi table sitem i64
-struct sitem {
-    name owner;
-    uint32_t season;
-    uint32_t last_id;
-    std::vector<itemrow> rows;
-
-    uint64_t primary_key() const {
-        return owner;
-    }
-
-    EOSLIB_SERIALIZE(
-            sitem,
-            (owner)
-            (season)
-            (last_id)
-            (rows)
-    )
-};
-
-typedef eosio::multi_index< N(sitem), sitem > sitem_table;
+typedef eosio::multi_index< N(sitem), item > sitem_table;

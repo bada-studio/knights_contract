@@ -86,7 +86,9 @@ using eosio::name;
 #include "contract/powder_control.hpp"
 #include "contract/cquest_control.hpp"
 #include "contract/dquest_control.hpp"
-#include "contract/season_control.hpp"
+#include "contract/season/season_control.hpp"
+#include "contract/season/smaterial_control.hpp"
+#include "contract/season/spet_control.hpp"
 #include "contract/player_control.cpp"
 #include "contract/dungeon_control.hpp"
 //#include "contract/novaevt_control.hpp"
@@ -109,6 +111,8 @@ private:
     cquest_control cquest_controller;
     dquest_control dquest_controller;
     season_control season_controller;
+    smaterial_control smaterial_controller;
+    spet_control spet_controller;
     dungeon_control dungeon_controller;
     itemevt_control itemevt_controller; 
     skin_control skin_controller;
@@ -132,7 +136,7 @@ public:
     , saleslog_controller(_self)
     , player_controller(_self, saleslog_controller, admin_controller, variable_controller)
     , material_controller(_self, player_controller)
-    , item_controller(_self, material_controller, player_controller, saleslog_controller)
+    , item_controller(_self, material_controller, player_controller)
     , pet_controller(_self, player_controller, material_controller, saleslog_controller)
     , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
     , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
@@ -140,6 +144,8 @@ public:
     , cquest_controller(_self, item_controller, player_controller, admin_controller)
     , dquest_controller(_self, item_controller, player_controller, admin_controller)
     , season_controller(_self, item_controller, player_controller, knight_controller, admin_controller)
+    , smaterial_controller(_self)
+    , spet_controller(_self, player_controller)
     , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
     , itemevt_controller(_self, player_controller, item_controller)
     , skin_controller(_self, player_controller, saleslog_controller) {
@@ -200,9 +206,9 @@ public:
     //-------------------------------------------------------------------------
     /// @abi addseason
     void addseason(uint32_t id, uint64_t start, uint32_t day, uint32_t speed, 
-                   uint32_t dmw, asset spending_limit, 
+                   uint32_t powder, uint32_t stage, asset spending_limit, 
                    const std::vector<asset> &rewards, const std::vector<std::string> &sponsors) {
-        season_controller.addseason(id, start, day, speed, dmw, spending_limit, rewards, sponsors);
+        season_controller.addseason(id, start, day, speed, powder, stage, spending_limit, rewards, sponsors);
     }
 
     /// @abi addseason
@@ -547,34 +553,40 @@ public:
 
     /// @abi action
     void citem(const std::vector<ritem> &rules, bool truncate) {
-        item_controller.item_rule_controller.create_rules(rules, truncate);
+        rule_controller<ritem, ritem_table> item_rule_controller(_self, N(item));
+        item_rule_controller.create_rules(rules, truncate);
     }
 
     /*
     /// @abi action
     void citemlv(const std::vector<ritemlv> &rules, bool truncate) {
-        item_controller.itemlv_rule_controller.create_rules(rules, truncate);
+        rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller(_self, N(itemlv));
+        itemlv_rule_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
     void citemset(const std::vector<ritemset> &rules, bool truncate) {
-        item_controller.itemset_rule_controller.create_rules(rules, truncate);
+        rule_controller<ritemset, ritemset_table> itemset_rule_controller(_self, N(itemset));
+        itemset_rule_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
     void cmaterial(const std::vector<rmaterial> &rules, bool truncate) {
-        material_controller.material_rule_controller.create_rules(rules, truncate);
+        rule_controller<rmaterial, rmaterial_table> material_rule_controller(_self, N(material));
+        material_rule_controller.create_rules(rules, truncate);
     }
     */
     
     /// @abi action
     void cpet(const std::vector<rpet> &rules, bool truncate) {
-        pet_controller.rpet_controller.create_rules(rules, truncate);
+        rule_controller<rpet, rpet_table> rpet_controller(_self, N(pet));
+        rpet_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
     void cpetlv(const std::vector<rpetlv> &rules, bool truncate) {
-        pet_controller.rpetlv_controller.create_rules(rules, truncate);
+        rule_controller<rpetlv, rpetlv_table> rpetlv_controller(_self, N(petlv));
+        rpetlv_controller.create_rules(rules, truncate);
     }
 
     /// @abi action
@@ -626,17 +638,23 @@ public:
         } else if (table == N(variable)) {
             variable_controller.rvariable_controller.truncate_rules(size);
         } else if (table == N(item)) {
-            item_controller.item_rule_controller.truncate_rules(size);
+            rule_controller<ritem, ritem_table> item_rule_controller(_self, N(item));
+            item_rule_controller.truncate_rules(size);
         } else if (table == N(itemlv)) {
-            item_controller.itemlv_rule_controller.truncate_rules(size);
+            rule_controller<ritemlv, ritemlv_table> itemlv_rule_controller(_self, N(itemlv));
+            itemlv_rule_controller.truncate_rules(size);
         } else if (table == N(itemset)) {
-            item_controller.itemset_rule_controller.truncate_rules(size);
+            rule_controller<ritemset, ritemset_table> itemset_rule_controller(_self, N(itemset));
+            itemset_rule_controller.truncate_rules(size);
         } else if (table == N(material)) {
-            material_controller.material_rule_controller.truncate_rules(size);
+            rule_controller<rmaterial, rmaterial_table> material_rule_controller(_self, N(material));
+            material_rule_controller.truncate_rules(size);
         } else if (table == N(pet)) {
-            pet_controller.rpet_controller.truncate_rules(size);
+            rule_controller<rpet, rpet_table> rpet_controller(_self, N(pet));
+            rpet_controller.truncate_rules(size);
         } else if (table == N(petlv)) {
-            pet_controller.rpetlv_controller.truncate_rules(size);
+            rule_controller<rpetlv, rpetlv_table> rpetlv_controller(_self, N(petlv));
+            rpetlv_controller.truncate_rules(size);
         } else if (table == N(petexp)) {
             pet_controller.rpetexp_controller.truncate_rules(size);
         } else if (table == N(mpgoods)) {

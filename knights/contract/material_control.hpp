@@ -10,15 +10,11 @@ private:
     matrow empty_matrow;
 
 public:
-    rule_controller<rmaterial, rmaterial_table> material_rule_controller;
-
-public:
     // constructor
     //-------------------------------------------------------------------------
     material_control(account_name _self,
                      player_control &_player_controller)
             : self(_self)
-            , material_rule_controller(_self, N(material))
             , materials(_self, _self)
             , player_controller(_player_controller) {
     }
@@ -194,7 +190,7 @@ public:
     uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids, bool only_check = false) {
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
-        auto &mat_rule = material_rule_controller.get_table();
+        rmaterial_table mat_rule(self, self);
 
         uint32_t powder = 0;
         int found = false;

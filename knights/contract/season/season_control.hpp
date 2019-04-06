@@ -30,15 +30,58 @@ public:
     //-------------------------------------------------------------------------
     void devreset() {
         require_auth(self);
-        season_table table(self, self);
-        auto iter = table.begin();
-        while (iter != table.cend()) {
-            iter = table.erase(iter);
+        {
+            season_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
         }
+
+        {
+            splayer_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
+        }
+
+        {
+            sknight_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
+        }
+
+        {
+            smaterial_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
+        }
+
+        {
+            sitem_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
+        }
+
+        {
+            spet_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
+        }
+
     }
 
     void addseason(uint32_t id, uint64_t start, uint32_t day, uint32_t speed, 
-                   uint32_t dmw, asset spending_limit, 
+                   uint32_t powder, uint32_t stage, asset spending_limit, 
                    const std::vector<asset> &rewards, const std::vector<std::string> &sponsors) {
         player_controller.require_coo_auth();
 
@@ -64,7 +107,8 @@ public:
                 target.start = start;
                 target.duration = day * time_util::day;
                 target.speed = speed;
-                target.init_dmw = dmw;
+                target.init_powder = powder;
+                target.stage = stage;
                 target.spending_limit = spending_limit;
                 target.rewards = rewards;
                 target.sponsors = sponsors;
@@ -89,7 +133,8 @@ public:
                 target.start = start;
                 target.duration = day * time_util::day;
                 target.speed = speed;
-                target.init_dmw = dmw;
+                target.init_powder = powder;
+                target.stage = stage;
                 target.spending_limit = spending_limit;
                 target.rewards = rewards;
                 target.sponsors = sponsors;
@@ -112,7 +157,7 @@ public:
         assert_true(knights.size() == kt_count - 1, "you need all of knights");
 
         // initialize
-        ready_player(from, season->id, season->init_dmw);
+        ready_player(from, season->id, season->init_powder);
         ready_knight(from, season->id);
         ready_item(from, season->id);
         ready_material(from, season->id);
@@ -120,7 +165,7 @@ public:
     }
 
 private:
-    void ready_player(name from, uint32_t sid, uint32_t dmw) {
+    void ready_player(name from, uint32_t sid, uint32_t powder) {
         splayer_table table(self, self);
         auto iter = table.find(from);
         if (iter != table.cend()) {
@@ -131,7 +176,7 @@ private:
         table.emplace(self, [&](auto &target) {
             target.owner = from;
             target.season = sid;
-            target.dmw = dmw;
+            target.powder = powder;
         });
     }
 
@@ -139,13 +184,11 @@ private:
         sknight_table table(self, self);
         auto iter = table.find(from);
         if (iter != table.cend()) {
-            assert_true(iter->season < sid, "already in season");
             table.erase(iter);
         }
 
         table.emplace(self, [&](auto &target) {
             target.owner = from;
-            target.season = sid;
 
             target.rows.push_back(knight_controller.new_knight(kt_knight));
             target.rows.push_back(knight_controller.new_knight(kt_archer));
@@ -157,13 +200,11 @@ private:
         sitem_table table(self, self);
         auto iter = table.find(from);
         if (iter != table.cend()) {
-            assert_true(iter->season < sid, "already in season");
             table.erase(iter);
         }
 
         table.emplace(self, [&](auto &target) {
             target.owner = from;
-            target.season = sid;            
         });
     }
 
@@ -171,13 +212,11 @@ private:
         smaterial_table table(self, self);
         auto iter = table.find(from);
         if (iter != table.cend()) {
-            assert_true(iter->season < sid, "already in season");
             table.erase(iter);
         }
 
         table.emplace(self, [&](auto &target) {
             target.owner = from;
-            target.season = sid;            
         });
     }
 
@@ -185,13 +224,11 @@ private:
         spet_table table(self, self);
         auto iter = table.find(from);
         if (iter != table.cend()) {
-            assert_true(iter->season < sid, "already in season");
             table.erase(iter);
         }
 
         table.emplace(self, [&](auto &target) {
             target.owner = from;
-            target.season = sid;            
         });
     }
 };

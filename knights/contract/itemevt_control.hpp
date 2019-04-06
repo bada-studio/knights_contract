@@ -40,7 +40,7 @@ public:
         assert_true(iter->id != variable.itemevt, "you've already got event item");
 
         // get rule
-        auto &rule_table = item_controller.item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto recipe = rule_table.find(iter->code);
         assert_true(recipe != rule_table.cend(), "can not found item");
 
@@ -57,7 +57,7 @@ public:
         player_controller.require_coo_auth();
         auto now = time_util::now();
         
-        auto &rule_table = item_controller.item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "can not found item");
 

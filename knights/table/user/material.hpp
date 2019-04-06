@@ -24,26 +24,4 @@ struct material {
 };
 
 typedef eosio::multi_index< N(material), material> material_table;
-
-
-//@abi table smaterial i64
-struct smaterial {
-    name owner;
-    uint32_t season;
-    uint32_t last_id;
-    std::vector<matrow> rows;
-
-    uint64_t primary_key() const {
-        return owner;
-    }
-
-    EOSLIB_SERIALIZE(
-            smaterial,
-            (owner)
-            (season)
-            (last_id)
-            (rows)
-    )
-};
-
-typedef eosio::multi_index< N(smaterial), smaterial> smaterial_table;
+typedef eosio::multi_index< N(smaterial), material> smaterial_table;

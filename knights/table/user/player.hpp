@@ -39,14 +39,17 @@ struct splayer {
     name owner;  // 8
     uint8_t mat_ivn_up = 0;
     uint8_t item_ivn_up = 0;
+    uint8_t current_stage = 0;
     uint32_t last_rebirth = 0;
-    uint32_t dmw = 0; // dark magic water
+    uint32_t powder = 0; 
     uint16_t maxfloor = 0;
+
     uint16_t rebrith_factor = 0;
     uint32_t season = 0;
     uint8_t received = 0;
     asset spending;
     uint64_t v1 = 0;
+    uint64_t v2 = 0;
 
     splayer(name o = name())
     : owner(o)
@@ -62,14 +65,16 @@ struct splayer {
                      (owner)
                      (mat_ivn_up)
                      (item_ivn_up)
+                     (current_stage)
                      (last_rebirth)
-                     (dmw)
+                     (powder)
                      (maxfloor)
                      (rebrith_factor)
                      (season)
                      (received)
                      (spending)
                      (v1)
+                     (v2)
                      )
 };
 
