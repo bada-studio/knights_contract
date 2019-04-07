@@ -8,6 +8,7 @@ enum contrat_type {
     ct_item_iventory_up, // 6
     ct_mp_instant, // 7
     ct_skin, // 8
+    ct_dmw, // 9
 };
 
 // 42 bytes

@@ -1,6 +1,9 @@
 //@abi table rmpgoods i64
 struct rmpgoods {
-    uint64_t pid;
+    uint32_t pid;
+    uint8_t type;
+    uint8_t v1;
+    uint16_t v2;
     uint32_t powder;
     asset price;
 
@@ -14,6 +17,9 @@ struct rmpgoods {
     EOSLIB_SERIALIZE(
             rmpgoods,
             (pid)
+            (type)
+            (v1)
+            (v2)
             (powder)
             (price)
     )

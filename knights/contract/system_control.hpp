@@ -10,7 +10,6 @@ private:
     player_control &player_controller;
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
-    variable_control &variable_controller;
 
     struct st_transfer {
         account_name from;
@@ -31,8 +30,7 @@ public:
     system_control(account_name _self,
                    player_control &_player_controller,
                    saleslog_control &_saleslog_controller,
-                   admin_control &_admin_controller,
-                   variable_control &_variable_controller)
+                   admin_control &_admin_controller)
         : self(_self)
         , players(_self, _self)
         , playervs_old(_self, _self)
@@ -41,7 +39,6 @@ public:
         , player_controller(_player_controller)
         , saleslog_controller(_saleslog_controller)
         , admin_controller(_admin_controller)
-        , variable_controller(_variable_controller)
         , last_checksum(0)
         , last_trx_hash(0) {
     }
@@ -143,8 +140,7 @@ public:
     }
 
     void new_player(name from) {
-        auto& variables = variable_controller.rvariable_controller;
-        auto& rules = variables.get_table();
+        rvariable_table rules(self, self);
         auto rule = rules.find(vt_init_powder);
         eosio_assert(rule != rules.end(), "can not found powder rule" );
 
