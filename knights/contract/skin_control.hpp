@@ -3,7 +3,6 @@
 class skin_control : public control_base {
 private:
     account_name self;
-
     system_control &system_controller;
     saleslog_control &saleslog_controller;
 

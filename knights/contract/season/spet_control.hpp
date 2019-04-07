@@ -3,7 +3,6 @@
 class spet_control : public drop_control_base {
 private:
     account_name self;
-
     system_control &system_controller;
     std::vector<petrow> empty_petrows;
 

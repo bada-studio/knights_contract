@@ -371,7 +371,7 @@ public:
                 grade = ig_unique;
             }
 
-            matcode = get_bottie(*player, grade, rval);
+            matcode = get_bottie(grade, rval);
         }
 
         // add materials

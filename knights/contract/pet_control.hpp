@@ -3,7 +3,6 @@
 class pet_control : public drop_control_base {
 private:
     account_name self;
-
     system_control &system_controller;
     material_control &material_controller;
 
@@ -466,7 +465,7 @@ public:
         }
 
         // determin material
-        uint16_t bottie = get_bottie(*player, bottie_grade, rval);
+        uint16_t bottie = get_bottie(bottie_grade, rval);
         assert_true(bottie != 0, "invalid material drop");
         material_controller.add_material(from, bottie);
 

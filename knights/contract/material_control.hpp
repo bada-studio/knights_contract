@@ -1,28 +1,48 @@
 #pragma once
 
 /*
- * material base controller
+ * base material controller
  */
-template<uint64_t tn>
+template<typename material_table_name, 
+         typename player_name,
+         typename player_table_name,
+         typename player_control_name>
 class material_control_base : public drop_control_base {
 protected:
     account_name self;
+    system_control &system_controller;
+    player_control_name &player_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
-    material_control_base(account_name _self)
-            : self(_self) {
+    material_control_base(account_name _self,
+                          system_control &_system_controller, 
+                          player_control_name &_player_controller)
+            : self(_self)
+            , system_controller(_system_controller)
+            , player_controller(_player_controller) {
     }
 
     // internal apis
     //-------------------------------------------------------------------------
+    int get_max_inventory_size(const player_name& player) {
+        int size = kv_material_inventory_size;
+        int upgrade = player.mat_ivn_up;
+        if (upgrade > kv_max_material_inventory_up) {
+            upgrade = kv_max_material_inventory_up;
+        }
+
+        size += upgrade * kv_bonus_size_for_inventory_up;
+        return size;
+    }
+
     void add_material(name from, uint16_t code) {
         matrow row;
         row.code = code;
         row.saleid = 0;
 
-        eosio::multi_index<tn, material> materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
@@ -42,7 +62,7 @@ public:
     }
 
     void add_materials(name from, const uint16_t mats[]) {
-        eosio::multi_index<tn, material> materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
@@ -86,7 +106,7 @@ public:
     }
 
     void make_material_forsale(name from, uint64_t materialid, uint64_t saleid) {
-        eosio::multi_index<tn, material> materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
 
@@ -105,7 +125,7 @@ public:
     }
 
     void cancel_sale(name from, uint64_t saleid) {
-        eosio::multi_index<tn, material> materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
 
@@ -124,7 +144,7 @@ public:
     }
 
     void remove_salematerial(name from, uint64_t saleid) {
-        eosio::multi_index<tn, material> materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
 
@@ -150,7 +170,7 @@ public:
     }
 
     uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids, bool only_check = false) {
-        eosio::multi_index<tn, material> materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
         rmaterial_table mat_rule(self, self);
@@ -202,44 +222,13 @@ public:
         assert_true(found, "could not found material");
         return powder;
     }
-};
-
-
-/*
- * normal mode material controller
- */
-class material_control : public material_control_base<N(material)> {
-private:
-    system_control &system_controller;
-
-public:
-    // constructor
-    //-------------------------------------------------------------------------
-    material_control(account_name _self,
-                     system_control &_system_controller)
-            : material_control_base(_self)
-            , system_controller(_system_controller) {
-    }
-
-    // internal apis
-    //-------------------------------------------------------------------------
-    int get_max_inventory_size(const player& player) {
-        int size = kv_material_inventory_size;
-        int upgrade = player.mat_ivn_up;
-        if (upgrade > kv_max_material_inventory_up) {
-            upgrade = kv_max_material_inventory_up;
-        }
-
-        size += upgrade * kv_bonus_size_for_inventory_up;
-        return size;
-    }
 
     // actions
     //-------------------------------------------------------------------------
     void remove(name from, const std::vector<uint32_t> &mat_ids) {
         require_auth(from);
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "can not found player");
 
@@ -282,7 +271,7 @@ public:
         system_controller.require_action_count(1);
 
         auto variable = *pvsi;
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "can not found player");
 
@@ -293,7 +282,7 @@ public:
         assert_true(grade >= ig_rare, "invalid grade");
         assert_true(grade <= ig_legendary, "invalid grade");
 
-        material_table materials(self, self);
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "can not found material");
         double rate = calculate_alchemist_rate(grade, *iter, mat_ids);
@@ -307,9 +296,9 @@ public:
 
         int code = 1;
         if (success) {
-            code = get_bottie(*player, grade, rval);
+            code = get_bottie(grade, rval);
         } else {
-            code = get_bottie(*player, grade - 1, rval);
+            code = get_bottie(grade - 1, rval);
         }
 
         add_material(from, code);
@@ -364,5 +353,25 @@ private:
 
         double rate = (1 - failure) * (get_alchemist_rate(grade) / 100.0);
         return rate;
+    }    
+};
+
+
+/*
+ * normal mode material controller
+ */
+class material_control : public material_control_base<
+    material_table, 
+    player, 
+    player_table, 
+    player_control> {
+
+public:
+    // constructor
+    //-------------------------------------------------------------------------
+    material_control(account_name _self,
+                     system_control &_system_controller,
+                     player_control &_player_controller)
+            : material_control_base(_self, _system_controller, _player_controller) {
     }
 };

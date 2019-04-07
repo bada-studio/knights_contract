@@ -73,7 +73,7 @@ protected:
 
 class drop_control_base : public control_base {
 protected:
-    int get_bottie(const player& player, int grade, random_val &rval) {
+    int get_bottie(int grade, random_val &rval) {
         int start = 0;
         int length = 0;
 

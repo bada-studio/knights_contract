@@ -78,6 +78,8 @@ using eosio::name;
 #include "contract/saleslog_control.hpp"
 #include "contract/variable_control.hpp"
 #include "contract/system_control.hpp"
+#include "contract/player_control.hpp"
+#include "contract/season/splayer_control.hpp"
 #include "contract/material_control.hpp"
 #include "contract/item_control.hpp"
 #include "contract/pet_control.hpp"
@@ -100,6 +102,8 @@ private:
     // controls
     variable_control variable_controller;
     system_control system_controller;
+    player_control player_controller;
+    splayer_control splayer_controller;
     material_control material_controller;
     pet_control pet_controller;
     knight_control knight_controller;
@@ -135,7 +139,10 @@ public:
     , variable_controller(_self)
     , saleslog_controller(_self)
     , system_controller(_self, saleslog_controller, admin_controller, variable_controller)
-    , material_controller(_self, system_controller)
+    , player_controller(_self)
+    , splayer_controller(_self)
+    , material_controller(_self, system_controller, player_controller)
+    , smaterial_controller(_self, system_controller, splayer_controller)
     , item_controller(_self, material_controller, system_controller)
     , pet_controller(_self, system_controller, material_controller)
     , knight_controller(_self, material_controller, item_controller, pet_controller, system_controller, saleslog_controller)
@@ -144,7 +151,6 @@ public:
     , cquest_controller(_self, item_controller, system_controller, admin_controller)
     , dquest_controller(_self, item_controller, system_controller, admin_controller)
     , season_controller(_self, item_controller, system_controller, knight_controller, admin_controller)
-    , smaterial_controller(_self)
     , spet_controller(_self, system_controller)
     , dungeon_controller(_self, material_controller, system_controller, knight_controller, dquest_controller)
     , itemevt_controller(_self, system_controller, item_controller)

@@ -2,11 +2,11 @@
 
 class system_control : public control_base {
 private:
+    account_name self;
     player_table players;
     playerv_table playervs_old;
     playerv2_table playervs;
 
-    account_name self;
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
     variable_control &variable_controller;
