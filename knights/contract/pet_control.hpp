@@ -4,7 +4,7 @@ class pet_control : public drop_control_base {
 private:
     account_name self;
 
-    player_control &player_controller;
+    system_control &system_controller;
     material_control &material_controller;
 
     std::vector<petrow> empty_petrows;
@@ -15,10 +15,10 @@ public:
     /// @brief
     /// Constructor
     pet_control(account_name _self,
-                player_control &_player_controller,
+                system_control &_system_controller,
                 material_control &_material_controller)
             : self(_self)
-            , player_controller(_player_controller)
+            , system_controller(_system_controller)
             , material_controller(_material_controller) {
     }
 
@@ -142,14 +142,14 @@ public:
     /// @param checksum
     /// To prevent bots
     void petgacha(name from, uint16_t type, uint8_t count, uint32_t checksum, bool delay, bool frompay) {
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_petgacha(player, type, count, delay, pvsi)) {
                 eosio::transaction out{};
@@ -159,7 +159,7 @@ public:
                     std::make_tuple(from, type, count, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -210,8 +210,8 @@ public:
         auto max_level = get_max_pet_level(rule->grade);
         assert_true(pet.level < max_level, "already max up");
 
-        auto player = player_controller.get_player(from);
-        assert_true(!player_controller.is_empty_player(player), "could not find player");
+        auto player = system_controller.get_player(from);
+        assert_true(!system_controller.is_empty_player(player), "could not find player");
 
         int powder = 0;
         switch (rule->grade) {
@@ -224,7 +224,7 @@ public:
 
         assert_true(powder <= player->powder, "not enough powder");
         if (powder > 0) {
-            player_controller.decrease_powder(player, powder);
+            system_controller.decrease_powder(player, powder);
         }
 
         pets.modify(iter, self, [&](auto& pet){
@@ -338,11 +338,11 @@ public:
     }
 
     void pexpreturn(name from, uint16_t code, uint32_t checksum, bool delay, bool frompay) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_pexpreturn(from, code, delay, pvsi)) {
                 eosio::transaction out{};
@@ -352,7 +352,7 @@ public:
                     std::make_tuple(from, code, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -366,8 +366,8 @@ public:
     }
 
     bool do_pexpreturn(name from, uint16_t code, bool only_check, playerv2_table::const_iterator pvsi) {
-        player_controller.require_action_count(1);
-        auto gdr = player_controller.get_global_drop_factor();
+        system_controller.require_action_count(1);
+        auto gdr = system_controller.get_global_drop_factor();
 
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
@@ -419,7 +419,7 @@ public:
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
@@ -444,7 +444,7 @@ public:
         mw = mw * duration / time_util::day;
 
         auto variable = *pvsi;
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         int range = (int)rval.range(21) - 10;
         mw += mw * range / 100;
         mw = std::max(0, mw);
@@ -470,9 +470,9 @@ public:
         assert_true(bottie != 0, "invalid material drop");
         material_controller.add_material(from, bottie);
 
-        player_controller.end_random(variable, rval);
+        system_controller.end_random(variable, rval);
         variable.clear_deferred_time();
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
@@ -504,7 +504,7 @@ public:
 private:
     bool do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         assert_true(type > 0 && type < pgt_count, "invalid gacha type");
         assert_true(count > 0 && count < 10, "invalid count");
@@ -523,7 +523,7 @@ private:
         powder *= count;
         assert_true(powder <= player->powder, "not enough powder");
         if (powder > 0) {
-            player_controller.decrease_powder(player, powder, only_check);
+            system_controller.decrease_powder(player, powder, only_check);
         }
 
         if (only_check) {
@@ -574,7 +574,7 @@ private:
         }
 
         auto variable = *pvsi;
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         for (int index = 0; index < count; ++index) {
             int pos = rval.range(sum);
             int value = 0;
@@ -597,9 +597,9 @@ private:
             }
         }
 
-        player_controller.end_random(variable, rval);
+        system_controller.end_random(variable, rval);
         variable.clear_deferred_time();
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 

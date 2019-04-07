@@ -3,15 +3,15 @@
 class novaevt_control : public control_base {
 private:
     account_name self;
-    player_control &player_controller;
+    system_control &system_controller;
 
 public:
     /// @brief
     /// Constructor
     novaevt_control(account_name _self,
-                  player_control &_player_controller)
+                  system_control &_system_controller)
             : self(_self)
-            , player_controller(_player_controller) {
+            , system_controller(_system_controller) {
     }
 
     // actions
@@ -19,10 +19,10 @@ public:
     void getnova(name from, const std::string &memo) {
         require_auth(N(novapromote1));
 
-        auto player = player_controller.get_player(from);
-        if (player_controller.is_empty_player(player)) {
-            player_controller.new_player(from);
-            player = player_controller.get_player(from);
+        auto player = system_controller.get_player(from);
+        if (system_controller.is_empty_player(player)) {
+            system_controller.new_player(from);
+            player = system_controller.get_player(from);
         }
 
         novaevt_table table(self, self);
@@ -35,7 +35,7 @@ public:
             target.remain -= target.amount;
         });
 
-        player_controller.increase_powder(player, iter  ->amount);
+        system_controller.increase_powder(player, iter  ->amount);
     }
 
     void addnova(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {

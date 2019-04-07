@@ -3,17 +3,17 @@
 class itemevt_control : public control_base {
 private:
     account_name self;
-    player_control &player_controller;
+    system_control &system_controller;
     item_control &item_controller;
 
 public:
     /// @brief
     /// Constructor
     itemevt_control(account_name _self,
-                    player_control &_player_controller,
+                    system_control &_system_controller,
                     item_control &_item_controller)
             : self(_self)
-            , player_controller(_player_controller)
+            , system_controller(_system_controller)
             , item_controller(_item_controller) {
     }
 
@@ -23,10 +23,10 @@ public:
         require_auth(N(bastetbastet));
 
         // get player info
-        auto player = player_controller.get_player(from);
-        assert_true(!player_controller.is_empty_player(player), "no player");
+        auto player = system_controller.get_player(from);
+        assert_true(!system_controller.is_empty_player(player), "no player");
 
-        auto pvsi = player_controller.get_playervs(from, true);
+        auto pvsi = system_controller.get_playervs(from, true);
         auto variable = *pvsi;
 
         // get event
@@ -50,11 +50,11 @@ public:
 
         // update event
         variable.itemevt = iter->id;
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
     }
 
     void addevtitem(uint64_t id, uint32_t code, uint32_t from, uint32_t day) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
         auto now = time_util::now();
         
         ritem_table rule_table(self, self);

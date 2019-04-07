@@ -6,7 +6,7 @@ private:
     item4sale_table items;
     mat4sale_table materials;
 
-    player_control &player_controller;
+    system_control &system_controller;
     item_control &item_controller;
     material_control &material_controller;
     saleslog_control &saleslog_controller;
@@ -40,7 +40,7 @@ public:
     market_control(account_name _self,
                    material_control &_material_controller,
                    item_control &_item_controller,
-                   player_control &_player_controller,
+                   system_control &_system_controller,
                    saleslog_control &_saleslog_controller,
                    knight_control &_knight_controller)
             : self(_self)
@@ -48,7 +48,7 @@ public:
             , materials(_self, _self)
             , material_controller(_material_controller)
             , item_controller(_item_controller)
-            , player_controller(_player_controller)
+            , system_controller(_system_controller)
             , saleslog_controller(_saleslog_controller)
             , knight_controller(_knight_controller) {
     }
@@ -79,7 +79,7 @@ public:
     //-------------------------------------------------------------------------
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
-        player_controller.check_blacklist(from);
+        system_controller.check_blacklist(from);
         require_sell_cooltime(from);
 
         auto &rows = item_controller.get_items(from);
@@ -134,14 +134,14 @@ public:
     }
 
     void require_sell_cooltime(name from) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
         uint32_t next = pvsi->last_sell_time + (int)(10 * (pvsi->sell_factor / 100.0));
         time current = time_util::now_shifted();
         assert_true(current >= next, "too short to sell");
     }
 
     void set_sell_factor(name from) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
         auto variable = *pvsi;
 
         time current = time_util::now_shifted();
@@ -165,12 +165,12 @@ public:
         sell_factor = std::min(6.0, sell_factor);
         variable.sell_factor = (int)(sell_factor * 100);
         variable.last_sell_time = current;
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
     }
 
     asset buyitem(name from, const transfer_action &ad) {
         require_auth(from);
-        player_controller.checksum_gateway(from, ad.block, ad.checksum);
+        system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;
@@ -182,7 +182,7 @@ public:
             //assert_true(saleitem->player == ad.seller, "seller not matching");
         }
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "can not found player info");
 
@@ -258,7 +258,7 @@ public:
 
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
-        player_controller.check_blacklist(from);
+        system_controller.check_blacklist(from);
         require_sell_cooltime(from);
 
         material_table materials(self, self);
@@ -303,12 +303,12 @@ public:
 
     asset buymat(name from, const transfer_action &ad) {
         require_auth(from);
-        player_controller.checksum_gateway(from, ad.block, ad.checksum);
+        system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "can not found player info");
 
@@ -399,7 +399,7 @@ private:
     int get_max_sell_count(name from) {
         auto &knights = knight_controller.get_knights(from);
         auto max_sell_count = knights.size();
-        auto player = player_controller.get_player(from);
+        auto player = system_controller.get_player(from);
         if (player->maxfloor >= kv_bonus_sell1_floor) {
             max_sell_count++;
         }

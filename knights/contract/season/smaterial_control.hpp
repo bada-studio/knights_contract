@@ -1,15 +1,11 @@
 #pragma once
 
 class smaterial_control : public material_control_base<N(smaterial)> {
-private:
-    //player_control &player_controller;
-
 public:
     // constructor
     //-------------------------------------------------------------------------
     smaterial_control(account_name _self)
             : material_control_base(_self) {
-//            , player_controller(_player_controller) 
     }
 
     // internal apis
@@ -20,7 +16,6 @@ public:
 
     // actions
     //-------------------------------------------------------------------------
-    /*
     void remove(name from, const std::vector<uint32_t> &mat_ids) {
         require_auth(from);
 
@@ -33,5 +28,4 @@ public:
             target.powder += powder;
         });
     }
-    */
 };

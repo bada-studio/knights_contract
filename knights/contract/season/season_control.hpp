@@ -5,7 +5,7 @@ private:
     account_name self;
     item_control &item_controller;
     admin_control &admin_controller;
-    player_control &player_controller;
+    system_control &system_controller;
     knight_control &knight_controller;
 
 public:
@@ -13,12 +13,12 @@ public:
     //-------------------------------------------------------------------------
     season_control(account_name _self,
                    item_control &_item_controller,
-                   player_control &_player_controller,
+                   system_control &_system_controller,
                    knight_control &_knight_controller, 
                    admin_control &_admin_controller)
         : self(_self)
         , item_controller(_item_controller)
-        , player_controller(_player_controller)
+        , system_controller(_system_controller)
         , knight_controller(_knight_controller)
         , admin_controller(_admin_controller) {
     }
@@ -83,7 +83,7 @@ public:
     void addseason(uint32_t id, uint64_t start, uint32_t day, uint32_t speed, 
                    uint32_t powder, uint32_t stage, asset spending_limit, 
                    const std::vector<asset> &rewards, const std::vector<std::string> &sponsors) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
 
         season_table table(self, self);
         auto iter = table.find(id);

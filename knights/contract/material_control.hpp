@@ -210,15 +210,15 @@ public:
  */
 class material_control : public material_control_base<N(material)> {
 private:
-    player_control &player_controller;
+    system_control &system_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
     material_control(account_name _self,
-                     player_control &_player_controller)
+                     system_control &_system_controller)
             : material_control_base(_self)
-            , player_controller(_player_controller) {
+            , system_controller(_system_controller) {
     }
 
     // internal apis
@@ -239,7 +239,7 @@ public:
     void remove(name from, const std::vector<uint32_t> &mat_ids) {
         require_auth(from);
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "can not found player");
 
@@ -250,11 +250,11 @@ public:
     }
 
     void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay, bool frompay) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_alchemist(from, grade, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
@@ -264,7 +264,7 @@ public:
                     std::make_tuple(from, grade, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
                 return;
             }
         } else {
@@ -279,10 +279,10 @@ public:
     }
 
     bool do_alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         auto variable = *pvsi;
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "can not found player");
 
@@ -301,7 +301,7 @@ public:
             return only_check;
         }
 
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         auto success = (rval.range(10000) < rate * 10000);
         remove_mats(from, mat_ids);
 
@@ -313,10 +313,10 @@ public:
         }
 
         add_material(from, code);
-        player_controller.end_random(variable, rval);
+        system_controller.end_random(variable, rval);
 
         variable.clear_deferred_time();
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 

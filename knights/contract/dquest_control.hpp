@@ -5,18 +5,18 @@ private:
     account_name self;
     item_control &item_controller;
     admin_control &admin_controller;
-    player_control &player_controller;
+    system_control &system_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
     dquest_control(account_name _self,
                    item_control &_item_controller,
-                   player_control &_player_controller,
+                   system_control &_system_controller,
                    admin_control &_admin_controller)
         : self(_self)
         , item_controller(_item_controller)
-        , player_controller(_player_controller)
+        , system_controller(_system_controller)
         , admin_controller(_admin_controller) {
     }
 
@@ -115,7 +115,7 @@ public:
     }
 
     void removeplayer(name to) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
 
         dquest_table table(self, self);
         if (table.cbegin() == table.cend()) {
@@ -145,7 +145,7 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void adddquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
 
         dquest_table table(self, self);
         auto iter = table.find(id);
@@ -196,7 +196,7 @@ public:
 
     /*
     void removedquest(uint32_t id, bool force) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
 
         dquest_table table(self, self);
         auto iter = table.find(id);
@@ -213,7 +213,7 @@ public:
     */
 
     void updatedsubq(uint32_t id, const std::vector<dquestdetail>& details) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
 
         dquest_table table(self, self);
         auto iter = table.find(id);
@@ -249,7 +249,7 @@ public:
     }
 
     void divdquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
 
         dquest_table table(self, self);
         auto dquest = table.find(id);

@@ -6,7 +6,7 @@ private:
     item_table items;
 
     material_control &material_controller;
-    player_control &player_controller;
+    system_control &system_controller;
 
     std::vector<itemrow> empty_itemrows;
     itemrow empty_itemrow;
@@ -16,11 +16,11 @@ public:
     //-------------------------------------------------------------------------
     item_control(account_name _self,
                  material_control &_material_controller,
-                 player_control &_player_controller)
+                 system_control &_system_controller)
             : self(_self)
             , items(_self, _self)
             , material_controller(_material_controller)
-            , player_controller(_player_controller)  {
+            , system_controller(_system_controller)  {
     }
 
     // internal apis
@@ -343,14 +343,14 @@ public:
     void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay, bool frompay) {
         assert_true(mat_ids.size() > 0, "needs material for the crafting!");
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_craft(player, code, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
@@ -360,7 +360,7 @@ public:
                     std::make_tuple(from, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -384,7 +384,7 @@ public:
 
         int powder = remove_items(from, item_ids);
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "can not found player");
 
@@ -444,12 +444,12 @@ public:
     /// @param id
     /// Target item
     int8_t itemlvup(name from, uint32_t id, uint32_t checksum, bool delay, bool frompay) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
         int8_t knt_id = 0;
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_itemlvup(from, id, delay, &knt_id, pvsi)) {
                 eosio::transaction out{};
@@ -459,7 +459,7 @@ public:
                     std::make_tuple(from, id, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
                 return 0;
             }
         } else {
@@ -476,7 +476,7 @@ public:
     }
 
     bool do_itemlvup(name from, uint32_t id, bool only_check, int8_t *knt_id, playerv2_table::const_iterator pvsi) {
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         auto iter = items.find(from);
         auto &rows = get_items(iter);
@@ -506,7 +506,7 @@ public:
             case ig_chaos: powder = lvrule->powder6; break;
         }
 
-        auto player = player_controller.get_player(from);
+        auto player = system_controller.get_player(from);
         assert_true(powder <= player->powder, "not enough powder");
 
         // level up success
@@ -517,9 +517,9 @@ public:
                 return true;
             }
 
-            auto rval = player_controller.begin_random(variable);
+            auto rval = system_controller.begin_random(variable);
             success = (rval.range(10000) < lvrule->rate);
-            player_controller.end_random(variable, rval);
+            system_controller.end_random(variable, rval);
         } else {
             only_check = false;
         }
@@ -528,7 +528,7 @@ public:
             powder /= 2;
         }
 
-        player_controller.decrease_powder(player, powder);
+        system_controller.decrease_powder(player, powder);
 
         items.modify(iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
@@ -548,19 +548,19 @@ public:
 
         *knt_id = knight;
         variable.clear_deferred_time();
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
     uint32_t random_dna(const ritem &rule, name from, int code, playerv2 &variable) {
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         uint32_t stat1 = rval.range(101);
         uint32_t stat2 = rval.range(101);
         uint32_t stat3 = rval.range(101);
         uint32_t reveal1 = 1;
         uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
         uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
-        player_controller.end_random(variable, rval);
+        system_controller.end_random(variable, rval);
 
         uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
         uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;
@@ -570,7 +570,7 @@ public:
 private:
     bool do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         ritem_table rule_table(self, self);
         auto recipe = rule_table.find(code);
@@ -624,7 +624,7 @@ private:
         add_item(from, code, dna, 1, 0);
 
         variable.clear_deferred_time();
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 

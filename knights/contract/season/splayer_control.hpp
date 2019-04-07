@@ -1,36 +1,13 @@
 #pragma once
 
-class player_control : public control_base {
+class splayer_control : public control_base {
 private:
-    player_table players;
-    playerv_table playervs_old;
-    playerv2_table playervs;
-
     account_name self;
-    saleslog_control &saleslog_controller;
-    admin_control &admin_controller;
-    variable_control &variable_controller;
-
-    struct st_transfer {
-        account_name from;
-        account_name to;
-        asset        quantity;
-        std::string  memo;
-    };
-
-    uint32_t last_checksum;
-    uint32_t last_trx_hash;
-
-public:
-    rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
-    player_control(account_name _self,
-                   saleslog_control &_saleslog_controller,
-                   admin_control &_admin_controller,
-                   variable_control &_variable_controller)
+    splayer_control(account_name _self)
         : self(_self)
         , players(_self, _self)
         , playervs_old(_self, _self)

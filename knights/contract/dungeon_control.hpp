@@ -4,7 +4,7 @@ class dungeon_control : public drop_control_base {
 private:
     account_name self;
     material_control &material_controller;
-    player_control &player_controller;
+    system_control &system_controller;
     knight_control &knight_controller;
     dquest_control &dquest_controller;
 
@@ -19,7 +19,7 @@ public:
     //-------------------------------------------------------------------------
     dungeon_control(account_name _self,
                     material_control &_material_controller,
-                    player_control &_player_controller,
+                    system_control &_system_controller,
                     knight_control &_knight_controller,
                     dquest_control &_dquest_controller)
         : self(_self)
@@ -28,7 +28,7 @@ public:
         , mobs_rule_controller(_self, N(mobs))
         , mobskills_rule_controller(_self, N(mobskills))
         , material_controller(_material_controller)
-        , player_controller(_player_controller)
+        , system_controller(_system_controller)
         , knight_controller(_knight_controller)
         , dquest_controller(_dquest_controller)
         {
@@ -106,7 +106,7 @@ public:
         require_auth(from);
 
         // get player
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -154,7 +154,7 @@ public:
 
     void dgenter(name from, uint16_t code) {
         require_auth(from);
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -236,9 +236,9 @@ public:
             target.tickets[tpos].reduce_count(rule->tkcount);
 
             // set seed
-            auto key = player_controller.get_checksum_key(from);
+            auto key = system_controller.get_checksum_key(from);
             data.seed = (uint32_t)((from + time_now) ^ key);
-            data.seed ^= player_controller.get_key(from);
+            data.seed ^= system_controller.get_key(from);
 
             // add dungeon
             target.rows.push_back(data);
@@ -247,7 +247,7 @@ public:
 
     void dgleave(name from, uint16_t code) {
         require_auth(from);
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -278,17 +278,17 @@ public:
         });
 
         // add magic water
-        player_controller.increase_powder(player, rule->losemw);
+        system_controller.increase_powder(player, rule->losemw);
     }
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay, bool frompay) {
-        player_controller.check_blacklist(from);
+        system_controller.check_blacklist(from);
 
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_dgclear(from, code, orders, delay, pvsi)) {
                 eosio::transaction out{};
@@ -298,7 +298,7 @@ public:
                     std::make_tuple(from, code, orders, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -312,10 +312,10 @@ public:
     }
 
     bool do_dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool only_check, playerv2_table::const_iterator pvsi) {
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         // get player
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -350,9 +350,9 @@ public:
         }
 
         // determin drop material
-        auto gdr = player_controller.get_global_drop_factor();
+        auto gdr = system_controller.get_global_drop_factor();
         auto variable = *pvsi;
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         auto value = rval.range(100'00);
         uint16_t matcode = 0;
 
@@ -378,7 +378,7 @@ public:
         material_controller.add_material(from, matcode);
 
         // add magic water
-        player_controller.increase_powder(player, rule->winmw);
+        system_controller.increase_powder(player, rule->winmw);
 
         // update dungeon data
         table.modify(iter, self, [&](auto& target) {
@@ -391,8 +391,8 @@ public:
         dquest_controller.submitdquest(from, code, variable);
         
         variable.clear_deferred_time();
-        player_controller.end_random(variable, rval);
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.end_random(variable, rval);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
@@ -413,7 +413,7 @@ private:
         assert_true(mobrule_table.cend() != mobrule, "could not find dungeon rule");
 
         // decode
-        auto key = player_controller.get_key(from) ^ data.seed;
+        auto key = system_controller.get_key(from) ^ data.seed;
         std::vector<uint32_t> orders;
         orders.push_back(origin_orders[0]);
         for (int index = 1; index < length; index++) {
@@ -422,7 +422,7 @@ private:
         }
 
         dungeon_random dr;
-        dr.seed = data.seed ^ player_controller.get_key(from);
+        dr.seed = data.seed ^ system_controller.get_key(from);
 
         // validation
         uint32_t last = orders[length-1];

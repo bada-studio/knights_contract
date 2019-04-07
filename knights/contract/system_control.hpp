@@ -1,6 +1,6 @@
 #pragma once
 
-class player_control : public control_base {
+class system_control : public control_base {
 private:
     player_table players;
     playerv_table playervs_old;
@@ -27,7 +27,7 @@ public:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    player_control(account_name _self,
+    system_control(account_name _self,
                    saleslog_control &_saleslog_controller,
                    admin_control &_admin_controller,
                    variable_control &_variable_controller)

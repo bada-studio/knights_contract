@@ -77,7 +77,7 @@ using eosio::name;
 #include "contract/rule_controller.hpp"
 #include "contract/saleslog_control.hpp"
 #include "contract/variable_control.hpp"
-#include "contract/player_control.hpp"
+#include "contract/system_control.hpp"
 #include "contract/material_control.hpp"
 #include "contract/item_control.hpp"
 #include "contract/pet_control.hpp"
@@ -89,7 +89,7 @@ using eosio::name;
 #include "contract/season/season_control.hpp"
 #include "contract/season/smaterial_control.hpp"
 #include "contract/season/spet_control.hpp"
-#include "contract/player_control.cpp"
+#include "contract/system_control.cpp"
 #include "contract/dungeon_control.hpp"
 //#include "contract/novaevt_control.hpp"
 #include "contract/itemevt_control.hpp"
@@ -99,7 +99,7 @@ class knights : public eosio::contract, public control_base {
 private:
     // controls
     variable_control variable_controller;
-    player_control player_controller;
+    system_control system_controller;
     material_control material_controller;
     pet_control pet_controller;
     knight_control knight_controller;
@@ -134,21 +134,21 @@ public:
     , admin_controller(self)
     , variable_controller(_self)
     , saleslog_controller(_self)
-    , player_controller(_self, saleslog_controller, admin_controller, variable_controller)
-    , material_controller(_self, player_controller)
-    , item_controller(_self, material_controller, player_controller)
-    , pet_controller(_self, player_controller, material_controller)
-    , knight_controller(_self, material_controller, item_controller, pet_controller, player_controller, saleslog_controller)
-    , market_controller(_self, material_controller, item_controller, player_controller, saleslog_controller, knight_controller)
-    , powder_controller(_self, player_controller, saleslog_controller)
-    , cquest_controller(_self, item_controller, player_controller, admin_controller)
-    , dquest_controller(_self, item_controller, player_controller, admin_controller)
-    , season_controller(_self, item_controller, player_controller, knight_controller, admin_controller)
+    , system_controller(_self, saleslog_controller, admin_controller, variable_controller)
+    , material_controller(_self, system_controller)
+    , item_controller(_self, material_controller, system_controller)
+    , pet_controller(_self, system_controller, material_controller)
+    , knight_controller(_self, material_controller, item_controller, pet_controller, system_controller, saleslog_controller)
+    , market_controller(_self, material_controller, item_controller, system_controller, saleslog_controller, knight_controller)
+    , powder_controller(_self, system_controller, saleslog_controller)
+    , cquest_controller(_self, item_controller, system_controller, admin_controller)
+    , dquest_controller(_self, item_controller, system_controller, admin_controller)
+    , season_controller(_self, item_controller, system_controller, knight_controller, admin_controller)
     , smaterial_controller(_self)
-    , spet_controller(_self, player_controller)
-    , dungeon_controller(_self, material_controller, player_controller, knight_controller, dquest_controller)
-    , itemevt_controller(_self, player_controller, item_controller)
-    , skin_controller(_self, player_controller, saleslog_controller) {
+    , spet_controller(_self, system_controller)
+    , dungeon_controller(_self, material_controller, system_controller, knight_controller, dquest_controller)
+    , itemevt_controller(_self, system_controller, item_controller)
+    , skin_controller(_self, system_controller, saleslog_controller) {
     }
 
     // player related actions
@@ -156,45 +156,45 @@ public:
     /// @abi action
     void signup(name from) {
         require_auth(from);
-        player_controller.signup(from);
+        system_controller.signup(from);
         knight_controller.new_free_knight(from);
     }
 
     /// @abi action
     void signupbt(name from) {
         require_auth(N(bastetbastet));
-        player_controller.signup(from);
+        system_controller.signup(from);
         knight_controller.new_free_knight(from);
     }
 
     /// @abi action
     void referral(name from, name to) {
-        player_controller.referral(from, to);
+        system_controller.referral(from, to);
     }
 
     /// @abi action
     void getgift(name from, int16_t no) {
-        player_controller.getgift(from, no);
+        system_controller.getgift(from, no);
     }
 
     /// @abi action
     void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
-        player_controller.addgift(no, type, amount, to);
+        system_controller.addgift(no, type, amount, to);
     }
 
     /// @abi action
     void addcomment(name from, const std::string& message, const std::string& link) {
-        player_controller.addcomment(from, message, link);
+        system_controller.addcomment(from, message, link);
     }
 
     /// @abi action
     void reportofs(name from, name to) {
-        player_controller.reportofs(from, to);
+        system_controller.reportofs(from, to);
     }
 
     /// @abi action
     void addblackcmt(name to) {
-        player_controller.addblackcmt(to);
+        system_controller.addblackcmt(to);
     }
 
     /// @abi action
@@ -240,7 +240,7 @@ public:
 
     /// @abi action
     void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         cquest_controller.submitcquest(from, cquest_id, no, item_id);
     }
 
@@ -280,13 +280,13 @@ public:
 
     /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         knight_controller.rebirth(from, checksum, true, frompay);
     }
 
     /// @abi action
     void rebirth2i(name from, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         knight_controller.rebirth(from, checksum, false, false);
     }
 
@@ -319,19 +319,19 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         material_controller.remove(from, mat_ids);
     }
 
     /// @abi action
     void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         material_controller.alchemist(from, grade, mat_ids, checksum, true, frompay);
     }
 
     /// @abi action
     void alchemisti(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         material_controller.alchemist(from, grade, mat_ids, checksum, false, false);
     }
 
@@ -340,13 +340,13 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         item_controller.craft(from, code, mat_ids, checksum, true, frompay);
     }
 
     /// @abi action
     void craft2i(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         item_controller.craft(from, code, mat_ids, checksum, false, false);
     }
 
@@ -362,7 +362,7 @@ public:
 
     /// @abi action
     void itemlvup2(name from, uint32_t id, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         int8_t knight = item_controller.itemlvup(from, id, checksum, true, frompay);
         if (knight > 0) {
             knight_controller.refresh_stat(from, knight);
@@ -371,7 +371,7 @@ public:
 
     /// @abi action
     void itemlvup2i(name from, uint32_t id, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         int8_t knight = item_controller.itemlvup(from, id, checksum, false, false);
         if (knight > 0) {
             knight_controller.refresh_stat(from, knight);
@@ -382,7 +382,7 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "hire knight first!");
         pet_controller.petgacha(from, type, count, checksum, true, frompay);
@@ -390,7 +390,7 @@ public:
 
     /// @abi action
     void petgacha2i(name from, uint16_t type, uint8_t count, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         pet_controller.petgacha(from, type, count, checksum, false, false);
     }
 
@@ -416,13 +416,13 @@ public:
 
     /// @abi action
     void pexpreturn2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         pet_controller.pexpreturn(from, code, checksum, true, frompay);
     }
 
     /// @abi action
     void pexpreturn2i(name from, uint16_t code, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         pet_controller.pexpreturn(from, code, checksum, false, false);
     }
 
@@ -430,25 +430,25 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void sellitem2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         market_controller.sellitem(from, id, price);
     }
 
     /// @abi action
     void ccsellitem2(name from, uint64_t id, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         market_controller.ccsellitem(from, id);
     }
 
     /// @abi action
     void sellmat2(name from, uint64_t id, asset price, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         market_controller.sellmat(from, id, price);
     }
 
     /// @abi action
     void ccsellmat2(name from, uint64_t id, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         market_controller.ccsellmat(from, id);
     }
 
@@ -456,37 +456,37 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void dgtcraft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgtcraft(from, code, mat_ids);
     }
 
     /// @abi action
     void dgfreetk2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgfreetk(from, code);
     }
 
     /// @abi action
     void dgenter(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgenter(from, code);
     }
 
     /// @abi action
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t block, uint32_t checksum) {
-        bool frompay = player_controller.checksum_gateway(from, block, checksum);
+        bool frompay = system_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgclear(from, code, orders, checksum, true, frompay);
     }
 
     /// @abi action
     void dgcleari(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum) {
-        player_controller.set_last_checksum(checksum);
+        system_controller.set_last_checksum(checksum);
         dungeon_controller.dgclear(from, code, orders, checksum, false, false);
     }
 
     /// @abi action
     void dgleave(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        player_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         dungeon_controller.dgleave(from, code);
     }    
 
@@ -517,7 +517,7 @@ public:
     /*
     /// @abi action
     void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
-        player_controller.rivnprice_controller.create_rules(rules, truncate);
+        system_controller.rivnprice_controller.create_rules(rules, truncate);
     }
     /*/
     /// @abi action
@@ -630,7 +630,7 @@ public:
     /// @abi action
     void trule(name table, uint16_t size) {
         if (table == N(ivnprice)) {
-            player_controller.rivnprice_controller.truncate_rules(size);
+            system_controller.rivnprice_controller.truncate_rules(size);
         } else if (table == N(knt)) {
             rule_controller<rknt, rknt_table> knight_rule_controller(_self, N(knt));
             knight_rule_controller.truncate_rules(size);
@@ -727,7 +727,7 @@ public:
     // eosknights:material-sale
     //-------------------------------------------------------------------------
     void transfer(uint64_t sender, uint64_t receiver) {
-        player_controller.eosiotoken_transfer(sender, receiver, [&](const auto &ad) {
+        system_controller.eosiotoken_transfer(sender, receiver, [&](const auto &ad) {
             if (ad.action.size() == 0) {
                 return;
             }
@@ -754,10 +754,10 @@ public:
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_ivn) {
                 if (ad.param == tp_item) {
-                    player_controller.itemivnup(ad.from, ad.quantity);
+                    system_controller.itemivnup(ad.from, ad.quantity);
                     admin_controller.add_revenue(ad.quantity, rv_item_iventory_up);
                 } else if (ad.param == tp_mat) {
-                    player_controller.mativnup(ad.from, ad.quantity);
+                    system_controller.mativnup(ad.from, ad.quantity);
                     admin_controller.add_revenue(ad.quantity, rv_mat_iventory_up);
                 } else {
                     assert_true(false, "invalid inventory");

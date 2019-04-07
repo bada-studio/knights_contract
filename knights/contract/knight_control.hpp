@@ -8,7 +8,7 @@ private:
 
     material_control &material_controller;
     item_control &item_controller;
-    player_control &player_controller;
+    system_control &system_controller;
     pet_control &pet_controller;
     saleslog_control &saleslog_controller;
     std::vector<knightrow> empty_knightrows;
@@ -21,7 +21,7 @@ public:
                    material_control &_material_controller,
                    item_control &_item_controller,
                    pet_control &_pet_controller,
-                   player_control &_player_controller,
+                   system_control &_system_controller,
                    saleslog_control &_saleslog_controller)
             : self(_self)
             , knights(_self, _self)
@@ -29,7 +29,7 @@ public:
             , material_controller(_material_controller)
             , item_controller(_item_controller)
             , pet_controller(_pet_controller)
-            , player_controller(_player_controller)
+            , system_controller(_system_controller)
             , saleslog_controller(_saleslog_controller) {
     }
 
@@ -217,7 +217,7 @@ public:
         blog.price = price;
         saleslog_controller.add_buylog(blog, from);
 
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
@@ -241,8 +241,8 @@ public:
         assert_true(iter != knights.cend(), "could not found knight");
         auto &knight = get_knight(iter, type);
 
-        auto player = player_controller.get_player(from);
-        assert_true(player_controller.is_empty_player(player) == false, "could not find player");
+        auto player = system_controller.get_player(from);
+        assert_true(system_controller.is_empty_player(player) == false, "could not find player");
 
         uint64_t level = knight.level + 1;
         assert_true(level <= kv_max_knight_level, "already max level");
@@ -256,7 +256,7 @@ public:
         assert_true(powder <= player->powder, "Insufficient powder");
 
         if (powder > 0) {
-            player_controller.decrease_powder(player, powder);
+            system_controller.decrease_powder(player, powder);
         }
 
         knights.modify(iter, self, [&](auto& target) {
@@ -282,14 +282,14 @@ public:
     /// @param checksum
     /// To prevent bots
     void rebirth(name from, uint32_t checksum, bool delay, bool frompay) {
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_rebirth(from, player, delay, pvsi)) {
                 eosio::transaction out{};
@@ -299,7 +299,7 @@ public:
                     std::make_tuple(from, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -343,7 +343,7 @@ public:
         }
 
         assert_true(pass, "no one exceed stage minmium level");
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         auto player = players.find(from);
 
         players.modify(player, self, [&](auto& target) {
@@ -514,9 +514,9 @@ public:
         });
 
         // pay the price
-        auto player = player_controller.get_player(from);
-        assert_true(player_controller.is_empty_player(player) == false, "could not find player");
-        player_controller.decrease_powder(player, kv_skill_reset_price);
+        auto player = system_controller.get_player(from);
+        assert_true(system_controller.is_empty_player(player) == false, "could not find player");
+        system_controller.decrease_powder(player, kv_skill_reset_price);
     }
 
 private:
@@ -594,8 +594,8 @@ private:
 
     /// rebirth common logic
     bool do_rebirth(name from, player_table::const_iterator player, bool only_check, playerv2_table::const_iterator pvsi) {
-        player_controller.check_blacklist(from);
-        player_controller.require_action_count(1);
+        system_controller.check_blacklist(from);
+        system_controller.require_action_count(1);
         playerv2 variable = *pvsi;
 
         auto iter = knights.find(from);
@@ -660,8 +660,8 @@ private:
             }
         });
 
-        auto avg_floor = player_controller.get_global_avg_floor();
-        auto gdr = player_controller.get_global_drop_factor(avg_floor);
+        auto avg_floor = system_controller.get_global_avg_floor();
+        auto gdr = system_controller.get_global_drop_factor(avg_floor);
         double powder = 0;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] == 0) {
@@ -684,7 +684,7 @@ private:
         }
 
         auto &pets = pet_controller.get_pets(from);
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
             int pet_code = get_pet_for_knight(pets, index);
@@ -695,7 +695,7 @@ private:
         }
 
         material_controller.add_materials(from, botties);
-        auto &players = player_controller.get_players();
+        auto &players = system_controller.get_players();
         players.modify(player, self, [&](auto& target) {
             target.last_rebirth = current;
             target.powder += powder;
@@ -709,8 +709,8 @@ private:
             submit_floor(variable, old_max_floor, floor);
         }
 
-        player_controller.end_random(variable, rval);
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.end_random(variable, rval);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
