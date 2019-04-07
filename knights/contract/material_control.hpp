@@ -1,38 +1,28 @@
 #pragma once
 
-class material_control : public drop_control_base {
-private:
+/*
+ * material base controller
+ */
+template<uint64_t tn>
+class material_control_base : public drop_control_base {
+protected:
     account_name self;
-    player_control &player_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
-    material_control(account_name _self,
-                     player_control &_player_controller)
-            : self(_self)
-            , player_controller(_player_controller) {
+    material_control_base(account_name _self)
+            : self(_self) {
     }
 
     // internal apis
     //-------------------------------------------------------------------------
-    int get_max_inventory_size(const player& player) {
-        int size = kv_material_inventory_size;
-        int upgrade = player.mat_ivn_up;
-        if (upgrade > kv_max_material_inventory_up) {
-            upgrade = kv_max_material_inventory_up;
-        }
-
-        size += upgrade * kv_bonus_size_for_inventory_up;
-        return size;
-    }
-
     void add_material(name from, uint16_t code) {
         matrow row;
         row.code = code;
         row.saleid = 0;
 
-        material_table materials(self, self);
+        eosio::multi_index<tn, material> materials(self, self);
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
@@ -52,7 +42,7 @@ public:
     }
 
     void add_materials(name from, const uint16_t mats[]) {
-        material_table materials(self, self);
+        eosio::multi_index<tn, material> materials(self, self);
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
@@ -96,7 +86,7 @@ public:
     }
 
     void make_material_forsale(name from, uint64_t materialid, uint64_t saleid) {
-        material_table materials(self, self);
+        eosio::multi_index<tn, material> materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
 
@@ -115,7 +105,7 @@ public:
     }
 
     void cancel_sale(name from, uint64_t saleid) {
-        material_table materials(self, self);
+        eosio::multi_index<tn, material> materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
 
@@ -134,7 +124,7 @@ public:
     }
 
     void remove_salematerial(name from, uint64_t saleid) {
-        material_table materials(self, self);
+        eosio::multi_index<tn, material> materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
 
@@ -160,7 +150,7 @@ public:
     }
 
     uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids, bool only_check = false) {
-        material_table materials(self, self);
+        eosio::multi_index<tn, material> materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
         rmaterial_table mat_rule(self, self);
@@ -211,6 +201,37 @@ public:
 
         assert_true(found, "could not found material");
         return powder;
+    }
+};
+
+
+/*
+ * normal mode material controller
+ */
+class material_control : public material_control_base<N(material)> {
+private:
+    player_control &player_controller;
+
+public:
+    // constructor
+    //-------------------------------------------------------------------------
+    material_control(account_name _self,
+                     player_control &_player_controller)
+            : material_control_base(_self)
+            , player_controller(_player_controller) {
+    }
+
+    // internal apis
+    //-------------------------------------------------------------------------
+    int get_max_inventory_size(const player& player) {
+        int size = kv_material_inventory_size;
+        int upgrade = player.mat_ivn_up;
+        if (upgrade > kv_max_material_inventory_up) {
+            upgrade = kv_max_material_inventory_up;
+        }
+
+        size += upgrade * kv_bonus_size_for_inventory_up;
+        return size;
     }
 
     // actions
