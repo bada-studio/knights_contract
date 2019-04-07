@@ -1,12 +1,25 @@
 #pragma once
 
-class item_control : public control_base {
+/*
+ * base item controller
+ */
+template<typename item_table_name, 
+         typename item_table_const_iter_name, 
+         typename material_table_name, 
+         typename player_name,
+         typename player_table_const_iter_name,
+         typename player_control_name,
+         typename material_control_name,
+         uint64_t dcraft_name,
+         uint64_t ditemlvup_name>
+class item_control_base : public control_base {
 private:
     account_name self;
-    item_table items;
+    item_table_name items;
 
-    material_control &material_controller;
     system_control &system_controller;
+    player_control_name &player_controller;
+    material_control_name &material_controller;
 
     std::vector<itemrow> empty_itemrows;
     itemrow empty_itemrow;
@@ -14,18 +27,20 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    item_control(account_name _self,
-                 material_control &_material_controller,
-                 system_control &_system_controller)
+    item_control_base(account_name _self,
+                 system_control &_system_controller,
+                 player_control_name &_player_controller,
+                 material_control_name &_material_controller)
             : self(_self)
             , items(_self, _self)
-            , material_controller(_material_controller)
-            , system_controller(_system_controller)  {
+            , system_controller(_system_controller) 
+            , player_controller(_player_controller)
+            , material_controller(_material_controller) {
     }
 
     // internal apis
     //-------------------------------------------------------------------------
-    int get_max_inventory_size(const player& player) {
+    int get_max_inventory_size(const player_name& player) {
         int size = kv_item_inventory_size;
         int upgrade = player.item_ivn_up;
         if (upgrade > kv_max_item_inventory_up) {
@@ -140,7 +155,7 @@ public:
         }
     }
 
-    item_table::const_iterator find(name from) {
+    item_table_const_iter_name find(name from) {
         return items.find(from);
     }
 
@@ -149,7 +164,7 @@ public:
         return get_items(iter);
     }
 
-    const std::vector<itemrow>& get_items(item_table::const_iterator iter) {
+    const std::vector<itemrow>& get_items(item_table_const_iter_name iter) {
         if (iter != items.cend()) {
             return iter->rows;
         }
@@ -289,7 +304,7 @@ public:
         return powder;
     }
 
-    void set_item_knight(item_table::const_iterator iter, int32_t id, uint8_t knight) {
+    void set_item_knight(item_table_const_iter_name iter, int32_t id, uint8_t knight) {
         bool found = false;
         items.modify(iter, self, [&](auto& item){
             for (int index = 0; index < item.rows.size(); index++) {
@@ -356,7 +371,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, N(craft2i), 
+                    self, dcraft_name, 
                     std::make_tuple(from, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
@@ -455,7 +470,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, N(itemlvup2i), 
+                    self, ditemlvup_name, 
                     std::make_tuple(from, id, checksum)
                 );
                 out.delay_sec = 1;
@@ -568,7 +583,7 @@ public:
     }
 
 private:
-    bool do_craft(player_table::const_iterator player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
+    bool do_craft(player_table_const_iter_name player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
         system_controller.require_action_count(1);
 
@@ -587,10 +602,9 @@ private:
         int mat3_count = recipe->mat3_count;
         int mat4_count = recipe->mat4_count;
 
-        material_table materials(self, self);
+        material_table_name materials(self, self);
         auto imat = materials.find(from);
         assert_true(imat != materials.cend(), "no materials");
-        auto &mats = imat->rows;
 
         for (int index = 0; index < mat_ids.size(); index++) {
             auto &mat =  imat->get_material(mat_ids[index]);
@@ -661,5 +675,35 @@ private:
 
     uint32_t apply_bonus_stat(uint32_t stat, uint32_t bonus) {
         return stat * (bonus + 100) / 100;
+    }
+};
+
+
+/*
+ * normal mode item controller
+ */
+class item_control : public item_control_base<
+    item_table,
+    item_table::const_iterator, 
+    material_table, 
+    player,
+    player_table::const_iterator,
+    player_control,
+    material_control,
+    N(craft2i),
+    N(itemlvup2i)> {
+
+public:
+    // constructor
+    //-------------------------------------------------------------------------
+    item_control(account_name _self,
+                 system_control &_system_controller,
+                 player_control &_player_controller,
+                 material_control &_material_controller)
+            : item_control_base(
+                _self,
+                _system_controller,
+                _player_controller,
+                _material_controller) {
     }
 };
