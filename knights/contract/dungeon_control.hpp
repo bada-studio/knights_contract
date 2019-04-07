@@ -49,9 +49,13 @@ public:
         int cnt3 = rule->cnt3;
 
         // check recipe
-        auto &mats = material_controller.get_materials(from);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &mats = imat->rows;
+
         for (int index = 0; index < mat_ids.size(); index++) {
-            auto &mat = material_controller.get_material(mats, mat_ids[index]);
+            auto &mat = imat->get_material(mat_ids[index]);
             if (mat.code == rule->mat1) {
                 cnt1--;
             } else if (mat.code == rule->mat2) {
@@ -317,7 +321,11 @@ public:
         auto time_now = time_util::now_shifted();
 
         // check inventory size;
-        auto &mats = material_controller.get_materials(from);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &mats = imat->rows;
+        
         int exp_mat_count = mats.size() + 1;
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");

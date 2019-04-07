@@ -603,7 +603,11 @@ private:
         auto &rows = iter->rows;
 
         int total_kill_count = 0;
-        auto &mats = material_controller.get_materials(from);
+
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &mats = imat->rows;
         
         int old_max_floor = player->maxfloor;
         int exp_mat_count = mats.size() + rows.size();

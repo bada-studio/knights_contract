@@ -261,8 +261,12 @@ public:
         player_controller.check_blacklist(from);
         require_sell_cooltime(from);
 
-        auto &rows = material_controller.get_materials(from);
-        auto &mat = material_controller.get_material(rows, matid);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &rows = imat->rows;
+        auto &mat = imat->get_material(matid);
+
         assert_true(mat.saleid == 0, "already on sale");
 
         rmaterial_table mat_rules(self, self);
@@ -311,9 +315,15 @@ public:
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "there is no knight");
 
+        material_table mats(self, self);
+        auto imat = mats.find(from);
+        auto current_inventory_size = 0;
+        if (imat != mats.cend()) {
+            current_inventory_size = imat->rows.size();
+        }
+
         // inventory check
         int max_inventory_size = material_controller.get_max_inventory_size(*player);
-        int current_inventory_size = material_controller.get_materials(from).size();
         assert_true(current_inventory_size < max_inventory_size, "full inventory");
 
         auto salemat = materials.find(saleid);

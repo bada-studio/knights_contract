@@ -88,34 +88,6 @@ public:
         }
     }
 
-    const std::vector<matrow>& get_materials(name from) {
-        auto iter = materials.find(from);
-        if (iter != materials.cend()) {
-            return iter->rows;
-        }
-
-        return empty_matrows;
-    }
-
-    const matrow& get_material(const std::vector<matrow> &rows, int id) {
-        // binary search
-        int left = 0;
-        int right = rows.size() - 1;
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            if (rows[mid].id < id) {
-                left = mid + 1;
-            } else if (id < rows[mid].id) {
-                right = mid - 1;
-            } else {
-                return rows[mid];
-            }
-        }
-        
-        assert_true(false, "can not found material");
-        return empty_matrow;
-    }
-
     uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids, bool only_check = false) {
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");

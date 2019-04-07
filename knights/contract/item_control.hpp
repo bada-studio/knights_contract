@@ -587,10 +587,13 @@ private:
         int mat3_count = recipe->mat3_count;
         int mat4_count = recipe->mat4_count;
 
-        auto &mats = material_controller.get_materials(from);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &mats = imat->rows;
 
         for (int index = 0; index < mat_ids.size(); index++) {
-            auto &mat =  material_controller.get_material(mats, mat_ids[index]);
+            auto &mat =  imat->get_material(mat_ids[index]);
             assert_true(mat.saleid == 0, "material is on sale");
 
             if (mat.code == recipe->mat1_code) {

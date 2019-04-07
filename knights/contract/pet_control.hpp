@@ -6,7 +6,6 @@ private:
 
     player_control &player_controller;
     material_control &material_controller;
-    saleslog_control &saleslog_controller;
 
     std::vector<petrow> empty_petrows;
 
@@ -425,8 +424,14 @@ public:
         assert_true(player != players.cend(), "could not find player");
 
         // check inventory size;
-        auto &mats = material_controller.get_materials(from);
-        int exp_mat_count = mats.size() + 1;
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        auto current_inventory_size = 0;
+        if (imat != materials.cend()) {
+            current_inventory_size = imat->rows.size();
+        }
+
+        int exp_mat_count = current_inventory_size + 1;
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
