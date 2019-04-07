@@ -683,11 +683,10 @@ private:
             powder = 1;
         }
 
-        auto &pets = pet_controller.get_pets(from);
         auto rval = system_controller.begin_random(variable);
         uint16_t botties[kt_count] = {0, };
         for (int index = 1; index < kt_count; index++) {
-            int pet_code = get_pet_for_knight(pets, index);
+            int pet_code = pet_controller.get_pet_for(from, index);
 
             if (kill_counts[index] > 0) {
                 botties[index] = get_botties(*player, floor, lucks[index], kill_counts[index], *stagerule, rval, pet_code, gdr);

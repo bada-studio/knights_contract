@@ -1,36 +1,53 @@
 #pragma once
 
-class pet_control : public drop_control_base {
+/*
+ * base pet controller
+ */
+template<typename pet_table_name, 
+         typename player_name,
+         typename player_table_name,
+         typename player_table_const_iter_name,
+         typename player_control_name,
+         typename material_control_name,
+         uint64_t dpetgacha_name,
+         uint64_t dpexpreturn_name>
+class pet_control_base : public drop_control_base {
 private:
     account_name self;
     system_control &system_controller;
-    material_control &material_controller;
-
-    std::vector<petrow> empty_petrows;
+    player_control_name &player_controller;
+    material_control_name &material_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
     /// @brief
     /// Constructor
-    pet_control(account_name _self,
+    pet_control_base(account_name _self,
                 system_control &_system_controller,
-                material_control &_material_controller)
+                player_control_name &_player_controller,
+                material_control_name &_material_controller)
             : self(_self)
             , system_controller(_system_controller)
+            , player_controller(_player_controller)
             , material_controller(_material_controller) {
     }
 
     // internal apis
     //-------------------------------------------------------------------------
-    const std::vector<petrow>& get_pets(name from) {
-        pet_table pets(self, self);
+    int get_pet_for(name from, int knt) {
+        pet_table_name pets(self, self);
         auto iter = pets.find(from);
         if (iter != pets.cend()) {
-            return iter->rows;
+            auto &rows = iter->rows;
+            for (int index = 0; index < rows.size(); index++) {
+                if (rows[index].knight == knt) {
+                    return rows[index].code;
+                }
+            }
         }
 
-        return empty_petrows;
+        return 0;
     }
 
     void add_pet(name from, int code) {
@@ -39,7 +56,7 @@ public:
         row.level = 1;
         row.count = 1;
 
-        pet_table pets(self, self);
+        pet_table_name pets(self, self);
         auto iter = pets.find(from);
         if (iter == pets.cend()) {
             pets.emplace(self, [&](auto& pet){
@@ -76,8 +93,13 @@ public:
     /// Target to be calculated
     void apply_pet_stats(knight_stats &stat, name from, uint64_t knight) {
         rpet_table pet_rule(self, self);
-        auto &pets = get_pets(from);
+        pet_table_name pet_table(self, self);
+        auto ipet = pet_table.find(from);
+        if (ipet == pet_table.cend()) {
+            return;
+        }
 
+        auto &pets = ipet->rows;
         for (int index = 0; index < pets.size(); index++) {
             auto &pet = pets[index];
             if (pet.knight != knight) {
@@ -141,7 +163,7 @@ public:
     /// @param checksum
     /// To prevent bots
     void petgacha(name from, uint16_t type, uint8_t count, uint32_t checksum, bool delay, bool frompay) {
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
         auto pvsi = system_controller.get_playervs(from);
@@ -154,7 +176,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, N(petgacha2i), 
+                    self, dpetgacha_name, 
                     std::make_tuple(from, type, count, checksum)
                 );
                 out.delay_sec = 1;
@@ -181,7 +203,7 @@ public:
     int8_t petlvup(name from, uint16_t code) {
         require_auth(from);
 
-        pet_table pets(self, self);
+        pet_table_name pets(self, self);
         auto iter = pets.find(from);
         assert_true(iter != pets.cend(), "could not find pet");
         auto &rows = iter->rows;
@@ -209,8 +231,8 @@ public:
         auto max_level = get_max_pet_level(rule->grade);
         assert_true(pet.level < max_level, "already max up");
 
-        auto player = system_controller.get_player(from);
-        assert_true(!system_controller.is_empty_player(player), "could not find player");
+        auto player = player_controller.get_player(from);
+        assert_true(!player_controller.is_empty_player(player), "could not find player");
 
         int powder = 0;
         switch (rule->grade) {
@@ -223,7 +245,7 @@ public:
 
         assert_true(powder <= player->powder, "not enough powder");
         if (powder > 0) {
-            system_controller.decrease_powder(player, powder);
+            player_controller.decrease_powder(player, powder);
         }
 
         pets.modify(iter, self, [&](auto& pet){
@@ -246,7 +268,7 @@ public:
         require_auth(from);
         assert_true(is_pet_free(from, code), "the pet is on expedition or resting");
 
-        pet_table pets(self, self);
+        pet_table_name pets(self, self);
         auto iter = pets.find(from);
         assert_true(iter != pets.cend(), "can not found pet");
         
@@ -270,7 +292,7 @@ public:
     void pexpstart(name from, uint16_t code, int knight_max_level) {
         require_auth(from);
 
-        pet_table pets(self, self);
+        pet_table_name pets(self, self);
         petexp_table petexps(self, self);
         auto exp_iter = petexps.find(from);
         auto pet_iter = pets.find(from);
@@ -347,7 +369,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, N(pexpreturn2i), 
+                    self, dpexpreturn_name, 
                     std::make_tuple(from, code, checksum)
                 );
                 out.delay_sec = 1;
@@ -401,7 +423,12 @@ public:
         });
 
         assert_true(found, "can not found pet exp data");
-        auto &pets = get_pets(from);
+
+        pet_table_name pet_table(self, self);
+        auto ipet = pet_table.find(from);
+        assert_true(ipet != pet_table.cend(), "can not found pet data");
+        auto &pets = ipet->rows;
+
         found = false;
         int32_t level = 1;
         for (int index = 0; index < pets.size(); index++) {
@@ -418,18 +445,12 @@ public:
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
-        // check inventory size;
-        material_table materials(self, self);
-        auto imat = materials.find(from);
-        auto current_inventory_size = 0;
-        if (imat != materials.cend()) {
-            current_inventory_size = imat->rows.size();
-        }
-
+        // check inventory size
+        auto current_inventory_size = material_controller.get_current_inventory_size(from);
         int exp_mat_count = current_inventory_size + 1;
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
@@ -501,7 +522,7 @@ public:
     }
 
 private:
-    bool do_petgacha(player_table::const_iterator player, uint16_t type, uint8_t count, bool only_check, playerv2_table::const_iterator pvsi) {
+    bool do_petgacha(player_table_const_iter_name player, uint16_t type, uint8_t count, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
         system_controller.require_action_count(1);
 
@@ -522,7 +543,7 @@ private:
         powder *= count;
         assert_true(powder <= player->powder, "not enough powder");
         if (powder > 0) {
-            system_controller.decrease_powder(player, powder, only_check);
+            player_controller.decrease_powder(player, powder, only_check);
         }
 
         if (only_check) {
@@ -643,5 +664,35 @@ private:
 
     int32_t get_max_pet_level(int grade) {
         return (kv_pet_max_up >> ((grade - 1) * 4)) & 0xf;
+    }
+};
+
+
+/*
+ * normal mode pet controller
+ */
+class pet_control : public pet_control_base<
+    pet_table, 
+    player, 
+    player_table, 
+    player_table::const_iterator, 
+    player_control, 
+    material_control,
+    N(petgacha2i),
+    N(pexpreturn2i)> {
+
+public:
+    // constructor
+    //-------------------------------------------------------------------------
+    /// @brief
+    /// Constructor
+    pet_control(account_name _self,
+                system_control &_system_controller,
+                player_control &_player_controller,
+                material_control &_material_controller)
+            : pet_control_base(_self, 
+                               _system_controller,
+                               _player_controller,
+                               _material_controller) {
     }
 };

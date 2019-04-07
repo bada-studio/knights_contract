@@ -37,6 +37,16 @@ public:
         return size;
     }
 
+    int get_current_inventory_size(name from) {
+        material_table_name materials(self, self);
+        auto imat = materials.find(from);
+        auto current_inventory_size = 0;
+        if (imat != materials.cend()) {
+            current_inventory_size = imat->rows.size();
+        }
+        return current_inventory_size;
+    }
+
     void add_material(name from, uint16_t code) {
         matrow row;
         row.code = code;
