@@ -7,6 +7,7 @@ private:
     playerv_table playervs_old;
     playerv2_table playervs;
 
+    player_control &player_controller;
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
     variable_control &variable_controller;
@@ -28,6 +29,7 @@ public:
     // constructor
     //-------------------------------------------------------------------------
     system_control(account_name _self,
+                   player_control &_player_controller,
                    saleslog_control &_saleslog_controller,
                    admin_control &_admin_controller,
                    variable_control &_variable_controller)
@@ -36,6 +38,7 @@ public:
         , playervs_old(_self, _self)
         , playervs(_self, _self)
         , rivnprice_controller(_self, N(ivnprice))
+        , player_controller(_player_controller)
         , saleslog_controller(_saleslog_controller)
         , admin_controller(_admin_controller)
         , variable_controller(_variable_controller)
@@ -45,41 +48,10 @@ public:
 
     // internal apis
     //-------------------------------------------------------------------------
-    player_table& get_players() {
-        return players;
-    }
-
-    player_table::const_iterator get_player(name player_name) {
-        return players.find(player_name);
-    }
-    
-    bool is_empty_player(player_table::const_iterator player) {
-        return player == players.end();
-    }
-
     bool is_empty_playerv(playerv2_table::const_iterator iter) {
         return iter == playervs.cend();
     }
     
-    void increase_powder(player_table::const_iterator player, uint32_t powder) {
-        // modify powder
-        players.modify(player, self, [&](auto& target) {
-            target.powder += powder;
-        });
-    }
-
-    void decrease_powder(player_table::const_iterator player, uint32_t powder, bool only_check = false) {
-        assert_true(player->powder >= powder, "not enough powder");
-        if (only_check) {
-            return;
-        }
-
-        // modify powder
-        players.modify(player, self, [&](auto& target) {
-            target.powder -= powder;
-        });
-    }
-
     void set_last_checksum(uint32_t checksum) {
         last_checksum = checksum;
     }
@@ -523,8 +495,8 @@ public:
         auto amount = gifts.cbegin()->amount;
         assert_true(amount > 0, "no gift");
 
-        auto player = get_player(from);
-        increase_powder(player, amount);
+        auto player = player_controller.get_player(from);
+        player_controller.increase_powder(player, amount);
     }
 
     int32_t get_referral_count(uint8_t referral) {
@@ -631,8 +603,8 @@ public:
         assert_true(message.size() <= 100, "exceed maximum comment length");
         assert_true(link.size() <= 64, "exceed maximum link length");
 
-        auto player = get_player(from);
-        assert_true(!is_empty_player(player), "sign up first!");
+        auto player = player_controller.get_player(from);
+        assert_true(!player_controller.is_empty_player(player), "sign up first!");
 
         comment_table table(self, self);
         auto iter = table.find(from);
@@ -646,7 +618,7 @@ public:
         } else {
             auto black = iter->black;
             if (black) {
-                decrease_powder(player, kv_comment_cost);
+                player_controller.decrease_powder(player, kv_comment_cost);
                 rcomment_table rtable(self, self);
                 auto riter = rtable.find(from);
                 if (riter != rtable.cend()) {

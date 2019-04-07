@@ -1,15 +1,29 @@
 #pragma once
 
-class knight_control : public control_base {
+/*
+ * base knight controller
+ */
+template<typename knight_table_name, 
+         typename knight_table_const_iter_name, 
+         typename player_name,
+         typename player_table_const_iter_name,
+         typename player_control_name,
+         typename material_control_name,
+         typename item_control_name,
+         typename pet_control_name,
+         uint64_t drebirth_name>
+class knight_control_base : public control_base {
 private:
     account_name self;
-    knight_table knights;
+    knight_table_name knights;
     kntskills_table skills;
 
-    material_control &material_controller;
-    item_control &item_controller;
     system_control &system_controller;
-    pet_control &pet_controller;
+    player_control_name &player_controller;
+    material_control_name &material_controller;
+    item_control_name &item_controller;
+    pet_control_name &pet_controller;
+
     saleslog_control &saleslog_controller;
     std::vector<knightrow> empty_knightrows;
     std::vector<kntskill> empty_kntskill;
@@ -17,19 +31,21 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    knight_control(account_name _self,
-                   material_control &_material_controller,
-                   item_control &_item_controller,
-                   pet_control &_pet_controller,
+    knight_control_base(account_name _self,
                    system_control &_system_controller,
+                   player_control_name &_player_controller,
+                   material_control_name &_material_controller,
+                   item_control_name &_item_controller,
+                   pet_control_name &_pet_controller,
                    saleslog_control &_saleslog_controller)
             : self(_self)
             , knights(_self, _self)
             , skills(_self, _self)
+            , system_controller(_system_controller)
+            , player_controller(_player_controller)
             , material_controller(_material_controller)
             , item_controller(_item_controller)
             , pet_controller(_pet_controller)
-            , system_controller(_system_controller)
             , saleslog_controller(_saleslog_controller) {
     }
 
@@ -93,7 +109,7 @@ public:
         return level;
     }
 
-    const std::vector<knightrow>& get_knights(knight_table::const_iterator iter) {
+    const std::vector<knightrow>& get_knights(knight_table_const_iter_name iter) {
         if (iter != knights.cend()) {
             return iter->rows;
         }
@@ -109,7 +125,7 @@ public:
         return empty_kntskill;
     }
 
-    const knightrow& get_knight(knight_table::const_iterator iter, uint8_t type) {
+    const knightrow& get_knight(knight_table_const_iter_name iter, uint8_t type) {
         for (int index = 0; index < iter->rows.size(); index++) {
             if (iter->rows[index].type == type) {
                 return iter->rows[index];
@@ -217,7 +233,7 @@ public:
         blog.price = price;
         saleslog_controller.add_buylog(blog, from);
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "could not find player");
 
@@ -241,8 +257,8 @@ public:
         assert_true(iter != knights.cend(), "could not found knight");
         auto &knight = get_knight(iter, type);
 
-        auto player = system_controller.get_player(from);
-        assert_true(system_controller.is_empty_player(player) == false, "could not find player");
+        auto player = player_controller.get_player(from);
+        assert_true(player_controller.is_empty_player(player) == false, "could not find player");
 
         uint64_t level = knight.level + 1;
         assert_true(level <= kv_max_knight_level, "already max level");
@@ -256,7 +272,7 @@ public:
         assert_true(powder <= player->powder, "Insufficient powder");
 
         if (powder > 0) {
-            system_controller.decrease_powder(player, powder);
+            player_controller.decrease_powder(player, powder);
         }
 
         knights.modify(iter, self, [&](auto& target) {
@@ -282,7 +298,7 @@ public:
     /// @param checksum
     /// To prevent bots
     void rebirth(name from, uint32_t checksum, bool delay, bool frompay) {
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto pvsi = system_controller.get_playervs(from);
@@ -295,7 +311,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, N(rebirth2i), 
+                    self, drebirth_name, 
                     std::make_tuple(from, checksum)
                 );
                 out.delay_sec = 1;
@@ -343,7 +359,7 @@ public:
         }
 
         assert_true(pass, "no one exceed stage minmium level");
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
 
         players.modify(player, self, [&](auto& target) {
@@ -514,9 +530,9 @@ public:
         });
 
         // pay the price
-        auto player = system_controller.get_player(from);
-        assert_true(system_controller.is_empty_player(player) == false, "could not find player");
-        system_controller.decrease_powder(player, kv_skill_reset_price);
+        auto player = player_controller.get_player(from);
+        assert_true(player_controller.is_empty_player(player) == false, "could not find player");
+        player_controller.decrease_powder(player, kv_skill_reset_price);
     }
 
 private:
@@ -593,7 +609,7 @@ private:
     }
 
     /// rebirth common logic
-    bool do_rebirth(name from, player_table::const_iterator player, bool only_check, playerv2_table::const_iterator pvsi) {
+    bool do_rebirth(name from, player_table_const_iter_name player, bool only_check, playerv2_table::const_iterator pvsi) {
         system_controller.check_blacklist(from);
         system_controller.require_action_count(1);
         playerv2 variable = *pvsi;
@@ -603,14 +619,8 @@ private:
         auto &rows = iter->rows;
 
         int total_kill_count = 0;
-
-        material_table materials(self, self);
-        auto imat = materials.find(from);
-        assert_true(imat != materials.cend(), "no materials");
-        auto &mats = imat->rows;
-        
         int old_max_floor = player->maxfloor;
-        int exp_mat_count = mats.size() + rows.size();
+        int exp_mat_count = material_controller.get_current_inventory_size(from) + rows.size();
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
@@ -694,7 +704,7 @@ private:
         }
 
         material_controller.add_materials(from, botties);
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         players.modify(player, self, [&](auto& target) {
             target.last_rebirth = current;
             target.powder += powder;
@@ -713,7 +723,7 @@ private:
         return only_check;
     }
 
-    void set_rebirth_factor(player_table::const_iterator player, playerv2 &variable, const std::vector<knightrow> &knights) {
+    void set_rebirth_factor(player_table_const_iter_name player, playerv2 &variable, const std::vector<knightrow> &knights) {
         time current = time_util::now_shifted();
         double rebrith_factor = variable.rebrith_factor / 100.0;
         rebrith_factor = std::max(1.0, rebrith_factor);
@@ -874,5 +884,41 @@ private:
             res += skills[index].level;
         }
         return res;
+    }
+};
+
+
+/*
+ * normal mode knight controller
+ */
+class knight_control : public knight_control_base<
+    knight_table, 
+    knight_table::const_iterator, 
+    player,
+    player_table::const_iterator,
+    player_control,
+    material_control,
+    item_control,
+    pet_control,
+    N(rebirth2i)> {
+
+public:
+    // constructor
+    //-------------------------------------------------------------------------
+    knight_control(account_name _self,
+                   system_control &_system_controller,
+                   player_control &_player_controller,
+                   material_control &_material_controller,
+                   item_control &_item_controller,
+                   pet_control &_pet_controller,
+                   saleslog_control &_saleslog_controller)
+            : knight_control_base(
+                _self,
+                _system_controller,
+                _player_controller,
+                _material_controller,
+                _item_controller,
+                _pet_controller,
+                _saleslog_controller) {
     }
 };

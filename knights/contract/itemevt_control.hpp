@@ -4,6 +4,7 @@ class itemevt_control : public control_base {
 private:
     account_name self;
     system_control &system_controller;
+    player_control &player_controller;
     item_control &item_controller;
 
 public:
@@ -11,9 +12,11 @@ public:
     /// Constructor
     itemevt_control(account_name _self,
                     system_control &_system_controller,
+                    player_control &_player_controller,
                     item_control &_item_controller)
             : self(_self)
             , system_controller(_system_controller)
+            , player_controller(_player_controller)
             , item_controller(_item_controller) {
     }
 
@@ -23,8 +26,8 @@ public:
         require_auth(N(bastetbastet));
 
         // get player info
-        auto player = system_controller.get_player(from);
-        assert_true(!system_controller.is_empty_player(player), "no player");
+        auto player = player_controller.get_player(from);
+        assert_true(!player_controller.is_empty_player(player), "no player");
 
         auto pvsi = system_controller.get_playervs(from, true);
         auto variable = *pvsi;

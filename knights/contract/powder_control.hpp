@@ -4,6 +4,7 @@ class powder_control : public control_base {
 private:
     account_name self;
     system_control &system_controller;
+    player_control &player_controller;
     saleslog_control &saleslog_controller;
 
 public:
@@ -14,10 +15,12 @@ public:
     /// Constructor
     powder_control(account_name _self,
                    system_control &_system_controller,
+                   player_control &_player_controller,
                    saleslog_control &_saleslog_controller)
             : self(_self)
             , mp_goods_rule_controller(_self, N(mpgoods))
             , system_controller(_system_controller)
+            , player_controller(_player_controller)
             , saleslog_controller(_saleslog_controller) {
     }
 
@@ -35,14 +38,14 @@ public:
         auto rule = rule_table.find(pid);
         assert_true(rule != rule_table.cend(), "could not find goods rule");
 
-        auto player = system_controller.get_player(from);
-        assert_true(!system_controller.is_empty_player(player), "could not find player");
+        auto player = player_controller.get_player(from);
+        assert_true(!player_controller.is_empty_player(player), "could not find player");
 
         // pay the cost
         asset price = rule->price;
         assert_true(quantity.amount == price.amount, "mw price does not match");
         // system_controller.transfer(from, to_name(self), price);
-        system_controller.increase_powder(player, rule->powder);
+        player_controller.increase_powder(player, rule->powder);
 
         name seller;
         seller.value = self;

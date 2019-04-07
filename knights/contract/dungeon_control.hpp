@@ -5,6 +5,7 @@ private:
     account_name self;
     material_control &material_controller;
     system_control &system_controller;
+    player_control &player_controller;
     knight_control &knight_controller;
     dquest_control &dquest_controller;
 
@@ -18,8 +19,9 @@ public:
     // constructor
     //-------------------------------------------------------------------------
     dungeon_control(account_name _self,
-                    material_control &_material_controller,
                     system_control &_system_controller,
+                    player_control &_player_controller,
+                    material_control &_material_controller,
                     knight_control &_knight_controller,
                     dquest_control &_dquest_controller)
         : self(_self)
@@ -27,8 +29,9 @@ public:
         , dgticket_rule_controller(_self, N(dgticket))
         , mobs_rule_controller(_self, N(mobs))
         , mobskills_rule_controller(_self, N(mobskills))
-        , material_controller(_material_controller)
         , system_controller(_system_controller)
+        , player_controller(_player_controller)
+        , material_controller(_material_controller)
         , knight_controller(_knight_controller)
         , dquest_controller(_dquest_controller)
         {
@@ -106,7 +109,7 @@ public:
         require_auth(from);
 
         // get player
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -154,7 +157,7 @@ public:
 
     void dgenter(name from, uint16_t code) {
         require_auth(from);
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -247,7 +250,7 @@ public:
 
     void dgleave(name from, uint16_t code) {
         require_auth(from);
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -278,7 +281,7 @@ public:
         });
 
         // add magic water
-        system_controller.increase_powder(player, rule->losemw);
+        player_controller.increase_powder(player, rule->losemw);
     }
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay, bool frompay) {
@@ -315,7 +318,7 @@ public:
         system_controller.require_action_count(1);
 
         // get player
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
@@ -378,7 +381,7 @@ public:
         material_controller.add_material(from, matcode);
 
         // add magic water
-        system_controller.increase_powder(player, rule->winmw);
+        player_controller.increase_powder(player, rule->winmw);
 
         // update dungeon data
         table.modify(iter, self, [&](auto& target) {

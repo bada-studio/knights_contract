@@ -7,6 +7,7 @@ private:
     mat4sale_table materials;
 
     system_control &system_controller;
+    player_control &player_controller;
     item_control &item_controller;
     material_control &material_controller;
     saleslog_control &saleslog_controller;
@@ -38,17 +39,19 @@ public:
     // constructor
     //-------------------------------------------------------------------------
     market_control(account_name _self,
+                   system_control &_system_controller,
+                   player_control &_player_controller,
                    material_control &_material_controller,
                    item_control &_item_controller,
-                   system_control &_system_controller,
                    saleslog_control &_saleslog_controller,
                    knight_control &_knight_controller)
             : self(_self)
             , items(_self, _self)
             , materials(_self, _self)
+            , system_controller(_system_controller)
+            , player_controller(_player_controller)
             , material_controller(_material_controller)
             , item_controller(_item_controller)
-            , system_controller(_system_controller)
             , saleslog_controller(_saleslog_controller)
             , knight_controller(_knight_controller) {
     }
@@ -182,7 +185,7 @@ public:
             //assert_true(saleitem->player == ad.seller, "seller not matching");
         }
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "can not found player info");
 
@@ -308,7 +311,7 @@ public:
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "can not found player info");
 
@@ -399,7 +402,7 @@ private:
     int get_max_sell_count(name from) {
         auto &knights = knight_controller.get_knights(from);
         auto max_sell_count = knights.size();
-        auto player = system_controller.get_player(from);
+        auto player = player_controller.get_player(from);
         if (player->maxfloor >= kv_bonus_sell1_floor) {
             max_sell_count++;
         }

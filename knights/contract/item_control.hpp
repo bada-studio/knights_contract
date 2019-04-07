@@ -358,7 +358,7 @@ public:
     void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay, bool frompay) {
         assert_true(mat_ids.size() > 0, "needs material for the crafting!");
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
         auto pvsi = system_controller.get_playervs(from);
@@ -399,7 +399,7 @@ public:
 
         int powder = remove_items(from, item_ids);
 
-        auto &players = system_controller.get_players();
+        auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(player != players.cend(), "can not found player");
 
@@ -521,7 +521,7 @@ public:
             case ig_chaos: powder = lvrule->powder6; break;
         }
 
-        auto player = system_controller.get_player(from);
+        auto player = player_controller.get_player(from);
         assert_true(powder <= player->powder, "not enough powder");
 
         // level up success
@@ -543,7 +543,7 @@ public:
             powder /= 2;
         }
 
-        system_controller.decrease_powder(player, powder);
+        player_controller.decrease_powder(player, powder);
 
         items.modify(iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
