@@ -10,12 +10,6 @@ private:
     dquest_control &dquest_controller;
 
 public:
-    rule_controller<rdungeon, rdungeon_table> dungeon_rule_controller;
-    rule_controller<rdgticket, rdgticket_table> dgticket_rule_controller;
-    rule_controller<rmobs, rmobs_table> mobs_rule_controller;
-    rule_controller<rmobskills, rmobskills_table> mobskills_rule_controller;
-
-public:
     // constructor
     //-------------------------------------------------------------------------
     dungeon_control(account_name _self,
@@ -25,10 +19,6 @@ public:
                     knight_control &_knight_controller,
                     dquest_control &_dquest_controller)
         : self(_self)
-        , dungeon_rule_controller(_self, N(dungeon))
-        , dgticket_rule_controller(_self, N(dgticket))
-        , mobs_rule_controller(_self, N(mobs))
-        , mobskills_rule_controller(_self, N(mobskills))
         , system_controller(_system_controller)
         , player_controller(_player_controller)
         , material_controller(_material_controller)
@@ -43,7 +33,7 @@ public:
         require_auth(from);
 
         // get rule
-        auto &rule_table = dgticket_rule_controller.get_table();
+        rdgticket_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
 
@@ -163,7 +153,7 @@ public:
         auto time_now = time_util::now_shifted();
 
         // required floor check
-        auto &rule_table = dungeon_rule_controller.get_table();
+        rdungeon_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
         assert_true(rule->required_floor <= player->maxfloor, "need more maxfloor");
@@ -266,7 +256,7 @@ public:
         assert_true(pos >= 0, "there is no dungeon");
 
         // get rule
-        auto &rule_table = dungeon_rule_controller.get_table();
+        rdungeon_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
 
@@ -344,7 +334,7 @@ public:
         validate_orders(from, iter->rows[pos], orders);
         
         // get rule
-        auto &rule_table = dungeon_rule_controller.get_table();
+        rdungeon_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule_table.cend() != rule, "could not dungeon rule");
 
@@ -406,12 +396,12 @@ private:
         assert_true(origin_orders.size() >= 5, "validation failed 1");
 
         // dungeon rule
-        auto &dgrule_table = dungeon_rule_controller.get_table();
+        rdungeon_table dgrule_table(self, self);
         auto dgrule = dgrule_table.find(code);
         assert_true(dgrule_table.cend() != dgrule, "could not find dungeon rule");
 
         // mob rule
-        auto &mobrule_table = mobs_rule_controller.get_table();
+        rmobs_table mobrule_table(self, self);
         auto mobrule = mobrule_table.find(code);
         assert_true(mobrule_table.cend() != mobrule, "could not find dungeon rule");
 

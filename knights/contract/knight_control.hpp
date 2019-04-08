@@ -1,6 +1,5 @@
 #pragma once
 
-
 class knight_control_actions {
 public:
     virtual void lvupknight(name from, uint8_t type) = 0;
@@ -9,7 +8,6 @@ public:
     virtual void equip(name from, uint8_t to, uint32_t id) = 0;
     virtual void detach(name from, uint32_t id) = 0;
 };
-
 
 /*
  * base knight controller
