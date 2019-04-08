@@ -7,7 +7,7 @@ private:
     system_control &system_controller;
     player_control &player_controller;
     knight_control &knight_controller;
-    dquest_control &dquest_controller;
+    //dquest_control &dquest_controller;
 
 public:
     // constructor
@@ -16,14 +16,14 @@ public:
                     system_control &_system_controller,
                     player_control &_player_controller,
                     material_control &_material_controller,
-                    knight_control &_knight_controller,
-                    dquest_control &_dquest_controller)
+                    knight_control &_knight_controller/*,
+                    dquest_control &_dquest_controller*/)
         : self(_self)
         , system_controller(_system_controller)
         , player_controller(_player_controller)
         , material_controller(_material_controller)
         , knight_controller(_knight_controller)
-        , dquest_controller(_dquest_controller)
+//        , dquest_controller(_dquest_controller)
         {
     }
 
@@ -381,7 +381,7 @@ public:
         });
 
         // submit quest
-        dquest_controller.submitdquest(from, code, variable);
+        //dquest_controller.submitdquest(from, code, variable);
         
         variable.clear_deferred_time();
         system_controller.end_random(variable, rval);

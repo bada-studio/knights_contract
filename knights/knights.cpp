@@ -65,7 +65,7 @@ using eosio::name;
 #include "table/admin/marketpid.hpp"
 #include "table/admin/gift.hpp"
 #include "table/admin/cquest.hpp"
-#include "table/admin/dquest.hpp"
+//#include "table/admin/dquest.hpp"
 #include "table/admin/season.hpp"
 #include "table/admin/globalvar.hpp"
 #include "table/admin/itemevt.hpp"
@@ -87,7 +87,7 @@ using eosio::name;
 #include "contract/season/sknight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/cquest_control.hpp"
-#include "contract/dquest_control.hpp"
+//#include "contract/dquest_control.hpp"
 #include "contract/season/season_control.hpp"
 #include "contract/system_control.cpp"
 #include "contract/dungeon_control.hpp"
@@ -112,7 +112,7 @@ private:
     admin_control admin_controller;
     saleslog_control saleslog_controller;
     cquest_control cquest_controller;
-    dquest_control dquest_controller;
+//    dquest_control dquest_controller;
     season_control season_controller;
     smaterial_control smaterial_controller;
     spet_control spet_controller;
@@ -149,9 +149,9 @@ public:
     , sknight_controller(_self, system_controller, splayer_controller, smaterial_controller, sitem_controller, spet_controller)
     , market_controller(_self, system_controller, player_controller, material_controller, item_controller, saleslog_controller, knight_controller)
     , cquest_controller(_self, item_controller, system_controller, admin_controller)
-    , dquest_controller(_self, item_controller, system_controller, admin_controller)
+//    , dquest_controller(_self, item_controller, system_controller, admin_controller)
     , season_controller(_self, item_controller, system_controller, knight_controller, admin_controller)
-    , dungeon_controller(_self, system_controller, player_controller, material_controller, knight_controller, dquest_controller)
+    , dungeon_controller(_self, system_controller, player_controller, material_controller, knight_controller/*, dquest_controller*/)
     , itemevt_controller(_self, system_controller, player_controller, item_controller)
     , skin_controller(_self, system_controller, saleslog_controller) {
     }
@@ -209,11 +209,6 @@ public:
         system_controller.addblackcmt(to);
     }
 
-    /// @abi action
-    void removedgn(name to) {
-        dquest_controller.removeplayer(to);
-    }
-
     // season related actions
     //-------------------------------------------------------------------------
     /// @abi addseason
@@ -231,6 +226,10 @@ public:
     /// @abi addseason
     void devreset() {
         season_controller.devreset();
+    }
+
+    void require_season(uint32_t season) {
+        // todo
     }
 
     // cquest related actions
@@ -263,6 +262,7 @@ public:
 
     // dquest related actions
     //-------------------------------------------------------------------------
+    /*
     /// @abi action
     void adddquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
         dquest_controller.adddquest(id, sponsor, start, duration);
@@ -283,9 +283,7 @@ public:
         dquest_controller.divdquest(id, no, from, count);
     }
 
-    void require_season(uint32_t season) {
-        // todo
-    }
+    */
 
     // knight related actions
     //-------------------------------------------------------------------------
@@ -983,6 +981,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (alchemisti) (removemat3) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (alchemisti) (removemat3) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 
+// (adddquest) (updatedsubq) (divdquest) 

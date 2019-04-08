@@ -114,34 +114,6 @@ public:
         });
     }
 
-    void removeplayer(name to) {
-        system_controller.require_coo_auth();
-
-        dquest_table table(self, self);
-        if (table.cbegin() == table.cend()) {
-            return;
-        }
-
-        auto last = --table.cend();
-        auto current = time_util::now_shifted();
-        if(current < last->start || last->get_end() < current) {
-            return;
-        }
-
-        table.modify(last, self, [&](auto &target) {
-            for(int index = 0; index < last->subquests.size(); index++) {
-                auto &subquest = target.subquests[index];
-
-                for (int k = 0; k < subquest.records.size(); k++) {
-                    if (subquest.records[k].owner == to) {
-                        subquest.records.erase(subquest.records.begin() + k);
-                        break;
-                    }
-                }
-            }
-        });
-    }
-
     // actions
     //-------------------------------------------------------------------------
     void adddquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
