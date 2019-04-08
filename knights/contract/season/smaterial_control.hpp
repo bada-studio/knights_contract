@@ -4,7 +4,7 @@
  * season mode material controller
  */
 class smaterial_control : public material_control_base<
-    material_table, 
+    smaterial_table, 
     splayer, 
     splayer_table, 
     splayer_control> {

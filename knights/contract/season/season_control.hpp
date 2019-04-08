@@ -140,7 +140,7 @@ public:
         assert_true(knights.size() == kt_count - 1, "you need all of knights");
 
         // initialize
-        ready_player(from, season->id, season->info.init_powder);
+        ready_player(from, season->id, season->info);
         ready_knight(from, season->id);
         ready_item(from, season->id);
         ready_material(from, season->id);
@@ -148,7 +148,7 @@ public:
     }
 
 private:
-    void ready_player(name from, uint32_t sid, uint32_t powder) {
+    void ready_player(name from, uint32_t sid, const seasoninfo &info) {
         splayer_table table(self, self);
         auto iter = table.find(from);
         if (iter != table.cend()) {
@@ -159,7 +159,9 @@ private:
         table.emplace(self, [&](auto &target) {
             target.owner = from;
             target.season = sid;
-            target.powder = powder;
+            target.powder = info.init_powder;
+            target.current_stage = info.stage;
+            target.last_rebirth = time_util::now_shifted() - 120;
         });
     }
 
