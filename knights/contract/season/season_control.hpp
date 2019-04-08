@@ -63,14 +63,6 @@ public:
         }
 
         {
-            sitem_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-
-        {
             spet_table table(self, self);
             auto iter = table.begin();
             while (iter != table.cend()) {
@@ -78,11 +70,16 @@ public:
             }
         }
 
+        {
+            sitem_table table(self, self);
+            auto iter = table.begin();
+            while (iter != table.cend()) {
+                iter = table.erase(iter);
+            }
+        }
     }
 
-    void addseason(uint32_t id, uint64_t start, uint32_t day, uint32_t speed, 
-                   uint32_t powder, uint32_t stage, asset spending_limit, 
-                   const std::vector<asset> &rewards, const std::vector<std::string> &sponsors) {
+    void addseason(uint32_t id, const seasoninfo &info) {
         system_controller.require_coo_auth();
 
         season_table table(self, self);
@@ -90,7 +87,7 @@ public:
 
         // new one
         if (iter == table.cend()) {
-            auto id = table.available_primary_key();
+            id = table.available_primary_key();
             if (id == 0) {
                 id++;
             }
@@ -99,19 +96,12 @@ public:
             if (table.cbegin() != table.cend()) {
                 auto now = time_util::now_shifted();
                 auto last = --table.cend();
-                assert_true(last->get_end() < now, "there is already a season");
+                assert_true(last->info.get_end() < now, "there is already a season");
             }
 
             table.emplace(self, [&](auto& target) {
                 target.id = id;
-                target.start = start;
-                target.duration = day * time_util::day;
-                target.speed = speed;
-                target.init_powder = powder;
-                target.stage = stage;
-                target.spending_limit = spending_limit;
-                target.rewards = rewards;
-                target.sponsors = sponsors;
+                target.info = info;
             });
 
             // add version to rule
@@ -130,14 +120,7 @@ public:
         } else {
             // update info
             table.modify(iter, self, [&](auto& target) {
-                target.start = start;
-                target.duration = day * time_util::day;
-                target.speed = speed;
-                target.init_powder = powder;
-                target.stage = stage;
-                target.spending_limit = spending_limit;
-                target.rewards = rewards;
-                target.sponsors = sponsors;
+                target.info = info;
             });
         }
     }
@@ -149,7 +132,7 @@ public:
         // check season
         auto now = time_util::now();
         auto season = --table.cend();
-        assert_true(season->is_in(now), "no season period");
+        assert_true(season->info.is_in(now), "no season period");
 
         // check full party
         require_auth(from);
@@ -157,7 +140,7 @@ public:
         assert_true(knights.size() == kt_count - 1, "you need all of knights");
 
         // initialize
-        ready_player(from, season->id, season->init_powder);
+        ready_player(from, season->id, season->info.init_powder);
         ready_knight(from, season->id);
         ready_item(from, season->id);
         ready_material(from, season->id);

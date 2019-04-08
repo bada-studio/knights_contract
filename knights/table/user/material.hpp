@@ -6,6 +6,7 @@ struct matrow {
 };
 
 //@abi table material i64
+//@abi table smaterial i64
 struct material {
     name owner;
     uint32_t last_id;

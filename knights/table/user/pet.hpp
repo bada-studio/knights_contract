@@ -7,6 +7,7 @@ struct petrow {
 };
 
 //@abi table pet i64
+//@abi table spet i64
 struct pet {
     name owner;
     std::vector<petrow> rows;

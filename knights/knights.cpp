@@ -158,9 +158,11 @@ public:
 
     /// @abi action
     void test(name from) {
+        /*
         item_table table(_self, _self);
         auto iter = table.find(from);
         table.erase(iter);
+        */
     }
 
     // player related actions
@@ -211,19 +213,17 @@ public:
 
     // season related actions
     //-------------------------------------------------------------------------
-    /// @abi addseason
-    void addseason(uint32_t id, uint64_t start, uint32_t day, uint32_t speed, 
-                   uint32_t powder, uint32_t stage, asset spending_limit, 
-                   const std::vector<asset> &rewards, const std::vector<std::string> &sponsors) {
-        season_controller.addseason(id, start, day, speed, powder, stage, spending_limit, rewards, sponsors);
+    /// @abi action
+    void addseason(uint32_t id, const seasoninfo &info) {
+        season_controller.addseason(id, info);
     }
 
-    /// @abi addseason
+    /// @abi action
     void joinseason(name from) {
         season_controller.joinseason(from);
     }
 
-    /// @abi addseason
+    /// @abi action
     void devreset() {
         season_controller.devreset();
     }

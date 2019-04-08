@@ -10,6 +10,7 @@ struct itemrow {
 };
 
 //@abi table item i64
+//@abi table sitem i64
 struct item {
     name owner;
     uint32_t last_id;

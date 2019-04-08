@@ -1,3 +1,26 @@
+struct seasoninfo {
+    uint64_t start = 0; // start from
+    uint32_t duration = 0; // event duration
+    uint32_t petoffset = 0; // pet offset time
+    uint32_t speed = 0; // game speed
+    uint32_t init_powder = 0; // init dark magic water
+    uint32_t stage = 0;
+    uint64_t v1 = 0;
+    uint64_t v2 = 0;
+    uint64_t v3 = 0;
+    asset spending_limit;
+    std::vector<asset> rewards;
+    std::vector<std::string> sponsors;
+
+    uint64_t get_end() const {
+        return start + duration;
+    }
+
+    bool is_in(uint64_t now) const {
+        return (start <= now) && (now < get_end());
+    }
+};
+
 struct seasonrecord {
     name owner; // account name
     uint32_t floor; 
@@ -7,50 +30,30 @@ struct seasonrecord {
     bool paid = false; // for the dividened
 };
 
+struct seasonstate {
+    uint32_t playercnt = 0;
+    std::vector<seasonrecord> records;
+};
+
 //@abi table season i64
 struct season {
     uint64_t id = 0; // season id
-    uint64_t start = 0; // start from
-    uint32_t duration = 0; // event duration
-    uint32_t speed = 0; // game speed
-    uint32_t init_powder = 0; // init dark magic water
-    uint32_t stage = 0;
-    asset spending_limit;
-    std::vector<asset> rewards;
-    std::vector<std::string> sponsors;
-    uint32_t playercnt = 0;
-    std::vector<seasonrecord> records;
-
-    season() 
-        : spending_limit(0, S(4, EOS)) {
-
-    }
+    seasoninfo info;
+    seasonstate state;
+    uint64_t v1 = 0;
+    uint64_t v2 = 0;
 
     uint64_t primary_key() const {
         return id;
     }
 
-    uint64_t get_end() const {
-        return start + duration;
-    }
-
-    bool is_in(uint64_t now) const {
-        return (start <= now) && (now < get_end());
-    }
-
     EOSLIB_SERIALIZE(
             season,
             (id)
-            (start)
-            (duration)
-            (speed)
-            (init_powder)
-            (stage)
-            (spending_limit)
-            (rewards)
-            (sponsors)
-            (playercnt)
-            (records)
+            (info)
+            (state)
+            (v1)
+            (v2)
     )
 };
 

@@ -10,6 +10,7 @@ struct knightrow {
 };
 
 //@abi table knight i64
+//@abi table sknight i64
 struct knight {
     name owner;
     std::vector<knightrow> rows;
