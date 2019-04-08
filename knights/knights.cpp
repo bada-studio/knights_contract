@@ -67,7 +67,6 @@ using eosio::name;
 #include "table/admin/cquest.hpp"
 #include "table/admin/dquest.hpp"
 #include "table/admin/season.hpp"
-#include "table/admin/tklog.hpp"
 #include "table/admin/globalvar.hpp"
 #include "table/admin/itemevt.hpp"
 #include "util/time_util.hpp"
@@ -85,7 +84,7 @@ using eosio::name;
 #include "contract/pet_control.hpp"
 #include "contract/season/spet_control.hpp"
 #include "contract/knight_control.hpp"
-//#include "contract/season/sknight_control.hpp"
+#include "contract/season/sknight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/cquest_control.hpp"
 #include "contract/dquest_control.hpp"
@@ -106,7 +105,7 @@ private:
     material_control material_controller;
     pet_control pet_controller;
     knight_control knight_controller;
-//    sknight_control sknight_controller;
+    sknight_control sknight_controller;
     item_control item_controller;
     sitem_control sitem_controller;
     market_control market_controller;
@@ -147,7 +146,7 @@ public:
     , pet_controller(_self, system_controller, player_controller, material_controller)
     , spet_controller(_self, system_controller, splayer_controller, smaterial_controller)
     , knight_controller(_self, system_controller, player_controller, material_controller, item_controller, pet_controller, saleslog_controller)
-//    , sknight_controller(_self, system_controller, splayer_controller, smaterial_controller, sitem_controller, spet_controller)
+    , sknight_controller(_self, system_controller, splayer_controller, smaterial_controller, sitem_controller, spet_controller)
     , market_controller(_self, system_controller, player_controller, material_controller, item_controller, saleslog_controller, knight_controller)
     , cquest_controller(_self, item_controller, system_controller, admin_controller)
     , dquest_controller(_self, item_controller, system_controller, admin_controller)
@@ -315,8 +314,6 @@ public:
         knight_controller.detach(from, id);
     }
 
-
-    /*
     knight_control_actions* get_knight_ctl(uint32_t season) {
         if (season == 0) {
             return &knight_controller;
@@ -352,7 +349,6 @@ public:
     void detach3(name from, uint32_t season, uint32_t id) {
         get_knight_ctl(season)->detach(from, id);
     }
-    */
 
     /// @abi action
     void setkntstage(name from, uint8_t stage) {
@@ -378,15 +374,6 @@ public:
         material_controller.remove(from, mat_ids);
     }
 
-    // deprecated
-    /// @abi action
-    void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        system_controller.checksum_gateway(from, block, checksum);
-        material_controller.alchemist(from, 0, grade, mat_ids, checksum, true);
-    }
-
-
-    /*
     material_control_actions* get_material_ctl(uint32_t season) {
         if (season == 0) {
             return &material_controller;
@@ -403,42 +390,39 @@ public:
     }
 
     /// @abi action
-    void alchemist3(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
+    void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
-        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, true);
+        material_controller.alchemist(from, grade, mat_ids, checksum, true);
     }
 
     /// @abi action
-    void alchemisti3(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
+    void alchemisti(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
-        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, false);
+        material_controller.alchemist(from, grade, mat_ids, checksum, false);
     }
-    */
 
     // item related actions
     //-------------------------------------------------------------------------
+    // deprecated
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
         item_controller.craft(from, 0, code, mat_ids, checksum, true);
     }
 
-    /// @abi action
-    void craft2i(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
-        system_controller.set_last_checksum(checksum);
-        item_controller.craft(from, 0, code, mat_ids, checksum, false);
-    }
-
+    // deprecated
     /// @abi action
     void removeitem(name from, const std::vector<uint32_t>& item_ids) {
         item_controller.remove(from, item_ids);
     }
 
+    // deprecated
     /// @abi action
     void itemmerge(name from, uint32_t id, const std::vector<uint32_t> &ingredient) {
         item_controller.itemmerge(from, id, ingredient);
     }
 
+    // deprecated
     /// @abi action
     void itemlvup2(name from, uint32_t id, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
@@ -448,16 +432,6 @@ public:
         }
     }
 
-    /// @abi action
-    void itemlvup2i(name from, uint32_t id, uint32_t checksum) {
-        system_controller.set_last_checksum(checksum);
-        int8_t knight = item_controller.itemlvup(from, 0, id, checksum, false);
-        if (knight > 0) {
-            knight_controller.refresh_stat(from, knight);
-        }
-    }
-
-    /*
     item_control_actions* get_item_ctl(uint32_t season) {
         if (season == 0) {
             return &item_controller;
@@ -465,7 +439,47 @@ public:
 
         require_season(season);
         return &sitem_controller;
-    }*/
+    }
+
+    /// @abi action
+    void craft3(name from, uint32_t season, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
+        get_item_ctl(season)->craft(from, season, code, mat_ids, checksum, true);
+    }
+
+    /// @abi action
+    void craft3i(name from, uint32_t season, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
+        system_controller.set_last_checksum(checksum);
+        get_item_ctl(season)->craft(from, season, code, mat_ids, checksum, false);
+    }
+
+    /// @abi action
+    void itemlvup3(name from, uint32_t season, uint32_t id, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
+        int8_t knight = get_item_ctl(season)->itemlvup(from, season, id, checksum, true);
+        if (knight > 0) {
+            knight_controller.refresh_stat(from, knight);
+        }
+    }
+
+    /// @abi action
+    void itemlvup3i(name from, uint32_t season, uint32_t id, uint32_t checksum) {
+        system_controller.set_last_checksum(checksum);
+        int8_t knight = get_item_ctl(season)->itemlvup(from, season, id, checksum, false);
+        if (knight > 0) {
+            knight_controller.refresh_stat(from, knight);
+        }
+    }
+
+    /// @abi action
+    void removeitem3(name from, uint32_t season, const std::vector<uint32_t>& item_ids) {
+        get_item_ctl(season)->remove(from, item_ids);
+    }
+
+    /// @abi action
+    void itemmerge3(name from, uint32_t season, uint32_t id, const std::vector<uint32_t> &ingredient) {
+        get_item_ctl(season)->itemmerge(from, id, ingredient);
+    }
 
     // pet related actions
     //-------------------------------------------------------------------------
@@ -497,6 +511,15 @@ public:
         knight_controller.refresh_stat(from, knight);
     }
 
+    pet_control_actions* get_pet_ctl(uint32_t season) {
+        if (season == 0) {
+            return &pet_controller;
+        }
+
+        require_season(season);
+        return &spet_controller;
+    }
+
     /// @abi action
     void pexpstart2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
         auto knight_max_level = knight_controller.get_knight_max_level(from);
@@ -505,14 +528,14 @@ public:
 
     /// @abi action
     void pexpreturn2(name from, uint16_t code, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
-        pet_controller.pexpreturn(from, code, checksum, true, frompay);
+        system_controller.checksum_gateway(from, block, checksum);
+        pet_controller.pexpreturn(from, code, checksum, true);
     }
 
     /// @abi action
     void pexpreturn2i(name from, uint16_t code, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
-        pet_controller.pexpreturn(from, code, checksum, false, false);
+        pet_controller.pexpreturn(from, code, checksum, false);
     }
 
     // market related actions
@@ -935,9 +958,9 @@ extern "C" { \
     } \
 }
 
-// (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) 
-// (removemat3) (alchemist3) (alchemisti3) 
+// 
+// 
 
-EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (removemat2) (alchemist) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (alchemisti) (removemat3) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 

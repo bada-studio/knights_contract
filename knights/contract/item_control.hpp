@@ -6,6 +6,24 @@ public:
     virtual void remove(name from, const std::vector<uint32_t>& item_ids) = 0;
     virtual void itemmerge(name from, uint32_t id, const std::vector<uint32_t> &ingredient) = 0;
     virtual int8_t itemlvup(name from, uint32_t season, uint32_t id, uint32_t checksum, bool delay) = 0;
+
+// to reduce wasm size
+protected:
+    int get_variation_value(int amount, int rate) {
+        if (rate < 0) {
+            rate = 0;
+        }
+
+        if (rate > 100) {
+            rate = 100;
+        }
+
+        return -amount + (amount * 2) * rate / 100;
+    }
+
+    uint32_t apply_bonus_stat(uint32_t stat, uint32_t bonus) {
+        return stat * (bonus + 100) / 100;
+    }
 };
 
 /*
@@ -18,9 +36,9 @@ template<typename item_table_name,
          typename player_table_const_iter_name,
          typename player_control_name,
          typename material_control_name>
-class item_control_base : public control_base 
+class item_control_base : public control_base
                         , public item_control_actions {
-private:
+protected:
     account_name self;
     item_table_name items;
 
@@ -199,67 +217,6 @@ public:
         return empty_itemrow;
     }
 
-    void make_item_forsale(name from, uint64_t itemid, uint64_t saleid) {
-        auto iter = items.find(from);
-        assert_true(iter != items.end(), "could not find item");
-
-        bool found = false;
-        items.modify(iter, self, [&](auto& item){
-            for (int index = 0; index < item.rows.size(); index++) {
-                if (item.rows[index].id == itemid && item.rows[index].knight == 0) {
-                    item.rows[index].saleid = saleid;
-                    found = true;
-                    break;
-                }
-            }
-        });
-
-        assert_true(found, "could not found item");
-    }
-
-    void cancel_sale(name from, uint64_t saleid) {
-        auto iter = items.find(from);
-        assert_true(iter != items.end(), "could not find item");
-
-        bool found = false;
-        items.modify(iter, self, [&](auto& item){
-            for (int index = 0; index < item.rows.size(); index++) {
-                if (item.rows[index].saleid == saleid) {
-                    item.rows[index].saleid = 0;
-                    found = true;
-                    break;
-                }
-            }
-        });
-
-        assert_true(found, "could not found item");
-    }
-
-    void remove_saleitem(name from, uint64_t saleid) {
-        auto iter = items.find(from);
-        assert_true(iter != items.end(), "could not find item");
-
-        int found = -1;
-        items.modify(iter, self, [&](auto& item){
-            for (int index = 0; index < item.rows.size(); index++) {
-                if (item.rows[index].saleid == saleid) {
-                    found = index;
-                    break;
-                }
-            }
-
-            if (found >= 0) {
-                item.rows.erase(item.rows.begin() + found);
-            }
-        });
-
-        assert_true(found >= 0, "could not found item");
-    }
-
-    void new_item_from_market(name from, uint16_t code, uint32_t dna, uint8_t level, uint8_t exp) {
-        add_item(from, code, dna, level, exp);
-    }
-
     uint32_t remove_items(name from, const std::vector<uint32_t> &item_ids) {
         ritem_table item_rule(self, self);
         auto iter = items.find(from);
@@ -350,6 +307,21 @@ public:
         int stat2Max = rule->stat2 + rule->stat2_rand_range;
         int stat3Max = rule->stat3 + rule->stat3_rand_range;
         return (stat1 + stat2 + stat3) * 100 / (stat1Max + stat2Max + stat3Max);
+    }
+
+    uint32_t random_dna(const ritem &rule, name from, int code, playerv2 &variable) {
+        auto rval = system_controller.begin_random(variable);
+        uint32_t stat1 = rval.range(101);
+        uint32_t stat2 = rval.range(101);
+        uint32_t stat3 = rval.range(101);
+        uint32_t reveal1 = 1;
+        uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
+        uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
+        system_controller.end_random(variable, rval);
+
+        uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
+        uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;
+        return dna;
     }
 
     // actions
@@ -574,21 +546,6 @@ public:
         return only_check;
     }
 
-    uint32_t random_dna(const ritem &rule, name from, int code, playerv2 &variable) {
-        auto rval = system_controller.begin_random(variable);
-        uint32_t stat1 = rval.range(101);
-        uint32_t stat2 = rval.range(101);
-        uint32_t stat3 = rval.range(101);
-        uint32_t reveal1 = 1;
-        uint32_t reveal2 = rval.range(100) < rule.stat2_reveal_rate ? 1 : 0;
-        uint32_t reveal3 = rval.range(100) < rule.stat3_reveal_rate ? 1 : 0;
-        system_controller.end_random(variable, rval);
-
-        uint32_t reveal = (reveal3 << 2) | (reveal2 << 1) | reveal1;
-        uint32_t dna = (reveal << 24) | (stat3 << 16) | (stat2 << 8) | stat1;
-        return dna;
-    }
-
 private:
     bool do_craft(player_table_const_iter_name player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
@@ -649,18 +606,6 @@ private:
         return only_check;
     }
 
-    int get_variation_value(int amount, int rate) {
-        if (rate < 0) {
-            rate = 0;
-        }
-
-        if (rate > 100) {
-            rate = 100;
-        }
-
-        return -amount + (amount * 2) * rate / 100;
-    }
-
     void add_stat(knight_stats &stat, stat_type type, int value) {
         switch (type) {
             case st_attack:
@@ -678,10 +623,6 @@ private:
             default:
                 assert_true(false, "invalid stat type");
         }
-    }
-
-    uint32_t apply_bonus_stat(uint32_t stat, uint32_t bonus) {
-        return stat * (bonus + 100) / 100;
     }
 };
 
@@ -710,5 +651,66 @@ public:
                 _system_controller,
                 _player_controller,
                 _material_controller) {
+    }
+
+    void make_item_forsale(name from, uint64_t itemid, uint64_t saleid) {
+        auto iter = items.find(from);
+        assert_true(iter != items.end(), "could not find item");
+
+        bool found = false;
+        items.modify(iter, self, [&](auto& item){
+            for (int index = 0; index < item.rows.size(); index++) {
+                if (item.rows[index].id == itemid && item.rows[index].knight == 0) {
+                    item.rows[index].saleid = saleid;
+                    found = true;
+                    break;
+                }
+            }
+        });
+
+        assert_true(found, "could not found item");
+    }
+
+    void cancel_sale(name from, uint64_t saleid) {
+        auto iter = items.find(from);
+        assert_true(iter != items.end(), "could not find item");
+
+        bool found = false;
+        items.modify(iter, self, [&](auto& item){
+            for (int index = 0; index < item.rows.size(); index++) {
+                if (item.rows[index].saleid == saleid) {
+                    item.rows[index].saleid = 0;
+                    found = true;
+                    break;
+                }
+            }
+        });
+
+        assert_true(found, "could not found item");
+    }
+
+    void remove_saleitem(name from, uint64_t saleid) {
+        auto iter = items.find(from);
+        assert_true(iter != items.end(), "could not find item");
+
+        int found = -1;
+        items.modify(iter, self, [&](auto& item){
+            for (int index = 0; index < item.rows.size(); index++) {
+                if (item.rows[index].saleid == saleid) {
+                    found = index;
+                    break;
+                }
+            }
+
+            if (found >= 0) {
+                item.rows.erase(item.rows.begin() + found);
+            }
+        });
+
+        assert_true(found >= 0, "could not found item");
+    }
+
+    void new_item_from_market(name from, uint16_t code, uint32_t dna, uint8_t level, uint8_t exp) {
+        add_item(from, code, dna, level, exp);
     }
 };

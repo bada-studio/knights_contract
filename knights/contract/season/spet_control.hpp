@@ -9,9 +9,7 @@ class spet_control : public pet_control_base<
     splayer_table, 
     splayer_table::const_iterator, 
     splayer_control, 
-    smaterial_control,
-    N(petgacha2s),
-    N(pexpreturn2s)> {
+    smaterial_control> {
 
 public:
     // constructor

@@ -4,9 +4,93 @@ class knight_control_actions {
 public:
     virtual void lvupknight(name from, uint8_t type) = 0;
     virtual void rebirth(name from, uint32_t season, uint32_t checksum, bool delay) = 0;
-    virtual void setkntstage(name from, uint8_t stage) = 0;
     virtual void equip(name from, uint8_t to, uint32_t id) = 0;
     virtual void detach(name from, uint32_t id) = 0;
+
+// to reduce wasm size
+protected:
+    int calculate_max_alive_time(const knightrow &knight) {
+        double damage_per_min = kv_enemy_attack;
+        damage_per_min -= (double)kv_enemy_attack * knight.defense / (knight.defense + kv_defense_base);
+        int alive_sec = (int)(60 * knight.hp / damage_per_min);
+        return alive_sec;
+    }
+
+    double get_drop_rate_with_luck(int stage_drop_rate, int luck) {
+        double addition = stage_drop_rate * (luck / (double)(luck + kv_luck_base));
+        return stage_drop_rate + addition;
+    }
+
+    material_type get_rand_material_type(int value, const rstage& rule) {
+        int sum = rule.nature_drop_rate;
+        if (value < sum) {
+            return mt_nature;
+        }
+
+        sum += rule.steel_drop_rate;
+        if (value < sum) {
+            return mt_iron;
+        }
+
+        sum += rule.bone_drop_rate;
+        if (value < sum) {
+            return mt_bone;
+        }
+
+        sum += rule.skin_drop_rate;
+        if (value < sum) {
+            return mt_skin;
+        }
+
+        return mt_mineral;
+    }
+
+    double get_bonus_floor_bonus(int floor, double avg_floor) {
+        auto res_old = std::min(1000, floor) / 500.0;
+        auto base_floor = avg_floor * 5;
+        auto res_new = std::min((int)(base_floor), floor) / (base_floor * 0.5);
+
+        uint32_t base_time = 48892800;
+        uint32_t now = time_util::now_shifted();
+        if (now < base_time) {
+            return res_old;
+        }
+
+        uint32_t diff = now - base_time;
+        uint32_t ease_base = time_util::day * 7;
+        if (diff > ease_base) {
+            return res_new;
+        }
+
+        double ease = (double)diff / (double)ease_base;
+        return res_old + (res_new - res_old) * ease;
+    }
+
+    int get_floor_for(item_grade grade) {
+        int data = kv_required_floor_for_material;
+        if (grade == ig_unique) {
+            return (data & 0xF) * 100;
+        } else if (grade == ig_legendary) {
+            return ((data >> 4) & 0xF) * 100;
+        } else if (grade == ig_ancient) {
+            return ((data >> 8) & 0xF) * 100;
+        }
+
+        return 0;
+    }
+
+    bool is_valid_for(knight_type kt, item_sub_type ist) {
+        if (ist == ist_axe && kt != kt_knight) {
+            return false;
+        }
+        if (ist == ist_bow && kt != kt_archer) {
+            return false;
+        }
+        if (ist == ist_staff && kt != kt_mage) {
+            return false;
+        }
+        return true;
+    }
 };
 
 /*
@@ -250,45 +334,6 @@ public:
     }
 
     /// @brief
-    /// Change knight battle stage
-    /// @param from
-    /// Player who requested change stage
-    /// @param knt
-    /// Knight type
-    /// @param stage
-    /// Stage code
-    void setkntstage(name from, uint8_t stage) {
-        require_auth(from);
-
-        rstage_table rules(self, self);
-        auto stagerule = rules.find(stage);
-        assert_true(stagerule != rules.cend(), "no stage rule");
-
-        int minlv = stagerule->lvfrom;
-        bool pass = false;
-        
-        auto iter = knights.find(from);
-        assert_true(iter != knights.cend(), "could not found knight");
-        auto &rows = iter->rows;
-
-        for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
-            auto &knight = *iter;
-            if (knight.level >= minlv) {
-                pass = true;
-                break;
-            }
-        }
-
-        assert_true(pass, "no one exceed stage minmium level");
-        auto &players = player_controller.get_players();
-        auto player = players.find(from);
-
-        players.modify(player, self, [&](auto& target) {
-            target.current_stage = stage;
-        });
-    }
-
-    /// @brief
     /// Equip item
     /// @param to
     /// Knight who you want to equip the item
@@ -347,78 +392,6 @@ public:
     }
 
 private:
-    int calculate_max_alive_time(const knightrow &knight) {
-        double damage_per_min = kv_enemy_attack;
-        damage_per_min -= (double)kv_enemy_attack * knight.defense / (knight.defense + kv_defense_base);
-        int alive_sec = (int)(60 * knight.hp / damage_per_min);
-        return alive_sec;
-    }
-
-    double get_drop_rate_with_luck(int stage_drop_rate, int luck) {
-        double addition = stage_drop_rate * (luck / (double)(luck + kv_luck_base));
-        return stage_drop_rate + addition;
-    }
-
-    material_type get_rand_material_type(int value, const rstage& rule) {
-        int sum = rule.nature_drop_rate;
-        if (value < sum) {
-            return mt_nature;
-        }
-
-        sum += rule.steel_drop_rate;
-        if (value < sum) {
-            return mt_iron;
-        }
-
-        sum += rule.bone_drop_rate;
-        if (value < sum) {
-            return mt_bone;
-        }
-
-        sum += rule.skin_drop_rate;
-        if (value < sum) {
-            return mt_skin;
-        }
-
-        return mt_mineral;
-    }
-
-    void log_account(name from) {
-        tklog_table table(self, self);
-        auto iter = table.find(from);
-        if (iter == table.cend()) {
-            table.emplace(self, [&](auto &target) {
-                target.owner = from;
-                target.count = 1;
-            });
-        } else {
-            table.modify(iter, self, [&](auto &target) {
-                target.count++;
-            });
-        }
-    }
-
-    double get_bonus_floor_bonus(int floor, double avg_floor) {
-        auto res_old = std::min(1000, floor) / 500.0;
-        auto base_floor = avg_floor * 5;
-        auto res_new = std::min((int)(base_floor), floor) / (base_floor * 0.5);
-
-        uint32_t base_time = 48892800;
-        uint32_t now = time_util::now_shifted();
-        if (now < base_time) {
-            return res_old;
-        }
-
-        uint32_t diff = now - base_time;
-        uint32_t ease_base = time_util::day * 7;
-        if (diff > ease_base) {
-            return res_new;
-        }
-
-        double ease = (double)diff / (double)ease_base;
-        return res_old + (res_new - res_old) * ease;
-    }
-
     /// rebirth common logic
     bool do_rebirth(name from, player_table_const_iter_name player, bool only_check, playerv2_table::const_iterator pvsi) {
         system_controller.check_blacklist(from);
@@ -569,16 +542,6 @@ private:
         variable.rebrith_factor = (int)(rebrith_factor * 100);
     }
 
-    int get_pet_for_knight(const std::vector<petrow>& rows, int knt) {
-        for (int index = 0; index < rows.size(); index++) {
-            if (rows[index].knight == knt) {
-                return rows[index].code;
-            }
-        }
-
-        return 0;
-    }
-
     void submit_floor(playerv2 &variable, int old_max_floor, int floor) {
         int new_count = 0;
         int new_floor = 0;
@@ -661,32 +624,6 @@ private:
 
         int code = (type - 1) * 20 + (best + 1);
         return code;
-    }
-
-    int get_floor_for(item_grade grade) {
-        int data = kv_required_floor_for_material;
-        if (grade == ig_unique) {
-            return (data & 0xF) * 100;
-        } else if (grade == ig_legendary) {
-            return ((data >> 4) & 0xF) * 100;
-        } else if (grade == ig_ancient) {
-            return ((data >> 8) & 0xF) * 100;
-        }
-
-        return 0;
-    }
-
-    bool is_valid_for(knight_type kt, item_sub_type ist) {
-        if (ist == ist_axe && kt != kt_knight) {
-            return false;
-        }
-        if (ist == ist_bow && kt != kt_archer) {
-            return false;
-        }
-        if (ist == ist_staff && kt != kt_mage) {
-            return false;
-        }
-        return true;
     }
 };
 
@@ -901,6 +838,45 @@ public:
                 }
             });
         }
+    }
+
+    /// @brief
+    /// Change knight battle stage
+    /// @param from
+    /// Player who requested change stage
+    /// @param knt
+    /// Knight type
+    /// @param stage
+    /// Stage code
+    void setkntstage(name from, uint8_t stage) {
+        require_auth(from);
+
+        rstage_table rules(self, self);
+        auto stagerule = rules.find(stage);
+        assert_true(stagerule != rules.cend(), "no stage rule");
+
+        int minlv = stagerule->lvfrom;
+        bool pass = false;
+        
+        auto iter = knights.find(from);
+        assert_true(iter != knights.cend(), "could not found knight");
+        auto &rows = iter->rows;
+
+        for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
+            auto &knight = *iter;
+            if (knight.level >= minlv) {
+                pass = true;
+                break;
+            }
+        }
+
+        assert_true(pass, "no one exceed stage minmium level");
+        auto &players = player_controller.get_players();
+        auto player = players.find(from);
+
+        players.modify(player, self, [&](auto& target) {
+            target.current_stage = stage;
+        });
     }
 
     /// @brief
