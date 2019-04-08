@@ -3,7 +3,7 @@
 class material_control_actions {
 public:
     virtual void remove(name from, const std::vector<uint32_t> &mat_ids) = 0;
-    virtual void alchemist(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay, uint64_t daction) = 0;
+    virtual void alchemist(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay) = 0;
 };
 
 /*
@@ -260,8 +260,7 @@ public:
                    uint32_t grade, 
                    const std::vector<uint32_t>& mat_ids, 
                    uint32_t checksum, 
-                   bool delay, 
-                   uint64_t daction) {
+                   bool delay) {
         auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
@@ -272,7 +271,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, daction, 
+                    self, N(alchemisti3), 
                     std::make_tuple(from, season, grade, mat_ids, checksum)
                 );
                 out.delay_sec = 1;

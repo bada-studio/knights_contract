@@ -300,7 +300,7 @@ public:
     /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
-        knight_controller.rebirth(from, 0, checksum, true, N(rebirth3i));
+        knight_controller.rebirth(from, 0, checksum, true);
     }
 
     // deprecated
@@ -322,7 +322,7 @@ public:
             return &knight_controller;
         }
 
-        require_season(season;
+        require_season(season);
         return &sknight_controller;
     }
 
@@ -334,13 +334,13 @@ public:
     /// @abi action
     void rebirth3(name from, uint32_t season, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
-        get_knight_ctl(season)->rebirth(from, season, checksum, true, N(rebirth3i));
+        get_knight_ctl(season)->rebirth(from, season, checksum, true);
     }
 
     /// @abi action
     void rebirth3i(name from, uint32_t season, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
-        get_knight_ctl(season)->rebirth(from, season, checksum, false, 0);
+        get_knight_ctl(season)->rebirth(from, season, checksum, false);
     }
 
     /// @abi action
@@ -381,7 +381,7 @@ public:
     /// @abi action
     void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
-        material_controller.alchemist(from, 0, grade, mat_ids, checksum, true, N(alchemisti3));
+        material_controller.alchemist(from, 0, grade, mat_ids, checksum, true);
     }
 
 
@@ -392,7 +392,7 @@ public:
             return &material_controller;
         }
 
-        require_season(season;
+        require_season(season);
         return &smaterial_controller;
     }
 
@@ -405,27 +405,27 @@ public:
     /// @abi action
     void alchemist3(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
-        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, true, N(alchemist3i));
+        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, true);
     }
 
     /// @abi action
     void alchemisti3(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
-        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, false, 0);
+        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, false);
     }
 
     // item related actions
     //-------------------------------------------------------------------------
     /// @abi action
     void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
-        item_controller.craft(from, code, mat_ids, checksum, true, frompay);
+        system_controller.checksum_gateway(from, block, checksum);
+        item_controller.craft(from, 0, code, mat_ids, checksum, true);
     }
 
     /// @abi action
     void craft2i(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
-        item_controller.craft(from, code, mat_ids, checksum, false, false);
+        item_controller.craft(from, 0, code, mat_ids, checksum, false);
     }
 
     /// @abi action
@@ -440,8 +440,8 @@ public:
 
     /// @abi action
     void itemlvup2(name from, uint32_t id, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
-        int8_t knight = item_controller.itemlvup(from, id, checksum, true, frompay);
+        system_controller.checksum_gateway(from, block, checksum);
+        int8_t knight = item_controller.itemlvup(from, 0, id, checksum, true);
         if (knight > 0) {
             knight_controller.refresh_stat(from, knight);
         }
@@ -450,11 +450,21 @@ public:
     /// @abi action
     void itemlvup2i(name from, uint32_t id, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
-        int8_t knight = item_controller.itemlvup(from, id, checksum, false, false);
+        int8_t knight = item_controller.itemlvup(from, 0, id, checksum, false);
         if (knight > 0) {
             knight_controller.refresh_stat(from, knight);
         }
     }
+
+    item_control_actions* get_item_ctl(uint32_t season) {
+        if (season == 0) {
+            return &item_controller;
+        }
+
+        require_season(season);
+        return &sitem_controller;
+    }
+
 
     // pet related actions
     //-------------------------------------------------------------------------

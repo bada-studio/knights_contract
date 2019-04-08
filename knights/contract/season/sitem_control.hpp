@@ -10,9 +10,7 @@ class sitem_control : public item_control_base<
     splayer,
     splayer_table::const_iterator,
     splayer_control,
-    smaterial_control,
-    N(craft2s),
-    N(itemlvup2s)> {
+    smaterial_control> {
 
 public:
     // constructor

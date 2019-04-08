@@ -4,7 +4,7 @@
 class knight_control_actions {
 public:
     virtual void lvupknight(name from, uint8_t type) = 0;
-    virtual void rebirth(name from, uint32_t season, uint32_t checksum, bool delay, uint64_t drebirth_name) = 0;
+    virtual void rebirth(name from, uint32_t season, uint32_t checksum, bool delay) = 0;
     virtual void setkntstage(name from, uint8_t stage) = 0;
     virtual void equip(name from, uint8_t to, uint32_t id) = 0;
     virtual void detach(name from, uint32_t id) = 0;
@@ -220,7 +220,7 @@ public:
     /// Player who requested rebirth
     /// @param checksum
     /// To prevent bots
-    void rebirth(name from, uint32_t season, uint32_t checksum, bool delay, uint64_t daction) {
+    void rebirth(name from, uint32_t season, uint32_t checksum, bool delay) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
@@ -234,7 +234,7 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, daction, 
+                    self, N(rebirth3i), 
                     std::make_tuple(from, season, checksum)
                 );
                 out.delay_sec = 1;

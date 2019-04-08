@@ -1,5 +1,13 @@
 #pragma once
 
+class item_control_actions {
+public:
+    virtual void craft(name from, uint32_t season, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay) = 0;
+    virtual void remove(name from, const std::vector<uint32_t>& item_ids) = 0;
+    virtual void itemmerge(name from, uint32_t id, const std::vector<uint32_t> &ingredient) = 0;
+    virtual int8_t itemlvup(name from, uint32_t season, uint32_t id, uint32_t checksum, bool delay) = 0;
+};
+
 /*
  * base item controller
  */
@@ -9,10 +17,9 @@ template<typename item_table_name,
          typename player_name,
          typename player_table_const_iter_name,
          typename player_control_name,
-         typename material_control_name,
-         uint64_t dcraft_name,
-         uint64_t ditemlvup_name>
-class item_control_base : public control_base {
+         typename material_control_name>
+class item_control_base : public control_base 
+                        , public item_control_actions {
 private:
     account_name self;
     item_table_name items;
@@ -355,7 +362,7 @@ public:
     /// item code which you want to craft
     /// @param mat_ids
     /// material ids for item, this materials will be deleted.
-    void craft(name from, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay, bool frompay) {
+    void craft(name from, uint32_t season, uint16_t code, const std::vector<uint32_t> &mat_ids, uint32_t checksum, bool delay) {
         assert_true(mat_ids.size() > 0, "needs material for the crafting!");
 
         auto &players = player_controller.get_players();
@@ -371,8 +378,8 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, dcraft_name, 
-                    std::make_tuple(from, code, mat_ids, checksum)
+                    self, N(craft3i), 
+                    std::make_tuple(from, season, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
                 out.send(system_controller.get_last_trx_hash(), self);
@@ -458,7 +465,7 @@ public:
     /// Player who requested level up action
     /// @param id
     /// Target item
-    int8_t itemlvup(name from, uint32_t id, uint32_t checksum, bool delay, bool frompay) {
+    int8_t itemlvup(name from, uint32_t season, uint32_t id, uint32_t checksum, bool delay) {
         auto pvsi = system_controller.get_playervs(from);
         int8_t knt_id = 0;
 
@@ -470,8 +477,8 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, ditemlvup_name, 
-                    std::make_tuple(from, id, checksum)
+                    self, N(itemlvup3i), 
+                    std::make_tuple(from, season, id, checksum)
                 );
                 out.delay_sec = 1;
                 out.send(system_controller.get_last_trx_hash(), self);
@@ -689,9 +696,7 @@ class item_control : public item_control_base<
     player,
     player_table::const_iterator,
     player_control,
-    material_control,
-    N(craft2i),
-    N(itemlvup2i)> {
+    material_control> {
 
 public:
     // constructor
