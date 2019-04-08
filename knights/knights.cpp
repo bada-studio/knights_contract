@@ -485,16 +485,10 @@ public:
     //-------------------------------------------------------------------------
     /// @abi action
     void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
+        system_controller.checksum_gateway(from, block, checksum);
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "hire knight first!");
-        pet_controller.petgacha(from, type, count, checksum, true, frompay);
-    }
-
-    /// @abi action
-    void petgacha2i(name from, uint16_t type, uint8_t count, uint32_t checksum) {
-        system_controller.set_last_checksum(checksum);
-        pet_controller.petgacha(from, type, count, checksum, false, false);
+        pet_controller.petgacha(from, 0, type, count, checksum, true);
     }
 
     /// @abi action
@@ -518,6 +512,34 @@ public:
 
         require_season(season);
         return &spet_controller;
+    }
+
+    /// @abi action
+    void petgacha3(name from, uint32_t season, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
+        auto &knights = knight_controller.get_knights(from);
+        assert_true(knights.size() > 0, "hire knight first!");
+        get_pet_ctl(season)->petgacha(from, season, type, count, checksum, true);
+    }
+
+    /// @abi action
+    void petgacha3i(name from, uint32_t season, uint16_t type, uint8_t count, uint32_t checksum) {
+        system_controller.set_last_checksum(checksum);
+        get_pet_ctl(season)->petgacha(from, season, type, count, checksum, false);
+    }
+
+    /// @abi action
+    void petlvup3(name from, uint32_t season, uint16_t code) {
+        int8_t knight = get_pet_ctl(season)->petlvup(from, code);
+        if (knight > 0) {
+            knight_controller.refresh_stat(from, knight);
+        }
+    }
+
+    /// @abi action
+    void pattach3(name from, uint32_t season, uint16_t code, uint8_t knight) {
+        get_pet_ctl(season)->pattach(from, code, knight);
+        knight_controller.refresh_stat(from, knight);
     }
 
     /// @abi action
@@ -961,6 +983,6 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (alchemisti) (removemat3) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (alchemisti) (removemat3) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 
