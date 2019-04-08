@@ -1,5 +1,11 @@
 #pragma once
 
+class material_control_actions {
+public:
+    virtual void remove(name from, const std::vector<uint32_t> &mat_ids) = 0;
+    virtual void alchemist(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay, uint64_t daction) = 0;
+};
+
 /*
  * base material controller
  */
@@ -7,7 +13,8 @@ template<typename material_table_name,
          typename player_name,
          typename player_table_name,
          typename player_control_name>
-class material_control_base : public drop_control_base {
+class material_control_base : public drop_control_base
+                            , public material_control_actions {
 protected:
     account_name self;
     system_control &system_controller;
@@ -248,7 +255,13 @@ public:
         });
     }
 
-    void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay, bool frompay) {
+    void alchemist(name from, 
+                   uint32_t season, 
+                   uint32_t grade, 
+                   const std::vector<uint32_t>& mat_ids, 
+                   uint32_t checksum, 
+                   bool delay, 
+                   uint64_t daction) {
         auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
@@ -259,8 +272,8 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, N(alchemisti), 
-                    std::make_tuple(from, grade, mat_ids, checksum)
+                    self, daction, 
+                    std::make_tuple(from, season, grade, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
                 out.send(system_controller.get_last_trx_hash(), self);

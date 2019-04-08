@@ -9,15 +9,18 @@ protected:
     account_name self;
     tplayer_table players;
     saleslog_control &saleslog_controller;
+    int mw_type;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
     player_control_base(account_name _self, 
-                        saleslog_control &_saleslog_controller)
+                        saleslog_control &_saleslog_controller,
+                        int _mw_type)
         : self(_self)
         , players(self, self)
-        , saleslog_controller(_saleslog_controller) {
+        , saleslog_controller(_saleslog_controller)
+        , mw_type(_mw_type) {
     }
 
     // internal apis
@@ -81,7 +84,7 @@ public:
         buylog blog;
         blog.seller = seller;
         blog.dt = time_util::now_shifted();
-        blog.type = ct_mp; // todo
+        blog.type = mw_type;
         blog.pid = rule->pid;
         blog.code = 0;
         blog.dna = 0;
@@ -99,6 +102,6 @@ public:
 class player_control : public player_control_base<player_table, player_table::const_iterator> {
 public:
     player_control(account_name _self, saleslog_control &_saleslog_controller)
-    : player_control_base(_self, _saleslog_controller) {
+    : player_control_base(_self, _saleslog_controller, ct_mp) {
     }
 };

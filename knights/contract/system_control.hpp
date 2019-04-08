@@ -22,9 +22,6 @@ private:
     uint32_t last_trx_hash;
 
 public:
-    rule_controller<rivnprice, rivnprice_table> rivnprice_controller;
-
-public:
     // constructor
     //-------------------------------------------------------------------------
     system_control(account_name _self,
@@ -35,7 +32,6 @@ public:
         , players(_self, _self)
         , playervs_old(_self, _self)
         , playervs(_self, _self)
-        , rivnprice_controller(_self, N(ivnprice))
         , player_controller(_player_controller)
         , saleslog_controller(_saleslog_controller)
         , admin_controller(_admin_controller)
@@ -508,7 +504,7 @@ public:
         uint8_t ts = player->item_ivn_up + 1;
         assert_true(ts <= kv_max_item_inventory_up, "can not exceed max size");
 
-        auto &ivnprice_table = rivnprice_controller.get_table();
+        rivnprice_table ivnprice_table(self, self);
         auto price = ivnprice_table.find((uint64_t)ts);
         assert_true(price != ivnprice_table.end(), "no price rule");
         assert_true(quantity.amount == price->price.amount, "ivn price does not match");
@@ -542,7 +538,7 @@ public:
         uint8_t ts = player->mat_ivn_up + 1;
         assert_true(ts <= kv_max_material_inventory_up, "can not exceed max size");
 
-        auto &ivnprice_table = rivnprice_controller.get_table();
+        rivnprice_table ivnprice_table(self, self);
         auto price = ivnprice_table.find((uint64_t)ts);
         assert_true(price != ivnprice_table.end(), "no price rule");
         assert_true(quantity.amount == price->price.amount, "ivn price does not match");

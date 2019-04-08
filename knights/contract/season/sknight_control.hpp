@@ -11,8 +11,7 @@ class sknight_control : public knight_control_base<
     splayer_control,
     smaterial_control,
     sitem_control,
-    spet_control,
-    N(rebirth2s)> {
+    spet_control> {
 
 public:
     // constructor

@@ -284,38 +284,78 @@ public:
         dquest_controller.divdquest(id, no, from, count);
     }
 
+    void require_season(uint32_t season) {
+        // todo
+    }
+
     // knight related actions
     //-------------------------------------------------------------------------
+    // deprecated
     /// @abi action
     void lvupknight(name from, uint8_t type) {
         knight_controller.lvupknight(from, type);
     }
 
+    // deprecated
     /// @abi action
     void rebirth2(name from, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
-        knight_controller.rebirth(from, checksum, true, frompay);
+        system_controller.checksum_gateway(from, block, checksum);
+        knight_controller.rebirth(from, 0, checksum, true, N(rebirth3i));
     }
 
-    /// @abi action
-    void rebirth2i(name from, uint32_t checksum) {
-        system_controller.set_last_checksum(checksum);
-        knight_controller.rebirth(from, checksum, false, false);
-    }
-
-    /// @abi action
-    void setkntstage(name from, uint8_t stage) {
-        knight_controller.setkntstage(from, stage);
-    }
-
+    // deprecated
     /// @abi action
     void equip(name from, uint8_t knight, uint32_t id) {
         knight_controller.equip(from, knight, id);
     }
 
+    // deprecated
     /// @abi action
     void detach(name from, uint32_t id) {
         knight_controller.detach(from, id);
+    }
+
+
+
+    knight_control_actions* get_knight_ctl(uint32_t season) {
+        if (season == 0) {
+            return &knight_controller;
+        }
+
+        require_season(season;
+        return &sknight_controller;
+    }
+
+    /// @abi action
+    void lvupknight3(name from, uint32_t season, uint8_t type) {
+        get_knight_ctl(season)->lvupknight(from, type);
+    }
+
+    /// @abi action
+    void rebirth3(name from, uint32_t season, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
+        get_knight_ctl(season)->rebirth(from, season, checksum, true, N(rebirth3i));
+    }
+
+    /// @abi action
+    void rebirth3i(name from, uint32_t season, uint32_t checksum) {
+        system_controller.set_last_checksum(checksum);
+        get_knight_ctl(season)->rebirth(from, season, checksum, false, 0);
+    }
+
+    /// @abi action
+    void equip3(name from, uint32_t season, uint8_t knight, uint32_t id) {
+        get_knight_ctl(season)->equip(from, knight, id);
+    }
+
+    /// @abi action
+    void detach3(name from, uint32_t season, uint32_t id) {
+        get_knight_ctl(season)->detach(from, id);
+    }
+
+    /// @abi action
+    void setkntstage(name from, uint8_t stage) {
+        knight_controller.setkntstage(from, stage);
     }
 
     /// @abi action
@@ -330,24 +370,49 @@ public:
 
     // material related actions
     //-------------------------------------------------------------------------
+    // deprecated
     /// @abi action
     void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
         system_controller.checksum_gateway(from, block, checksum);
         material_controller.remove(from, mat_ids);
     }
 
+    // deprecated
     /// @abi action
     void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
-        material_controller.alchemist(from, grade, mat_ids, checksum, true, frompay);
+        system_controller.checksum_gateway(from, block, checksum);
+        material_controller.alchemist(from, 0, grade, mat_ids, checksum, true, N(alchemisti3));
+    }
+
+
+
+
+    material_control_actions* get_material_ctl(uint32_t season) {
+        if (season == 0) {
+            return &material_controller;
+        }
+
+        require_season(season;
+        return &smaterial_controller;
     }
 
     /// @abi action
-    void alchemisti(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
-        system_controller.set_last_checksum(checksum);
-        material_controller.alchemist(from, grade, mat_ids, checksum, false, false);
+    void removemat3(name from, uint32_t season, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
+        get_material_ctl(season)->remove(from, mat_ids);
     }
 
+    /// @abi action
+    void alchemist3(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
+        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, true, N(alchemist3i));
+    }
+
+    /// @abi action
+    void alchemisti3(name from, uint32_t season, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
+        system_controller.set_last_checksum(checksum);
+        get_material_ctl(season)->alchemist(from, season, grade, mat_ids, checksum, false, 0);
+    }
 
     // item related actions
     //-------------------------------------------------------------------------
@@ -530,7 +595,8 @@ public:
     /*
     /// @abi action
     void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
-        system_controller.rivnprice_controller.create_rules(rules, truncate);
+        rule_controller<rivnprice, rivnprice_table> controller(_self, N(ivnprice));
+        controller.create_rules(rules, truncate);
     }
     /*/
     /// @abi action
@@ -645,7 +711,8 @@ public:
     /// @abi action
     void trule(name table, uint16_t size) {
         if (table == N(ivnprice)) {
-            system_controller.rivnprice_controller.truncate_rules(size);
+            rule_controller<rivnprice, rivnprice_table> controller(_self, N(ivnprice));
+            controller.truncate_rules(size);
         } else if (table == N(knt)) {
             rule_controller<rknt, rknt_table> controller(_self, N(knt));
             controller.truncate_rules(size);
@@ -850,6 +917,6 @@ extern "C" { \
     } \
 }
 
-EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (rebirth2i) (removemat2) (alchemist) (alchemisti) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cknt) (ckntlv) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (removedgn) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (adddquest) (updatedsubq) (divdquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (removemat3) (alchemist3) (alchemisti3) (craft2) (craft2i) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (itemlvup2i) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petgacha2i) (petlvup) (pattach) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cknt) (ckntlv) (cvariable) (citem) (cpet) (cpetlv) (cpetexp) (cmpgoods) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) 
 // (removecquest) (removedquest) (setpause) 

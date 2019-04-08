@@ -1,5 +1,16 @@
 #pragma once
 
+
+class knight_control_actions {
+public:
+    virtual void lvupknight(name from, uint8_t type) = 0;
+    virtual void rebirth(name from, uint32_t season, uint32_t checksum, bool delay, uint64_t drebirth_name) = 0;
+    virtual void setkntstage(name from, uint8_t stage) = 0;
+    virtual void equip(name from, uint8_t to, uint32_t id) = 0;
+    virtual void detach(name from, uint32_t id) = 0;
+};
+
+
 /*
  * base knight controller
  */
@@ -10,9 +21,9 @@ template<typename knight_table_name,
          typename player_control_name,
          typename material_control_name,
          typename item_control_name,
-         typename pet_control_name,
-         uint64_t drebirth_name>
-class knight_control_base : public control_base {
+         typename pet_control_name>
+class knight_control_base : public control_base, 
+                            public knight_control_actions {
 protected:
     account_name self;
     knight_table_name knights;
@@ -209,7 +220,7 @@ public:
     /// Player who requested rebirth
     /// @param checksum
     /// To prevent bots
-    void rebirth(name from, uint32_t checksum, bool delay, bool frompay) {
+    void rebirth(name from, uint32_t season, uint32_t checksum, bool delay, uint64_t daction) {
         auto &players = player_controller.get_players();
         auto player = players.find(from);
         assert_true(players.cend() != player, "could not find player");
@@ -223,8 +234,8 @@ public:
                 eosio::transaction out{};
                 out.actions.emplace_back(
                     permission_level{ self, N(active) }, 
-                    self, drebirth_name, 
-                    std::make_tuple(from, checksum)
+                    self, daction, 
+                    std::make_tuple(from, season, checksum)
                 );
                 out.delay_sec = 1;
                 out.send(system_controller.get_last_trx_hash(), self);
@@ -603,7 +614,7 @@ private:
         }
     }
 
-    int get_botties(const player& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, int pet_code, double gdr) {
+    int get_botties(const player_name& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, int pet_code, double gdr) {
         rmaterial_table mat_rules(self, self);
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
         int bonus_grade = pet_controller.get_pet_grade(pet_code);
@@ -693,8 +704,7 @@ class knight_control : public knight_control_base<
     player_control,
     material_control,
     item_control,
-    pet_control,
-    N(rebirth2i)> {
+    pet_control> {
 
 private:
     kntskills_table skills;
