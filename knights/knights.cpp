@@ -658,9 +658,9 @@ public:
         itemevt_controller.getevtitem(from);
     }
 
-    void addevtitem(uint64_t id, uint32_t code, uint32_t from, uint32_t day) {
+    void addevtitem(uint32_t key, uint32_t code, uint32_t from, uint32_t day) {
         require_auth(_self);
-        itemevt_controller.addevtitem(id, code, from, day);
+        itemevt_controller.addevtitem(key, code, from, day);
     }
 
     // eosio.token recipient

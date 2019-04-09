@@ -1,6 +1,7 @@
 //@abi table itemevt i64
 struct itemevt {
-    uint64_t id = 0;
+    uint32_t id = 0;
+    uint32_t key = 0;
     uint32_t code = 0;
     uint64_t from = 0;
     uint32_t duration = 0;
@@ -23,6 +24,7 @@ struct itemevt {
     EOSLIB_SERIALIZE(
             itemevt,
             (id)
+            (key)
             (code)
             (from)
             (duration)
