@@ -40,7 +40,7 @@ public:
         // validation
         auto now = time_util::now();
         assert_true(iter->is_in(now), "no event now");
-        assert_true(iter->id != variable.itemevt, "you've already got event item");
+        assert_true(iter->key != variable.itemevt, "you've already got event item");
 
         // get rule
         ritem_table rule_table(self, self);
@@ -52,11 +52,11 @@ public:
         item_controller.add_item(from, iter->code, dna, 1, 0);
 
         // update event
-        variable.itemevt = iter->id;
+        variable.itemevt = iter->key;
         system_controller.update_playerv(pvsi, variable);
     }
 
-    void addevtitem(uint64_t id, uint32_t code, uint32_t from, uint32_t day) {
+    void addevtitem(uint32_t key, uint32_t code, uint32_t from, uint32_t day) {
         system_controller.require_coo_auth();
         auto now = time_util::now();
         
@@ -68,14 +68,15 @@ public:
         auto iter = table.cbegin();
         if (iter == table.cend()) {
             table.emplace(self, [&](auto &target) {
-                target.id = id;
+                target.id = 1;
+                target.key = key;
                 target.code = code;
                 target.from = from;
                 target.duration = day * time_util::day;
             });
         } else {
             table.modify(iter, self, [&](auto &target) {
-                target.id = id;
+                target.key = key;
                 target.code = code;
                 target.from = from;
                 target.duration = day * time_util::day;
