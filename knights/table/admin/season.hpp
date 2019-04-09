@@ -4,10 +4,12 @@ struct seasoninfo {
     uint32_t petoffset = 0; // pet offset time
     uint32_t speed = 0; // game speed
     uint32_t init_powder = 0; // init dark magic water
-    uint32_t stage = 0;
-    uint64_t v1 = 0;
+    uint8_t stage = 0;
+    uint8_t theme = 0;
+    uint16_t v1 = 0;
     uint64_t v2 = 0;
     uint64_t v3 = 0;
+    uint64_t v4 = 0;
     asset spending_limit;
     std::vector<asset> rewards;
     std::vector<std::string> sponsors;
