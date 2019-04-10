@@ -1,6 +1,9 @@
 #pragma once
 
 class knight_control_actions {
+protected:
+    bool use_gdr;
+
 public:
     virtual void lvupknight(name from, uint8_t type) = 0;
     virtual void rebirth(name from, uint32_t season, uint32_t checksum, bool delay) = 0;
@@ -391,7 +394,7 @@ public:
         refresh_stat(from, knight);
     }
 
-private:
+protected:
     /// rebirth common logic
     bool do_rebirth(name from, player_table_const_iter_name player, bool only_check, playerv2_table::const_iterator pvsi) {
         system_controller.check_blacklist(from);
@@ -415,7 +418,7 @@ private:
         time current = time_util::now_shifted();
         int elapsed_sec = (int)(current - player->last_rebirth);
         
-        set_rebirth_factor(player, variable, rows);
+        do_check_rebirth_factor(player, rows, variable);
 
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
@@ -428,6 +431,9 @@ private:
                 play_sec = max_sec;
             }
 
+            int hp = kv_enemy_hp;
+            hp = on_set_enemy_hp(hp);
+            
             int current_kill_count = knight.attack * play_sec / 60 / kv_enemy_hp;
             if (current_kill_count == 0) {
                 current_kill_count = 1;
@@ -455,7 +461,11 @@ private:
         });
 
         auto avg_floor = system_controller.get_global_avg_floor();
-        auto gdr = system_controller.get_global_drop_factor(avg_floor);
+        auto gdr = 1.0;
+        if (use_gdr) {
+            system_controller.get_global_drop_factor(avg_floor);
+        }
+
         double powder = 0;
         for (int index = 1; index < kt_count; index++) {
             if (kill_counts[index] == 0) {
@@ -498,8 +508,11 @@ private:
         });
 
         variable.clear_deferred_time();
-        if (rows.size() == kt_count-1 && floor > 10) {
-            submit_floor(variable, old_max_floor, floor);
+        if (use_gdr) {
+            // submit floor to calculate global average floor
+            if (rows.size() == kt_count-1 && floor > 10) {
+                submit_floor(variable, old_max_floor, floor);
+            }
         }
 
         system_controller.end_random(variable, rval);
@@ -507,9 +520,21 @@ private:
         return only_check;
     }
 
-    void set_rebirth_factor(player_table_const_iter_name player, playerv2 &variable, const std::vector<knightrow> &knights) {
+    virtual int on_set_enemy_hp(int hp) {
+        return hp;
+    }
+
+    virtual void do_check_rebirth_factor(player_table_const_iter_name player, 
+                                         const std::vector<knightrow> &rows,
+                                         playerv2 &variable) {
+        variable.rebrith_factor = calc_rebirth_factor(player, rows, variable.rebrith_factor);
+    }
+
+    int calc_rebirth_factor(player_table_const_iter_name player, 
+                            const std::vector<knightrow> &knights,
+                            int prev_factor) {
         time current = time_util::now_shifted();
-        double rebrith_factor = variable.rebrith_factor / 100.0;
+        double rebrith_factor = prev_factor / 100.0;
         rebrith_factor = std::max(1.0, rebrith_factor);
         rebrith_factor = std::min(15.0, rebrith_factor);
 
@@ -539,7 +564,7 @@ private:
 
         rebrith_factor = std::max(1.0, rebrith_factor);
         rebrith_factor = std::min(15.0, rebrith_factor);
-        variable.rebrith_factor = (int)(rebrith_factor * 100);
+        return (int)(rebrith_factor * 100);
     }
 
     void submit_floor(playerv2 &variable, int old_max_floor, int floor) {
@@ -665,6 +690,7 @@ public:
                 _pet_controller)
             , saleslog_controller(_saleslog_controller)                
             , skills(_self, _self) {
+        use_gdr = true;
     }
 
     // internal apis
