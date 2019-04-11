@@ -76,6 +76,24 @@ public:
         return size;
     }
 
+    std::vector<itemrow> get_all_knight_item(name from) {
+        std::vector<itemrow> res;
+
+        auto iter = items.find(from);
+        if (iter == items.cend()) {
+            return res;
+        }
+
+        auto &rows = iter->rows;
+        for (int index = 0; index < rows.size(); index++) {
+            if (rows[index].knight > 0) {
+                res.push_back(rows[index]);
+            }
+        }
+
+        return res;
+    }
+
     void apply_equip_stats(knight_stats &stat, name from, uint64_t knight) {
         ritem_table rule_table(self, self);
         ritemlv_table lvrules(self, self);

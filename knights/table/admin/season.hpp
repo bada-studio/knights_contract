@@ -6,10 +6,10 @@ struct seasoninfo {
     uint32_t init_powder = 0; // init dark magic water
     uint8_t stage = 0;
     uint8_t theme = 0;
-    uint16_t v1 = 0;
+    uint16_t max_record_count = 0;
+    uint64_t v1 = 0;
     uint64_t v2 = 0;
     uint64_t v3 = 0;
-    uint64_t v4 = 0;
     asset spending_limit;
     std::vector<asset> rewards;
     std::vector<std::string> sponsors;
@@ -34,6 +34,8 @@ struct seasonrecord {
 
 struct seasonstate {
     uint32_t playercnt = 0;
+    uint64_t v1 = 0;
+    uint64_t v2 = 0;
     std::vector<seasonrecord> records;
 };
 

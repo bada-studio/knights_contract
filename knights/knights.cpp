@@ -158,6 +158,12 @@ public:
 
     /// @abi action
     void test(name from) {
+        player_table table(_self, _self);
+        auto iter = table.find(from);
+        table.modify(iter, _self, [&](auto &target) {
+            target.maxfloor = 0;
+        });
+
         /*
         item_table table(_self, _self);
         auto iter = table.find(from);
@@ -456,7 +462,7 @@ public:
         system_controller.checksum_gateway(from, block, checksum);
         int8_t knight = get_item_ctl(season)->itemlvup(from, season, id, checksum, true);
         if (knight > 0) {
-            knight_controller.refresh_stat(from, knight);
+            get_knight_ctl(season)->refresh_stat(from, knight);
         }
     }
 
@@ -465,7 +471,7 @@ public:
         system_controller.set_last_checksum(checksum);
         int8_t knight = get_item_ctl(season)->itemlvup(from, season, id, checksum, false);
         if (knight > 0) {
-            knight_controller.refresh_stat(from, knight);
+            get_knight_ctl(season)->refresh_stat(from, knight);
         }
     }
 
@@ -530,14 +536,14 @@ public:
     void petlvup3(name from, uint32_t season, uint16_t code) {
         int8_t knight = get_pet_ctl(season)->petlvup(from, code);
         if (knight > 0) {
-            knight_controller.refresh_stat(from, knight);
+            get_knight_ctl(season)->refresh_stat(from, knight);
         }
     }
 
     /// @abi action
     void pattach3(name from, uint32_t season, uint16_t code, uint8_t knight) {
         get_pet_ctl(season)->pattach(from, code, knight);
-        knight_controller.refresh_stat(from, knight);
+        get_knight_ctl(season)->refresh_stat(from, knight);
     }
 
     /// @abi action

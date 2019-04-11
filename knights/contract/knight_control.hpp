@@ -9,6 +9,7 @@ public:
     virtual void rebirth(name from, uint32_t season, uint32_t checksum, bool delay) = 0;
     virtual void equip(name from, uint8_t to, uint32_t id) = 0;
     virtual void detach(name from, uint32_t id) = 0;
+    virtual void refresh_stat(name from, uint8_t type) = 0;
 
 // to reduce wasm size
 protected:
@@ -422,6 +423,7 @@ protected:
 
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
+        int enemy_hp = filter_enemy_hp(kv_enemy_hp);
 
         for (auto iter = rows.cbegin(); iter != rows.cend(); iter++) {
             auto &knight = *iter;
@@ -431,10 +433,7 @@ protected:
                 play_sec = max_sec;
             }
 
-            int hp = kv_enemy_hp;
-            hp = on_set_enemy_hp(hp);
-            
-            int current_kill_count = knight.attack * play_sec / 60 / kv_enemy_hp;
+            int current_kill_count = knight.attack * play_sec / 60 / enemy_hp;
             if (current_kill_count == 0) {
                 current_kill_count = 1;
             }
@@ -517,11 +516,16 @@ protected:
 
         system_controller.end_random(variable, rval);
         system_controller.update_playerv(pvsi, variable);
+
+        on_rebirth_done(from, old_max_floor, floor, rows);
         return only_check;
     }
 
-    virtual int on_set_enemy_hp(int hp) {
+    virtual int filter_enemy_hp(int hp) {
         return hp;
+    }
+
+    virtual void on_rebirth_done(name from, int old_max_floor, int floor, const std::vector<knightrow> &knts) {
     }
 
     virtual void do_check_rebirth_factor(player_table_const_iter_name player, 
