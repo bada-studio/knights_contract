@@ -25,4 +25,22 @@ public:
                 _player_controller,
                 _material_controller) {
     }
+
+protected:
+    virtual void on_insufficient_mat_for_craft(
+                splayer_table::const_iterator player, 
+                int total_mat_count, 
+                int code, 
+                bool only_check) {
+        int help_from = (kv_season_mat_factor >> 8) & 0xFF;
+        int mat_price_scaler = kv_season_mat_factor & 0xFF;
+        assert_true(total_mat_count >= help_from, "can not craft");
+        
+        rmaterial_table mat_rule(self, self);
+        auto rule = mat_rule.find(code);
+        assert_true(rule != mat_rule.cend(), "can not found material rule");
+        
+        int mw = rule->powder * mat_price_scaler;
+        player_controller.decrease_powder(player, mw, only_check);
+    }
 };

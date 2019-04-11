@@ -564,7 +564,7 @@ public:
         return only_check;
     }
 
-private:
+protected:
     bool do_craft(player_table_const_iter_name player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
         system_controller.require_action_count(1);
@@ -583,6 +583,7 @@ private:
         int mat2_count = recipe->mat2_count;
         int mat3_count = recipe->mat3_count;
         int mat4_count = recipe->mat4_count;
+        int total_mat_count = mat1_count + mat2_count + mat3_count + mat4_count;
 
         material_table_name materials(self, self);
         auto imat = materials.find(from);
@@ -605,10 +606,21 @@ private:
             }
         }
 
-        assert_true(mat1_count == 0 &&
-                    mat2_count == 0 &&
-                    mat3_count == 0 &&
-                    mat4_count == 0, "invalid recipe material count");
+        int insufficient_sum = mat1_count + mat2_count + mat3_count + mat4_count;
+        assert_true(insufficient_sum <= 1, "invalid recipe material count");
+        if (insufficient_sum == 1) {
+            int code = 0;
+            if (mat1_count == 1) {
+                code = recipe->mat1_code;
+            } if (mat2_count == 1) {
+                code = recipe->mat2_code;
+            } if (mat3_count == 1) {
+                code = recipe->mat3_code;
+            } if (mat4_count == 1) {
+                code = recipe->mat4_code;
+            }
+            on_insufficient_mat_for_craft(player, total_mat_count, code, only_check);
+        }
 
         material_controller.remove_mats(from, mat_ids, only_check);
         if (only_check) {
@@ -622,6 +634,14 @@ private:
         variable.clear_deferred_time();
         system_controller.update_playerv(pvsi, variable);
         return only_check;
+    }
+
+    virtual void on_insufficient_mat_for_craft(
+            player_table_const_iter_name player, 
+            int total_mat_count, 
+            int code,
+            bool only_check) {
+        assert_true(false, "invalid recipe material count");
     }
 
     void add_stat(knight_stats &stat, stat_type type, int value) {
