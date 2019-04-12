@@ -606,6 +606,11 @@ protected:
             }
         }
 
+        assert_true(mat1_count >= 0 && 
+                    mat2_count >= 0 &&
+                    mat3_count >= 0 &&
+                    mat4_count >= 0, "invalid recipe material count");
+
         int insufficient_sum = mat1_count + mat2_count + mat3_count + mat4_count;
         assert_true(insufficient_sum <= 1, "invalid recipe material count");
         if (insufficient_sum == 1) {

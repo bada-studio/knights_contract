@@ -122,6 +122,7 @@ private:
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
+    const char* ta_dmw = "dmw";
     const char* ta_item = "item";
     const char* ta_mat = "mat";
     const char* ta_skin = "skin";
@@ -235,7 +236,11 @@ public:
     }
 
     void require_season(uint32_t season) {
-        // todo
+        season_table table(_self, _self);
+        assert_true(table.cbegin() != table.cend(), "no season yet");
+        auto iter = --table.cend();
+        assert_true(iter->id == season, "invalid season");
+        assert_true(iter->info.is_in(time_util::now()), "not in season period");
     }
 
     // cquest related actions
@@ -890,6 +895,10 @@ public:
             } else if (ad.action == ta_mw) {
                 int pid = atoi(ad.param.c_str());
                 player_controller.buymp(ad.from, pid, ad.quantity);
+                admin_controller.add_revenue(ad.quantity, rv_mp);
+            } else if (ad.action == ta_dmw) {
+                int pid = atoi(ad.param.c_str());
+                splayer_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_mp);
             } else if (ad.action == ta_item) {
                 asset tax = market_controller.buyitem(ad.from, ad);
