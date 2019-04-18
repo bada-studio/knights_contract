@@ -52,6 +52,7 @@ using eosio::name;
 #include "table/user/skin.hpp"
 #include "table/user/skin4sale.hpp"
 #include "table/user/skininfo.hpp"
+#include "table/user/medal.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
@@ -151,7 +152,7 @@ public:
     , market_controller(_self, system_controller, player_controller, material_controller, item_controller, saleslog_controller, knight_controller)
     , cquest_controller(_self, item_controller, system_controller, admin_controller)
 //    , dquest_controller(_self, item_controller, system_controller, admin_controller)
-    , season_controller(_self, item_controller, system_controller, knight_controller, admin_controller)
+    , season_controller(_self, system_controller, admin_controller, sknight_controller, sitem_controller)
     , dungeon_controller(_self, system_controller, player_controller, material_controller, knight_controller/*, dquest_controller*/)
     , itemevt_controller(_self, system_controller, player_controller, item_controller)
     , skin_controller(_self, system_controller, saleslog_controller) {
@@ -231,8 +232,27 @@ public:
     }
 
     /// @abi action
+    void seasonreward(name from, uint32_t id) {
+        season_controller.seasonreward(from, id);
+    }
+
+    /// @abi action
     void devreset() {
         season_controller.devreset();
+    }
+
+    /// @abi action
+    void devreset2(name from) {
+        season_controller.devreset2(from);
+    }
+
+    /// @abi action
+    void submitsq(name from, int32_t season, int32_t id) {
+        require_season(season);
+        auto knt = season_controller.submitsq(from, id);
+        if (knt > 0) {
+            sknight_controller.refresh_stat(from, knt);
+        }
     }
 
     void require_season(uint32_t season) {
@@ -241,6 +261,14 @@ public:
         auto iter = --table.cend();
         assert_true(iter->id == season, "invalid season");
         assert_true(iter->info.is_in(time_util::now()), "not in season period");
+    }
+
+    void require_season_open() {
+        season_table table(_self, _self);
+        assert_true(table.cbegin() != table.cend(), "no season yet");
+        auto iter = --table.cend();
+        auto now = time_util::now();
+        assert_true(iter->info.is_in(now), "not in season period");
     }
 
     // cquest related actions
@@ -298,31 +326,6 @@ public:
 
     // knight related actions
     //-------------------------------------------------------------------------
-    // deprecated
-    /// @abi action
-    void lvupknight(name from, uint8_t type) {
-        knight_controller.lvupknight(from, type);
-    }
-
-    // deprecated
-    /// @abi action
-    void rebirth2(name from, uint32_t block, uint32_t checksum) {
-        system_controller.checksum_gateway(from, block, checksum);
-        knight_controller.rebirth(from, 0, checksum, true);
-    }
-
-    // deprecated
-    /// @abi action
-    void equip(name from, uint8_t knight, uint32_t id) {
-        knight_controller.equip(from, knight, id);
-    }
-
-    // deprecated
-    /// @abi action
-    void detach(name from, uint32_t id) {
-        knight_controller.detach(from, id);
-    }
-
     knight_control_actions* get_knight_ctl(uint32_t season) {
         if (season == 0) {
             return &knight_controller;
@@ -376,13 +379,6 @@ public:
 
     // material related actions
     //-------------------------------------------------------------------------
-    // deprecated
-    /// @abi action
-    void removemat2(name from, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        system_controller.checksum_gateway(from, block, checksum);
-        material_controller.remove(from, mat_ids);
-    }
-
     material_control_actions* get_material_ctl(uint32_t season) {
         if (season == 0) {
             return &material_controller;
@@ -412,35 +408,6 @@ public:
 
     // item related actions
     //-------------------------------------------------------------------------
-    // deprecated
-    /// @abi action
-    void craft2(name from, uint16_t code, const std::vector<uint32_t>& mat_ids, uint32_t block, uint32_t checksum) {
-        system_controller.checksum_gateway(from, block, checksum);
-        item_controller.craft(from, 0, code, mat_ids, checksum, true);
-    }
-
-    // deprecated
-    /// @abi action
-    void removeitem(name from, const std::vector<uint32_t>& item_ids) {
-        item_controller.remove(from, item_ids);
-    }
-
-    // deprecated
-    /// @abi action
-    void itemmerge(name from, uint32_t id, const std::vector<uint32_t> &ingredient) {
-        item_controller.itemmerge(from, id, ingredient);
-    }
-
-    // deprecated
-    /// @abi action
-    void itemlvup2(name from, uint32_t id, uint32_t block, uint32_t checksum) {
-        system_controller.checksum_gateway(from, block, checksum);
-        int8_t knight = item_controller.itemlvup(from, 0, id, checksum, true);
-        if (knight > 0) {
-            knight_controller.refresh_stat(from, knight);
-        }
-    }
-
     item_control_actions* get_item_ctl(uint32_t season) {
         if (season == 0) {
             return &item_controller;
@@ -492,28 +459,6 @@ public:
 
     // pet related actions
     //-------------------------------------------------------------------------
-    /// @abi action
-    void petgacha2(name from, uint16_t type, uint8_t count, uint32_t block, uint32_t checksum) {
-        system_controller.checksum_gateway(from, block, checksum);
-        auto &knights = knight_controller.get_knights(from);
-        assert_true(knights.size() > 0, "hire knight first!");
-        pet_controller.petgacha(from, 0, type, count, checksum, true);
-    }
-
-    /// @abi action
-    void petlvup(name from, uint16_t code) {
-        int8_t knight = pet_controller.petlvup(from, code);
-        if (knight > 0) {
-            knight_controller.refresh_stat(from, knight);
-        }
-    }
-
-    /// @abi action
-    void pattach(name from, uint16_t code, uint8_t knight) {
-        pet_controller.pattach(from, code, knight);
-        knight_controller.refresh_stat(from, knight);
-    }
-
     pet_control_actions* get_pet_ctl(uint32_t season) {
         if (season == 0) {
             return &pet_controller;
@@ -897,9 +842,11 @@ public:
                 player_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_mp);
             } else if (ad.action == ta_dmw) {
+                require_season_open();
                 int pid = atoi(ad.param.c_str());
                 splayer_controller.buymp(ad.from, pid, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_mp);
+                admin_controller.add_revenue(ad.quantity, rv_dmw);
+                season_controller.add_revenue(ad.quantity);
             } else if (ad.action == ta_item) {
                 asset tax = market_controller.buyitem(ad.from, ad);
                 admin_controller.add_revenue(tax, rv_item_tax);
@@ -996,7 +943,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (devreset) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (lvupknight) (setkntstage) (rebirth2) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (removemat2) (alchemist) (alchemisti) (removemat3) (craft2) (removeitem) (equip) (detach) (skillup) (skillreset) (itemmerge) (itemlvup2) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha2) (petlvup) (pattach) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (devreset) (devreset2) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 

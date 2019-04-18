@@ -459,9 +459,10 @@ protected:
             }
         });
 
-        auto avg_floor = system_controller.get_global_avg_floor();
+        auto avg_floor = 1000;
         auto gdr = 1.0;
         if (use_gdr) {
+            avg_floor = system_controller.get_global_avg_floor();
             system_controller.get_global_drop_factor(avg_floor);
         }
 

@@ -45,15 +45,11 @@ struct splayer {
     uint16_t maxfloor = 0;
 
     uint16_t rebrith_factor = 0;
-    uint32_t season = 0;
-    uint8_t received = 0;
-    asset spending;
     uint64_t v1 = 0;
     uint64_t v2 = 0;
 
     splayer(name o = name())
-    : owner(o)
-    , spending(0, S(4, EOS)) {
+    : owner(o) {
     }
     
     uint64_t primary_key() const {
@@ -70,9 +66,6 @@ struct splayer {
                      (powder)
                      (maxfloor)
                      (rebrith_factor)
-                     (season)
-                     (received)
-                     (spending)
                      (v1)
                      (v2)
                      )

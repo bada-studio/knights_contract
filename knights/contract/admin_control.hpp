@@ -53,9 +53,26 @@ public:
             target.revenue += revenue;
         });
 
-        revenuedt_table revenues(self, self);
+        revenuedt2_table revenues(self, self);
         if (revenues.cbegin() == revenues.cend()) {
-            revenues.emplace(self, [&](auto &target) {});
+            // migration
+            revenuedt_table oldtable(self, self);
+            if (oldtable.cbegin() == oldtable.cend()) {
+                revenues.emplace(self, [&](auto &target) {});
+            } else {
+                // migration
+                auto iter = oldtable.cbegin();
+                revenues.emplace(self, [&](auto &target) {
+                    target.knight = iter->knight;
+                    target.material_tax = iter->material_tax;
+                    target.item_tax = iter->item_tax;
+                    target.mp = iter->mp;
+                    target.mat_iventory_up = iter->mat_iventory_up;
+                    target.item_iventory_up = iter->item_iventory_up;
+                    target.coo_mat = iter->coo_mat;
+                    target.system = iter->system;
+                });
+            }
         }
 
         revenues.modify(revenues.begin(), self, [&](auto &target) {
@@ -68,6 +85,7 @@ public:
                 case rv_item_iventory_up: target.item_iventory_up += revenue; break;
                 case rv_system: target.system += revenue; break;
                 case rv_skin: target.coo_mat += revenue; break;
+                case rv_dmw: target.dmw += revenue; break;
             }
         });
     }

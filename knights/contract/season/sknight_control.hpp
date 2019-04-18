@@ -65,7 +65,7 @@ public:
         auto season = --table.cend();
 
         // check it's new record
-        auto max_count = season->info.max_record_count;
+        auto max_count = season->info.rankcnt;
         auto &records = season->state.records;
         auto current_size = records.size();
         if (current_size >= max_count) {
@@ -96,9 +96,6 @@ public:
             insert_pos--;
         }
 
-        auto adopted = pet_controller.get_all_knight_pet(from);
-        auto equip = item_controller.get_all_knight_item(from);
-
         // update point
         table.modify(season, self, [&](auto &target) {
             auto &records = target.state.records;
@@ -109,9 +106,6 @@ public:
             seasonrecord record;
             record.owner = from;
             record.floor = floor;
-            record.knights = knts;
-            record.equip = equip;
-            record.adopted = adopted;
             record.paid = false;
 
             records.insert(records.cbegin() + insert_pos, record);

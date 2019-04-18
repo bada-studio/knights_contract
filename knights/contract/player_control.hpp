@@ -65,7 +65,6 @@ public:
     /// product id
     void buymp(name from, uint8_t pid, const asset &quantity) {
         require_auth(from);
-        on_bymp(from, quantity);
 
         rmpgoods_table rule_table(self, self);
         auto rule = rule_table.find(pid);
@@ -93,10 +92,6 @@ public:
         blog.exp = 0;
         blog.price = rule->price;
         saleslog_controller.add_buylog(blog, from);
-    }
-
-protected:
-    virtual void on_bymp(name from, const asset &quantity) {
     }
 };
 

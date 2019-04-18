@@ -125,25 +125,6 @@ public:
         return 0;
     }
 
-    std::vector<petrow> get_all_knight_pet(name from) {
-        pet_table_name pets(self, self);
-        std::vector<petrow> res;
-
-        auto iter = pets.find(from);
-        if (iter == pets.cend()) {
-            return res;
-        }
-
-        auto &rows = iter->rows;
-        for (int index = 0; index < rows.size(); index++) {
-            if (rows[index].knight > 0) {
-                res.push_back(rows[index]);
-            }
-        }
-
-        return res;
-    }
-
     void add_pet(name from, int code) {
         petrow row;
         row.code = code;
