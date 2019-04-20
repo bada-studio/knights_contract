@@ -158,21 +158,6 @@ public:
     , skin_controller(_self, system_controller, saleslog_controller) {
     }
 
-    /// @abi action
-    void test(name from) {
-        player_table table(_self, _self);
-        auto iter = table.find(from);
-        table.modify(iter, _self, [&](auto &target) {
-            target.maxfloor = 0;
-        });
-
-        /*
-        item_table table(_self, _self);
-        auto iter = table.find(from);
-        table.erase(iter);
-        */
-    }
-
     // player related actions
     //-------------------------------------------------------------------------
     /// @abi action
@@ -222,8 +207,8 @@ public:
     // season related actions
     //-------------------------------------------------------------------------
     /// @abi action
-    void addseason(uint32_t id, const seasoninfo &info) {
-        season_controller.addseason(id, info);
+    void addseason(bool add, const seasoninfo &info) {
+        season_controller.addseason(add, info);
     }
 
     /// @abi action
@@ -234,16 +219,6 @@ public:
     /// @abi action
     void seasonreward(name from, uint32_t id) {
         season_controller.seasonreward(from, id);
-    }
-
-    /// @abi action
-    void devreset() {
-        season_controller.devreset();
-    }
-
-    /// @abi action
-    void devreset2(name from) {
-        season_controller.devreset2(from);
     }
 
     /// @abi action
@@ -562,8 +537,8 @@ public:
 
     /// @abi action
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t block, uint32_t checksum) {
-        bool frompay = system_controller.checksum_gateway(from, block, checksum);
-        dungeon_controller.dgclear(from, code, orders, checksum, true, frompay);
+        system_controller.checksum_gateway(from, block, checksum);
+        dungeon_controller.dgclear(from, code, orders, checksum, true, false);
     }
 
     /// @abi action
@@ -943,7 +918,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (test) (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (devreset) (devreset2) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 

@@ -157,6 +157,7 @@ public:
     void check_blacklist(name from);
     uint32_t calculate_trx_hash(char* buf, int size);
     uint32_t calculate_trx_hash2();
+    uint32_t calculate_trx_hash3(uint32_t data);
 
     random_val begin_random(const playerv2 &value) {
         uint32_t seed = value.seed;
@@ -196,10 +197,25 @@ public:
         });
     }
 
-    bool checksum_gateway(name from, uint32_t block, uint32_t checksum) {
+    void checksum_gateway(name from, uint32_t block, uint32_t checksum) {
         last_checksum = checksum;
-        test_checksum(from, block, checksum);
-        return ((checksum >> 16) & 0x8000) != 0;
+        if (checksum & 0x80000000) {
+            test_checksum_v2(from, block, checksum);
+        } else {
+            test_checksum(from, block, checksum);
+        }
+    }
+
+    void test_checksum_v2(name from, uint32_t block, uint32_t checksum) {
+        int32_t num = time_util::now_shifted();
+        int32_t v0 = block ^ get_checksum_key(from);
+        int32_t hash = calculate_trx_hash3(v0) | 0x80000000;
+
+        assert_true((num + 60) > v0, "check your system time. it's too fast. (checksum failure)");
+        assert_true((num - v0) < 90, "check your system time it's too slow. (checksum failure)");
+        assert_true(hash == checksum, "invalid checksum");
+
+        save_checksum(from, block, checksum, v0);
     }
 
     void test_checksum(name from, uint32_t block, uint32_t checksum) {
@@ -215,6 +231,10 @@ public:
         assert_true((num + 60) > v0, "check your system time. it's too fast. (checksum failure)");
         assert_true((num - v0) < 90, "check your system time it's too slow. (checksum failure)");
 
+        save_checksum(from, block, checksum, v0);
+    }
+
+    void save_checksum(name from, uint32_t block, uint32_t checksum, uint32_t v0) {
         auto iter = playervs.find(from);
         if (iter == playervs.cend()) {
             iter = migrate_playerv(from);

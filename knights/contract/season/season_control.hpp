@@ -28,81 +28,19 @@ public:
 
     // actions
     //-------------------------------------------------------------------------
-    void devreset() {
-        require_auth(self);
-        {
-            season_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-
-        {
-            splayer_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-
-        {
-            sknight_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-
-        {
-            smaterial_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-
-        {
-            spet_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-
-        {
-            sitem_table table(self, self);
-            auto iter = table.begin();
-            while (iter != table.cend()) {
-                iter = table.erase(iter);
-            }
-        }
-    }
-
-    void devreset2(name from) {
-        playerv2_table table(self, self);
-        auto iter = table.find(from);
-        table.modify(iter, self, [&](auto &target) {
-            target.last_start_season = 0;
-            target.last_end_season = 0;
-        });
-    }
-
     /// @brief
     /// add new season
     /// @param id
     /// Season id
     /// @param info
     /// Season info
-    void addseason(uint32_t id, const seasoninfo &info) {
+    void addseason(bool add, const seasoninfo &info) {
         system_controller.require_coo_auth();
-
         season_table table(self, self);
-        auto iter = table.find(id);
 
         // new one
-        if (iter == table.cend()) {
-            id = table.available_primary_key();
+        if (add) {
+            uint64_t id = table.available_primary_key();
             if (id == 0) {
                 id++;
             }
@@ -133,6 +71,8 @@ public:
                 });
             }
         } else {
+            auto iter = --table.cend();
+
             // update info
             table.modify(iter, self, [&](auto& target) {
                 target.info = info;
