@@ -217,12 +217,13 @@ public:
     }
 
     /// @abi action
-    void seasonreward(name from, uint32_t id) {
+    void seasonreward(name from, uint32_t id, uint32_t block, uint32_t checksum) {
+        system_controller.checksum_gateway(from, block, checksum);
         season_controller.seasonreward(from, id);
     }
 
     /// @abi action
-    void submitsq(name from, int32_t season, int32_t id) {
+    void submitsq(name from, int32_t season, int32_t id, uint32_t block, uint32_t checksum) {
         require_season(season);
         auto knt = season_controller.submitsq(from, id);
         if (knt > 0) {
