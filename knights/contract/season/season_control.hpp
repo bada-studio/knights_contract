@@ -73,7 +73,9 @@ public:
         } else {
             auto iter = --table.cend();
             auto now = time_util::now();
-            assert_true(now < iter->info.get_end(), "it's over");
+            if (iter->state.records.size() > 0) {
+                assert_true(now < iter->info.get_end(), "it's over");
+            }
 
             // update info
             table.modify(iter, self, [&](auto& target) {
