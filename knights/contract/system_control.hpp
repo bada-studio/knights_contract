@@ -202,7 +202,8 @@ public:
         if (checksum & 0x80000000) {
             test_checksum_v2(from, block, checksum);
         } else {
-            test_checksum(from, block, checksum);
+            assert_true(false, "deprecated checksum");
+            //test_checksum(from, block, checksum);
         }
     }
 
