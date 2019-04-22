@@ -12,6 +12,17 @@ protected:
         return res;
     }
 
+    uint64_t get_code_name(eosio::symbol_type symbol) {
+        switch (symbol) {
+            case S(4, EOS): return N(eosio.token);
+            case S(4, BADA): return N(thebadatoken);
+            case S(4, TRYBE): return N(trybenetwork);
+            case S(4, MEETONE): return N(eosiomeetone);
+        }
+
+        return 0;
+    }
+
     void validate_price(asset price, int grade) {
         assert_true(price.symbol == S(4,EOS) , "only EOS token allowed");
         assert_true(price.is_valid(), "invalid price");
@@ -73,7 +84,7 @@ protected:
 
 class drop_control_base : public control_base {
 protected:
-    int get_bottie(const player& player, int grade, random_val &rval) {
+    int get_bottie(int grade, random_val &rval) {
         int start = 0;
         int length = 0;
 

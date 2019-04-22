@@ -7,6 +7,7 @@ struct petrow {
 };
 
 //@abi table pet i64
+//@abi table spet i64
 struct pet {
     name owner;
     std::vector<petrow> rows;
@@ -23,3 +24,4 @@ struct pet {
 };
 
 typedef eosio::multi_index< N(pet), pet > pet_table;
+typedef eosio::multi_index< N(spet), pet > spet_table;

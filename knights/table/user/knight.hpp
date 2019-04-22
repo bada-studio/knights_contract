@@ -10,6 +10,7 @@ struct knightrow {
 };
 
 //@abi table knight i64
+//@abi table sknight i64
 struct knight {
     name owner;
     std::vector<knightrow> rows;
@@ -25,5 +26,5 @@ struct knight {
     )
 };
 
-
 typedef eosio::multi_index<N(knight), knight> knight_table;
+typedef eosio::multi_index<N(sknight), knight> sknight_table;

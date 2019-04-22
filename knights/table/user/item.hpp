@@ -10,6 +10,7 @@ struct itemrow {
 };
 
 //@abi table item i64
+//@abi table sitem i64
 struct item {
     name owner;
     uint32_t last_id;
@@ -28,3 +29,4 @@ struct item {
 };
 
 typedef eosio::multi_index< N(item), item > item_table;
+typedef eosio::multi_index< N(sitem), item > sitem_table;

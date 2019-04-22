@@ -4,33 +4,26 @@ class dungeon_control : public drop_control_base {
 private:
     account_name self;
     material_control &material_controller;
+    system_control &system_controller;
     player_control &player_controller;
     knight_control &knight_controller;
-    dquest_control &dquest_controller;
-
-public:
-    rule_controller<rdungeon, rdungeon_table> dungeon_rule_controller;
-    rule_controller<rdgticket, rdgticket_table> dgticket_rule_controller;
-    rule_controller<rmobs, rmobs_table> mobs_rule_controller;
-    rule_controller<rmobskills, rmobskills_table> mobskills_rule_controller;
+    //dquest_control &dquest_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
     dungeon_control(account_name _self,
-                    material_control &_material_controller,
+                    system_control &_system_controller,
                     player_control &_player_controller,
-                    knight_control &_knight_controller,
-                    dquest_control &_dquest_controller)
+                    material_control &_material_controller,
+                    knight_control &_knight_controller/*,
+                    dquest_control &_dquest_controller*/)
         : self(_self)
-        , dungeon_rule_controller(_self, N(dungeon))
-        , dgticket_rule_controller(_self, N(dgticket))
-        , mobs_rule_controller(_self, N(mobs))
-        , mobskills_rule_controller(_self, N(mobskills))
-        , material_controller(_material_controller)
+        , system_controller(_system_controller)
         , player_controller(_player_controller)
+        , material_controller(_material_controller)
         , knight_controller(_knight_controller)
-        , dquest_controller(_dquest_controller)
+//        , dquest_controller(_dquest_controller)
         {
     }
 
@@ -40,7 +33,7 @@ public:
         require_auth(from);
 
         // get rule
-        auto &rule_table = dgticket_rule_controller.get_table();
+        rdgticket_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
 
@@ -49,9 +42,13 @@ public:
         int cnt3 = rule->cnt3;
 
         // check recipe
-        auto &mats = material_controller.get_materials(from);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &mats = imat->rows;
+
         for (int index = 0; index < mat_ids.size(); index++) {
-            auto &mat = material_controller.get_material(mats, mat_ids[index]);
+            auto &mat = imat->get_material(mat_ids[index]);
             if (mat.code == rule->mat1) {
                 cnt1--;
             } else if (mat.code == rule->mat2) {
@@ -156,7 +153,7 @@ public:
         auto time_now = time_util::now_shifted();
 
         // required floor check
-        auto &rule_table = dungeon_rule_controller.get_table();
+        rdungeon_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
         assert_true(rule->required_floor <= player->maxfloor, "need more maxfloor");
@@ -232,9 +229,9 @@ public:
             target.tickets[tpos].reduce_count(rule->tkcount);
 
             // set seed
-            auto key = player_controller.get_checksum_key(from);
+            auto key = system_controller.get_checksum_key(from);
             data.seed = (uint32_t)((from + time_now) ^ key);
-            data.seed ^= player_controller.get_key(from);
+            data.seed ^= system_controller.get_key(from);
 
             // add dungeon
             target.rows.push_back(data);
@@ -259,7 +256,7 @@ public:
         assert_true(pos >= 0, "there is no dungeon");
 
         // get rule
-        auto &rule_table = dungeon_rule_controller.get_table();
+        rdungeon_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
 
@@ -278,13 +275,13 @@ public:
     }
 
     void dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, uint32_t checksum, bool delay, bool frompay) {
-        player_controller.check_blacklist(from);
+        system_controller.check_blacklist(from);
 
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_dgclear(from, code, orders, delay, pvsi)) {
                 eosio::transaction out{};
@@ -294,7 +291,7 @@ public:
                     std::make_tuple(from, code, orders, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
             }
         } else {
             if (USE_DEFERRED == 1) {
@@ -308,7 +305,7 @@ public:
     }
 
     bool do_dgclear(name from, uint16_t code, const std::vector<uint32_t> orders, bool only_check, playerv2_table::const_iterator pvsi) {
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         // get player
         auto &players = player_controller.get_players();
@@ -317,7 +314,11 @@ public:
         auto time_now = time_util::now_shifted();
 
         // check inventory size;
-        auto &mats = material_controller.get_materials(from);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &mats = imat->rows;
+        
         int exp_mat_count = mats.size() + 1;
         int max_mat_count = material_controller.get_max_inventory_size(*player);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
@@ -333,7 +334,7 @@ public:
         validate_orders(from, iter->rows[pos], orders);
         
         // get rule
-        auto &rule_table = dungeon_rule_controller.get_table();
+        rdungeon_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule_table.cend() != rule, "could not dungeon rule");
 
@@ -342,9 +343,9 @@ public:
         }
 
         // determin drop material
-        auto gdr = player_controller.get_global_drop_factor();
+        auto gdr = system_controller.get_global_drop_factor();
         auto variable = *pvsi;
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         auto value = rval.range(100'00);
         uint16_t matcode = 0;
 
@@ -363,7 +364,7 @@ public:
                 grade = ig_unique;
             }
 
-            matcode = get_bottie(*player, grade, rval);
+            matcode = get_bottie(grade, rval);
         }
 
         // add materials
@@ -380,11 +381,11 @@ public:
         });
 
         // submit quest
-        dquest_controller.submitdquest(from, code, variable);
+        //dquest_controller.submitdquest(from, code, variable);
         
         variable.clear_deferred_time();
-        player_controller.end_random(variable, rval);
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.end_random(variable, rval);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
     }
 
@@ -395,17 +396,17 @@ private:
         assert_true(origin_orders.size() >= 5, "validation failed 1");
 
         // dungeon rule
-        auto &dgrule_table = dungeon_rule_controller.get_table();
+        rdungeon_table dgrule_table(self, self);
         auto dgrule = dgrule_table.find(code);
         assert_true(dgrule_table.cend() != dgrule, "could not find dungeon rule");
 
         // mob rule
-        auto &mobrule_table = mobs_rule_controller.get_table();
+        rmobs_table mobrule_table(self, self);
         auto mobrule = mobrule_table.find(code);
         assert_true(mobrule_table.cend() != mobrule, "could not find dungeon rule");
 
         // decode
-        auto key = player_controller.get_key(from) ^ data.seed;
+        auto key = system_controller.get_key(from) ^ data.seed;
         std::vector<uint32_t> orders;
         orders.push_back(origin_orders[0]);
         for (int index = 1; index < length; index++) {
@@ -414,7 +415,7 @@ private:
         }
 
         dungeon_random dr;
-        dr.seed = data.seed ^ player_controller.get_key(from);
+        dr.seed = data.seed ^ system_controller.get_key(from);
 
         // validation
         uint32_t last = orders[length-1];

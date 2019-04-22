@@ -4,7 +4,7 @@ then
   contract=eosknightsio
 elif [ "$1" = "beta" ]
 then
-  url=http://jungle2.cryptolions.io:80
+  url=http://121.168.149.101:8888
   contract=eosknightsio
 elif [ "$1" = "local" ]
 then
@@ -12,7 +12,7 @@ then
   contract=eosknightsio
 else
   echo "need phase"
-  exit 0
+  exit 1
 fi
 
 cleos -u $url set contract $contract knights -p $contract

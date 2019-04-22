@@ -3,8 +3,7 @@
 class skin_control : public control_base {
 private:
     account_name self;
-
-    player_control &player_controller;
+    system_control &system_controller;
     saleslog_control &saleslog_controller;
 
 public:
@@ -13,10 +12,10 @@ public:
     /// @brief
     /// Constructor
     skin_control(account_name _self,
-                player_control &_player_controller,
+                system_control &_system_controller,
                 saleslog_control &_saleslog_controller)
             : self(_self)
-            , player_controller(_player_controller)
+            , system_controller(_system_controller)
             , saleslog_controller(_saleslog_controller) {
     }
 

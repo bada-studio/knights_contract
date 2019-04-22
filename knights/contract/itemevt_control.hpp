@@ -3,6 +3,7 @@
 class itemevt_control : public control_base {
 private:
     account_name self;
+    system_control &system_controller;
     player_control &player_controller;
     item_control &item_controller;
 
@@ -10,9 +11,11 @@ public:
     /// @brief
     /// Constructor
     itemevt_control(account_name _self,
+                    system_control &_system_controller,
                     player_control &_player_controller,
                     item_control &_item_controller)
             : self(_self)
+            , system_controller(_system_controller)
             , player_controller(_player_controller)
             , item_controller(_item_controller) {
     }
@@ -26,7 +29,7 @@ public:
         auto player = player_controller.get_player(from);
         assert_true(!player_controller.is_empty_player(player), "no player");
 
-        auto pvsi = player_controller.get_playervs(from, true);
+        auto pvsi = system_controller.get_playervs(from, true);
         auto variable = *pvsi;
 
         // get event
@@ -40,7 +43,7 @@ public:
         assert_true(iter->key != variable.itemevt, "you've already got event item");
 
         // get rule
-        auto &rule_table = item_controller.item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto recipe = rule_table.find(iter->code);
         assert_true(recipe != rule_table.cend(), "can not found item");
 
@@ -50,14 +53,14 @@ public:
 
         // update event
         variable.itemevt = iter->key;
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
     }
 
     void addevtitem(uint32_t key, uint32_t code, uint32_t from, uint32_t day) {
-        player_controller.require_coo_auth();
+        system_controller.require_coo_auth();
         auto now = time_util::now();
         
-        auto &rule_table = item_controller.item_rule_controller.get_table();
+        ritem_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "can not found item");
 

@@ -1,31 +1,38 @@
 #pragma once
 
-class material_control : public drop_control_base {
-private:
-    account_name self;
-    material_table materials;
-    player_control &player_controller;
-
-    std::vector<matrow> empty_matrows;
-    matrow empty_matrow;
-
+class material_control_actions {
 public:
-    rule_controller<rmaterial, rmaterial_table> material_rule_controller;
+    virtual void remove(name from, const std::vector<uint32_t> &mat_ids) = 0;
+};
+
+/*
+ * base material controller
+ */
+template<typename material_table_name, 
+         typename player_name,
+         typename player_table_name,
+         typename player_control_name>
+class material_control_base : public drop_control_base
+                            , public material_control_actions {
+protected:
+    account_name self;
+    system_control &system_controller;
+    player_control_name &player_controller;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
-    material_control(account_name _self,
-                     player_control &_player_controller)
+    material_control_base(account_name _self,
+                          system_control &_system_controller, 
+                          player_control_name &_player_controller)
             : self(_self)
-            , material_rule_controller(_self, N(material))
-            , materials(_self, _self)
+            , system_controller(_system_controller)
             , player_controller(_player_controller) {
     }
 
     // internal apis
     //-------------------------------------------------------------------------
-    int get_max_inventory_size(const player& player) {
+    int get_max_inventory_size(const player_name& player) {
         int size = kv_material_inventory_size;
         int upgrade = player.mat_ivn_up;
         if (upgrade > kv_max_material_inventory_up) {
@@ -36,11 +43,22 @@ public:
         return size;
     }
 
+    int get_current_inventory_size(name from) {
+        material_table_name materials(self, self);
+        auto imat = materials.find(from);
+        auto current_inventory_size = 0;
+        if (imat != materials.cend()) {
+            current_inventory_size = imat->rows.size();
+        }
+        return current_inventory_size;
+    }
+
     void add_material(name from, uint16_t code) {
         matrow row;
         row.code = code;
         row.saleid = 0;
 
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
@@ -60,6 +78,7 @@ public:
     }
 
     void add_materials(name from, const uint16_t mats[]) {
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         if (iter == materials.cend()) {
             materials.emplace(self, [&](auto& mat){
@@ -102,99 +121,11 @@ public:
         }
     }
 
-    const std::vector<matrow>& get_materials(name from) {
-        auto iter = materials.find(from);
-        if (iter != materials.cend()) {
-            return iter->rows;
-        }
-
-        return empty_matrows;
-    }
-
-    const matrow& get_material(const std::vector<matrow> &rows, int id) {
-        // binary search
-        int left = 0;
-        int right = rows.size() - 1;
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            if (rows[mid].id < id) {
-                left = mid + 1;
-            } else if (id < rows[mid].id) {
-                right = mid - 1;
-            } else {
-                return rows[mid];
-            }
-        }
-        
-        assert_true(false, "can not found material");
-        return empty_matrow;
-    }
-
-    void make_material_forsale(name from, uint64_t materialid, uint64_t saleid) {
-        auto iter = materials.find(from);
-        assert_true(iter != materials.cend(), "could not found material");
-
-        bool found = false;
-        materials.modify(iter, self, [&](auto& mat){
-            for (int index = 0; index < mat.rows.size(); index++) {
-                if (mat.rows[index].id == materialid) {
-                    mat.rows[index].saleid = saleid;
-                    found = true;
-                    break;
-                }
-            }
-        });
-
-        assert_true(found, "could not found material");
-    }
-
-    void cancel_sale(name from, uint64_t saleid) {
-        auto iter = materials.find(from);
-        assert_true(iter != materials.cend(), "could not found material");
-
-        bool found = false;
-        materials.modify(iter, self, [&](auto& mat){
-            for (int index = 0; index < mat.rows.size(); index++) {
-                if (mat.rows[index].saleid == saleid) {
-                    mat.rows[index].saleid = 0;
-                    found = true;
-                    break;
-                }
-            }
-        });
-
-        assert_true(found, "could not found material");
-    }
-
-    void remove_salematerial(name from, uint64_t saleid) {
-        auto iter = materials.find(from);
-        assert_true(iter != materials.cend(), "could not found material");
-
-        int found = -1;
-        materials.modify(iter, self, [&](auto& mat){
-            for (int index = 0; index < mat.rows.size(); index++) {
-                if (mat.rows[index].saleid == saleid) {
-                    found = index;
-                    break;
-                }
-            }
-
-            if (found >= 0) {
-                mat.rows.erase(mat.rows.begin() + found);
-            }
-        });
-
-        assert_true(found >= 0, "could not found material");
-    }
-
-    void new_material_from_market(name from, uint16_t code) {
-        add_material(from, code);
-    }
-
     uint32_t remove_mats(name from, const std::vector<uint32_t> &mat_ids, bool only_check = false) {
+        material_table_name materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "could not found material");
-        auto &mat_rule = material_rule_controller.get_table();
+        rmaterial_table mat_rule(self, self);
 
         uint32_t powder = 0;
         int found = false;
@@ -258,13 +189,37 @@ public:
             target.powder += powder;
         });
     }
+};
 
-    void alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum, bool delay, bool frompay) {
-        auto pvsi = player_controller.get_playervs(from);
+
+/*
+ * normal mode material controller
+ */
+class material_control : public material_control_base<
+    material_table, 
+    player, 
+    player_table, 
+    player_control> {
+
+public:
+    // constructor
+    //-------------------------------------------------------------------------
+    material_control(account_name _self,
+                     system_control &_system_controller,
+                     player_control &_player_controller)
+            : material_control_base(_self, _system_controller, _player_controller) {
+    }
+    
+    void alchemist(name from, 
+                   uint32_t grade, 
+                   const std::vector<uint32_t>& mat_ids, 
+                   uint32_t checksum, 
+                   bool delay) {
+        auto pvsi = system_controller.get_playervs(from);
 
         if (delay && USE_DEFERRED == 1) {
             require_auth(from);
-            delay = player_controller.set_deferred(pvsi);
+            delay = system_controller.set_deferred(pvsi);
 
             if (do_alchemist(from, grade, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
@@ -274,7 +229,7 @@ public:
                     std::make_tuple(from, grade, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
-                out.send(player_controller.get_last_trx_hash(), self);
+                out.send(system_controller.get_last_trx_hash(), self);
                 return;
             }
         } else {
@@ -289,7 +244,7 @@ public:
     }
 
     bool do_alchemist(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
-        player_controller.require_action_count(1);
+        system_controller.require_action_count(1);
 
         auto variable = *pvsi;
         auto &players = player_controller.get_players();
@@ -303,32 +258,95 @@ public:
         assert_true(grade >= ig_rare, "invalid grade");
         assert_true(grade <= ig_legendary, "invalid grade");
 
+        material_table materials(self, self);
         auto iter = materials.find(from);
         assert_true(iter != materials.cend(), "can not found material");
-
-        auto &materials = iter->rows;
-        double rate = calculate_alchemist_rate(grade, materials, mat_ids);
+        double rate = calculate_alchemist_rate(grade, *iter, mat_ids);
         if (only_check) {
             return only_check;
         }
 
-        auto rval = player_controller.begin_random(variable);
+        auto rval = system_controller.begin_random(variable);
         auto success = (rval.range(10000) < rate * 10000);
         remove_mats(from, mat_ids);
 
         int code = 1;
         if (success) {
-            code = get_bottie(*player, grade, rval);
+            code = get_bottie(grade, rval);
         } else {
-            code = get_bottie(*player, grade - 1, rval);
+            code = get_bottie(grade - 1, rval);
         }
 
         add_material(from, code);
-        player_controller.end_random(variable, rval);
+        system_controller.end_random(variable, rval);
 
         variable.clear_deferred_time();
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
         return only_check;
+    }
+
+    void make_material_forsale(name from, uint64_t materialid, uint64_t saleid) {
+        material_table materials(self, self);
+        auto iter = materials.find(from);
+        assert_true(iter != materials.cend(), "could not found material");
+
+        bool found = false;
+        materials.modify(iter, self, [&](auto& mat){
+            for (int index = 0; index < mat.rows.size(); index++) {
+                if (mat.rows[index].id == materialid) {
+                    mat.rows[index].saleid = saleid;
+                    found = true;
+                    break;
+                }
+            }
+        });
+
+        assert_true(found, "could not found material");
+    }
+
+    void cancel_sale(name from, uint64_t saleid) {
+        material_table materials(self, self);
+        auto iter = materials.find(from);
+        assert_true(iter != materials.cend(), "could not found material");
+
+        bool found = false;
+        materials.modify(iter, self, [&](auto& mat){
+            for (int index = 0; index < mat.rows.size(); index++) {
+                if (mat.rows[index].saleid == saleid) {
+                    mat.rows[index].saleid = 0;
+                    found = true;
+                    break;
+                }
+            }
+        });
+
+        assert_true(found, "could not found material");
+    }
+
+    void remove_salematerial(name from, uint64_t saleid) {
+        material_table materials(self, self);
+        auto iter = materials.find(from);
+        assert_true(iter != materials.cend(), "could not found material");
+
+        int found = -1;
+        materials.modify(iter, self, [&](auto& mat){
+            for (int index = 0; index < mat.rows.size(); index++) {
+                if (mat.rows[index].saleid == saleid) {
+                    found = index;
+                    break;
+                }
+            }
+
+            if (found >= 0) {
+                mat.rows.erase(mat.rows.begin() + found);
+            }
+        });
+
+        assert_true(found >= 0, "could not found material");
+    }
+
+    void new_material_from_market(name from, uint16_t code) {
+        add_material(from, code);
     }
 
 private:
@@ -357,13 +375,13 @@ private:
         return (data >> shift) & 0xFF;
     }
 
-    double calculate_alchemist_rate(int grade, const std::vector<matrow> &materials, const std::vector<uint32_t>& mat_ids) {
+    double calculate_alchemist_rate(int grade, const material &matset, const std::vector<uint32_t>& mat_ids) {
         int normal_rate = get_grade_base_rate(ig_normal);
         int next_rate = normal_rate / get_grade_base_rate(grade);
         double failure = 1.0;
 
         for (int index = 0; index < mat_ids.size(); index++) {
-            auto &mat = get_material(materials, mat_ids[index]);
+            auto &mat = matset.get_material(mat_ids[index]);
             auto current_grade = get_field_material_grade(mat.code);
             assert_true((int)current_grade == (int)grade-1, "it has a invalid grade material");
             assert_true(mat.saleid == 0, "can not use on sale material");
@@ -375,5 +393,5 @@ private:
 
         double rate = (1 - failure) * (get_alchemist_rate(grade) / 100.0);
         return rate;
-    }
+    }    
 };

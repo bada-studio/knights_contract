@@ -3,14 +3,17 @@
 class novaevt_control : public control_base {
 private:
     account_name self;
+    system_control &system_controller;
     player_control &player_controller;
 
 public:
     /// @brief
     /// Constructor
     novaevt_control(account_name _self,
+                  system_control &_system_controller,
                   player_control &_player_controller)
             : self(_self)
+            , system_controller(_system_controller)
             , player_controller(_player_controller) {
     }
 
@@ -20,8 +23,8 @@ public:
         require_auth(N(novapromote1));
 
         auto player = player_controller.get_player(from);
-        if (player_controller.is_empty_player(player)) {
-            player_controller.new_player(from);
+        if (system_controller.is_empty_player(player)) {
+            system_controller.new_player(from);
             player = player_controller.get_player(from);
         }
 

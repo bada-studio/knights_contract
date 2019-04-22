@@ -6,6 +6,7 @@ private:
     item4sale_table items;
     mat4sale_table materials;
 
+    system_control &system_controller;
     player_control &player_controller;
     item_control &item_controller;
     material_control &material_controller;
@@ -38,17 +39,19 @@ public:
     // constructor
     //-------------------------------------------------------------------------
     market_control(account_name _self,
+                   system_control &_system_controller,
+                   player_control &_player_controller,
                    material_control &_material_controller,
                    item_control &_item_controller,
-                   player_control &_player_controller,
                    saleslog_control &_saleslog_controller,
                    knight_control &_knight_controller)
             : self(_self)
             , items(_self, _self)
             , materials(_self, _self)
+            , system_controller(_system_controller)
+            , player_controller(_player_controller)
             , material_controller(_material_controller)
             , item_controller(_item_controller)
-            , player_controller(_player_controller)
             , saleslog_controller(_saleslog_controller)
             , knight_controller(_knight_controller) {
     }
@@ -61,7 +64,7 @@ public:
             id = 1;
         }
 
-        auto &rule_table = material_controller.material_rule_controller.get_table();
+        rmaterial_table rule_table(self, self);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "could not find material rule");
 
@@ -79,7 +82,7 @@ public:
     //-------------------------------------------------------------------------
     void sellitem(name from, uint64_t itemid, asset price) {
         require_auth(from);
-        player_controller.check_blacklist(from);
+        system_controller.check_blacklist(from);
         require_sell_cooltime(from);
 
         auto &rows = item_controller.get_items(from);
@@ -87,7 +90,7 @@ public:
         assert_true(item.saleid == 0, "already on sale");
         assert_true(item.knight == 0, "equipped item can not be sold");
 
-        auto &item_rules = item_controller.item_rule_controller.get_table();
+        ritem_table item_rules(self, self);
         auto item_rule = item_rules.find(item.code);
         assert_true(item_rule != item_rules.cend(), "can not found item grade");
         validate_price(price, item_rule->grade);
@@ -134,14 +137,14 @@ public:
     }
 
     void require_sell_cooltime(name from) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
         uint32_t next = pvsi->last_sell_time + (int)(10 * (pvsi->sell_factor / 100.0));
         time current = time_util::now_shifted();
         assert_true(current >= next, "too short to sell");
     }
 
     void set_sell_factor(name from) {
-        auto pvsi = player_controller.get_playervs(from);
+        auto pvsi = system_controller.get_playervs(from);
         auto variable = *pvsi;
 
         time current = time_util::now_shifted();
@@ -165,12 +168,12 @@ public:
         sell_factor = std::min(6.0, sell_factor);
         variable.sell_factor = (int)(sell_factor * 100);
         variable.last_sell_time = current;
-        player_controller.update_playerv(pvsi, variable);
+        system_controller.update_playerv(pvsi, variable);
     }
 
     asset buyitem(name from, const transfer_action &ad) {
         require_auth(from);
-        player_controller.checksum_gateway(from, ad.block, ad.checksum);
+        system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;
@@ -258,14 +261,18 @@ public:
 
     void sellmat(name from, uint64_t matid, asset price) {
         require_auth(from);
-        player_controller.check_blacklist(from);
+        system_controller.check_blacklist(from);
         require_sell_cooltime(from);
 
-        auto &rows = material_controller.get_materials(from);
-        auto &mat = material_controller.get_material(rows, matid);
+        material_table materials(self, self);
+        auto imat = materials.find(from);
+        assert_true(imat != materials.cend(), "no materials");
+        auto &rows = imat->rows;
+        auto &mat = imat->get_material(matid);
+
         assert_true(mat.saleid == 0, "already on sale");
 
-        auto &mat_rules = material_controller.material_rule_controller.get_table();
+        rmaterial_table mat_rules(self, self);
         auto mat_rule = mat_rules.find(mat.code);
         assert_true(mat_rule != mat_rules.cend(), "can not found material grade");
         validate_price(price, mat_rule->grade);
@@ -299,7 +306,7 @@ public:
 
     asset buymat(name from, const transfer_action &ad) {
         require_auth(from);
-        player_controller.checksum_gateway(from, ad.block, ad.checksum);
+        system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
         uint64_t saleid = atoll(ad.param.c_str());
         const asset &quantity = ad.quantity;
@@ -311,9 +318,15 @@ public:
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "there is no knight");
 
+        material_table mats(self, self);
+        auto imat = mats.find(from);
+        auto current_inventory_size = 0;
+        if (imat != mats.cend()) {
+            current_inventory_size = imat->rows.size();
+        }
+
         // inventory check
         int max_inventory_size = material_controller.get_max_inventory_size(*player);
-        int current_inventory_size = material_controller.get_materials(from).size();
         assert_true(current_inventory_size < max_inventory_size, "full inventory");
 
         auto salemat = materials.find(saleid);
