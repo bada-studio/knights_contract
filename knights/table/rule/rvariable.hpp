@@ -37,7 +37,7 @@ const int kv_bonus_sell2_floor = 1500;
 const int kv_pet_max_up = 0x35789;
 const int kv_pet_exp_require_level = 0xa731;
 const int kv_comment_cost = 5000;
-const int kv_season_mat_factor = 8;
+const int kv_season_mat_factor = 1032;
 
 const int32_t checksum_mask = 2042423;
 
