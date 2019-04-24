@@ -40,15 +40,17 @@ public:
     }
 
     // set rebirth factor to splayer instead of playerv2
-    virtual void do_check_rebirth_factor(splayer_table::const_iterator player, 
+    virtual uint16_t do_check_rebirth_factor(splayer_table::const_iterator player, 
                                          const std::vector<knightrow> &rows,
                                          playerv2 &variable) {
         auto prev_factor = player->rebrith_factor;
-        auto new_factor = calc_rebirth_factor(player, rows, prev_factor);
+        return calc_rebirth_factor(player, rows, prev_factor);
+    }
 
+    virtual void do_start_write(splayer_table::const_iterator player, uint16_t new_rebirth_factor) {
         auto &players = player_controller.get_players();
         players.modify(player, self, [&](auto &target) {
-            target.rebrith_factor = new_factor;
+            target.rebrith_factor = new_rebirth_factor;
         });
     }
 

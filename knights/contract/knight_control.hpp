@@ -419,7 +419,7 @@ protected:
         time current = time_util::now_shifted();
         int elapsed_sec = (int)(current - player->last_rebirth);
         
-        do_check_rebirth_factor(player, rows, variable);
+        uint16_t new_rebirth_factor = do_check_rebirth_factor(player, rows, variable);
 
         int kill_counts[kt_count] = {0, };
         int lucks[kt_count] = {0, };
@@ -451,6 +451,8 @@ protected:
                 return true;
             }
         }
+
+        do_start_write(player, new_rebirth_factor);
 
         knights.modify(iter, self, [&](auto& target) {
             for (int index = 0; index < target.rows.size(); index++) {
@@ -529,10 +531,15 @@ protected:
     virtual void on_rebirth_done(name from, int old_max_floor, int floor, const std::vector<knightrow> &knts) {
     }
 
-    virtual void do_check_rebirth_factor(player_table_const_iter_name player, 
-                                         const std::vector<knightrow> &rows,
-                                         playerv2 &variable) {
+    virtual uint16_t do_check_rebirth_factor(player_table_const_iter_name player, 
+                                             const std::vector<knightrow> &rows,
+                                             playerv2 &variable) {
         variable.rebrith_factor = calc_rebirth_factor(player, rows, variable.rebrith_factor);
+        return variable.rebrith_factor;
+
+    }
+
+    virtual void do_start_write(player_table_const_iter_name player, uint16_t new_rebirth_factor) {
     }
 
     int calc_rebirth_factor(player_table_const_iter_name player, 
