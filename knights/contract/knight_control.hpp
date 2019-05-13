@@ -409,7 +409,7 @@ protected:
         int total_kill_count = 0;
         int old_max_floor = player->maxfloor;
         int exp_mat_count = material_controller.get_current_inventory_size(from) + rows.size();
-        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        int max_mat_count = material_controller.get_max_inventory_size(player->mat_ivn_up);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         rstage_table rules(self, self);
