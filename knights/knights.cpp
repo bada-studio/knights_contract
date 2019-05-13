@@ -125,7 +125,9 @@ private:
     const char* ta_mw = "mw";
     const char* ta_dmw = "dmw";
     const char* ta_item = "item";
+    const char* ta_item_season = "item-season";
     const char* ta_mat = "mat";
+    const char* ta_mat_season = "mat-season";
     const char* ta_skin = "skin";
     const char* ta_ivn = "ivn";
     const char* tp_item = "item";
@@ -824,11 +826,21 @@ public:
                 admin_controller.add_revenue(ad.quantity, rv_dmw);
                 season_controller.add_revenue(ad.quantity);
             } else if (ad.action == ta_item) {
-                asset tax = market_controller.buyitem(ad.from, ad);
+                asset tax = market_controller.buyitem(ad.from, ad, &item_controller);
+                admin_controller.add_revenue(tax, rv_item_tax);
+                admin_controller.add_tradingvol(ad.quantity);
+            } else if (ad.action == ta_item_season) {
+                require_season_open();
+                asset tax = market_controller.buyitem(ad.from, ad, &sitem_controller);
                 admin_controller.add_revenue(tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat) {
-                asset tax = market_controller.buymat(ad.from, ad);
+                asset tax = market_controller.buymat(ad.from, ad, &material_controller);
+                admin_controller.add_revenue(tax, rv_material_tax);
+                admin_controller.add_tradingvol(ad.quantity);
+            } else if (ad.action == ta_mat_season) {
+                require_season_open();
+                asset tax = market_controller.buymat(ad.from, ad, &smaterial_controller);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_skin) {

@@ -171,7 +171,7 @@ public:
         system_controller.update_playerv(pvsi, variable);
     }
 
-    asset buyitem(name from, const transfer_action &ad) {
+    asset buyitem(name from, const transfer_action &ad, item_control_actions *ctrl) {
         require_auth(from);
         system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
@@ -193,15 +193,16 @@ public:
         assert_true(knights.size() > 0, "there is no knight");
 
         // inventory check
-        int max_inventory_size = item_controller.get_max_inventory_size(*player);
-        int current_inventory_size = item_controller.get_items(from).size();
+        int max_inventory_size = ctrl->get_max_inventory_size(player->item_ivn_up);
+        int current_inventory_size = ctrl->get_items(from).size();
         assert_true(current_inventory_size < max_inventory_size, "full inventory");
 
         if (saleitem->player != self) {
+            // remove from normal mode
             item_controller.remove_saleitem(saleitem->player, saleitem->cid);
         }
 
-        item_controller.new_item_from_market(from, saleitem->code, saleitem->dna, saleitem->level, saleitem->exp);
+        ctrl->new_item_from_market(from, saleitem->code, saleitem->dna, saleitem->level, saleitem->exp);
         items.erase(saleitem);
         int tax_rate = kv_market_tax_rate;
         if (saleitem->player == self) {
@@ -304,7 +305,7 @@ public:
         set_sell_factor(from);
     }
 
-    asset buymat(name from, const transfer_action &ad) {
+    asset buymat(name from, const transfer_action &ad, material_control_actions *ctrl) {
         require_auth(from);
         system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
@@ -326,7 +327,7 @@ public:
         }
 
         // inventory check
-        int max_inventory_size = material_controller.get_max_inventory_size(*player);
+        int max_inventory_size = ctrl->get_max_inventory_size(player->mat_ivn_up);
         assert_true(current_inventory_size < max_inventory_size, "full inventory");
 
         auto salemat = materials.find(saleid);
@@ -336,8 +337,9 @@ public:
             //assert_true(salemat->player == ad.seller, "seller not matching");
         }
 
+        // remove from normal mode
         material_controller.remove_salematerial(salemat->player, salemat->cid);
-        material_controller.new_material_from_market(from, salemat->code);
+        ctrl->new_material_from_market(from, salemat->code);
         materials.erase(salemat);
 
         int tax_rate = kv_market_tax_rate;

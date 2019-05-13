@@ -636,7 +636,7 @@ public:
         // check inventory size
         auto current_inventory_size = material_controller.get_current_inventory_size(from);
         int exp_mat_count = current_inventory_size + 1;
-        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        int max_mat_count = material_controller.get_max_inventory_size(player->mat_ivn_up);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         if (only_check) {

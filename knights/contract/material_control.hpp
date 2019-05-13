@@ -3,6 +3,8 @@
 class material_control_actions {
 public:
     virtual void remove(name from, const std::vector<uint32_t> &mat_ids) = 0;
+    virtual int get_max_inventory_size(int upgrade) = 0;
+    virtual void new_material_from_market(name from, uint16_t code) = 0;
 };
 
 /*
@@ -32,9 +34,8 @@ public:
 
     // internal apis
     //-------------------------------------------------------------------------
-    int get_max_inventory_size(const player_name& player) {
+    int get_max_inventory_size(int upgrade) {
         int size = kv_material_inventory_size;
-        int upgrade = player.mat_ivn_up;
         if (upgrade > kv_max_material_inventory_up) {
             upgrade = kv_max_material_inventory_up;
         }
@@ -173,6 +174,10 @@ public:
 
         assert_true(found, "could not found material");
         return powder;
+    }
+
+    void new_material_from_market(name from, uint16_t code) {
+        add_material(from, code);
     }
 
     // actions
@@ -343,10 +348,6 @@ public:
         });
 
         assert_true(found >= 0, "could not found material");
-    }
-
-    void new_material_from_market(name from, uint16_t code) {
-        add_material(from, code);
     }
 
 private:

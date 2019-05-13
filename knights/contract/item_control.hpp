@@ -6,6 +6,9 @@ public:
     virtual void remove(name from, const std::vector<uint32_t>& item_ids) = 0;
     virtual void itemmerge(name from, uint32_t id, const std::vector<uint32_t> &ingredient) = 0;
     virtual int8_t itemlvup(name from, uint32_t season, uint32_t id, uint32_t checksum, bool delay) = 0;
+    virtual int get_max_inventory_size(int upgrade) = 0;
+    virtual const std::vector<itemrow>& get_items(name from) = 0;
+    virtual void new_item_from_market(name from, uint16_t code, uint32_t dna, uint8_t level, uint8_t exp) = 0;
 
 // to reduce wasm size
 protected:
@@ -65,9 +68,8 @@ public:
 
     // internal apis
     //-------------------------------------------------------------------------
-    int get_max_inventory_size(const player_name& player) {
+    int get_max_inventory_size(int upgrade) {
         int size = kv_item_inventory_size;
-        int upgrade = player.item_ivn_up;
         if (upgrade > kv_max_item_inventory_up) {
             upgrade = kv_max_item_inventory_up;
         }
@@ -546,6 +548,10 @@ public:
         return only_check;
     }
 
+    void new_item_from_market(name from, uint16_t code, uint32_t dna, uint8_t level, uint8_t exp) {
+        add_item(from, code, dna, level, exp);
+    }
+
 protected:
     bool do_craft(player_table_const_iter_name player, uint16_t code, const std::vector<uint32_t> &mat_ids, bool only_check, playerv2_table::const_iterator pvsi) {
         name from = player->owner;
@@ -558,7 +564,7 @@ protected:
             only_check = false;
         }
 
-        int inven_size = get_max_inventory_size(*player);
+        int inven_size = get_max_inventory_size(player->item_ivn_up);
         assert_true(get_items(from).size() < inven_size, "full inventory");
 
         int mat1_count = recipe->mat1_count;
@@ -733,9 +739,5 @@ public:
         });
 
         assert_true(found >= 0, "could not found item");
-    }
-
-    void new_item_from_market(name from, uint16_t code, uint32_t dna, uint8_t level, uint8_t exp) {
-        add_item(from, code, dna, level, exp);
     }
 };

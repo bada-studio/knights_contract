@@ -320,7 +320,7 @@ public:
         auto &mats = imat->rows;
         
         int exp_mat_count = mats.size() + 1;
-        int max_mat_count = material_controller.get_max_inventory_size(*player);
+        int max_mat_count = material_controller.get_max_inventory_size(player->mat_ivn_up);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         // get dungeon table
