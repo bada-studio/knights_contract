@@ -233,20 +233,22 @@ public:
         }
     }
 
-    void require_season(uint32_t season) {
+    seasoninfo require_season(uint32_t season) {
         season_table table(_self, _self);
         assert_true(table.cbegin() != table.cend(), "no season yet");
         auto iter = --table.cend();
         assert_true(iter->id == season, "invalid season");
         assert_true(iter->info.is_in(time_util::now()), "not in season period");
+        return iter->info;
     }
 
-    void require_season_open() {
+    seasoninfo require_season_open() {
         season_table table(_self, _self);
         assert_true(table.cbegin() != table.cend(), "no season yet");
         auto iter = --table.cend();
         auto now = time_util::now();
         assert_true(iter->info.is_in(now), "not in season period");
+        return iter->info;
     }
 
     // cquest related actions
@@ -442,7 +444,8 @@ public:
             return &pet_controller;
         }
 
-        require_season(season);
+        auto info = require_season(season);
+        assert_true(info.opt_no_pet == false, "can not use pet this mode");
         return &spet_controller;
     }
 
@@ -820,27 +823,28 @@ public:
                 player_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_mp);
             } else if (ad.action == ta_dmw) {
-                require_season_open();
+                auto info = require_season_open();
+                assert_true(info.opt_no_dmw == false, "can not buy dmw this mode");
                 int pid = atoi(ad.param.c_str());
                 splayer_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_dmw);
                 season_controller.add_revenue(ad.quantity);
             } else if (ad.action == ta_item) {
-                asset tax = market_controller.buyitem(ad.from, ad, &item_controller);
+                asset tax = market_controller.buyitem(ad.from, ad, &item_controller, ig_count);
                 admin_controller.add_revenue(tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_item_season) {
-                require_season_open();
-                asset tax = market_controller.buyitem(ad.from, ad, &sitem_controller);
+                auto info = require_season_open();
+                asset tax = market_controller.buyitem(ad.from, ad, &sitem_controller, info.opt_item_shop);
                 admin_controller.add_revenue(tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat) {
-                asset tax = market_controller.buymat(ad.from, ad, &material_controller);
+                asset tax = market_controller.buymat(ad.from, ad, &material_controller, ig_count);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat_season) {
-                require_season_open();
-                asset tax = market_controller.buymat(ad.from, ad, &smaterial_controller);
+                auto info = require_season_open();
+                asset tax = market_controller.buymat(ad.from, ad, &smaterial_controller, info.opt_mat_shop);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_skin) {

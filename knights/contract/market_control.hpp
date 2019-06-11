@@ -171,7 +171,7 @@ public:
         system_controller.update_playerv(pvsi, variable);
     }
 
-    asset buyitem(name from, const transfer_action &ad, item_control_actions *ctrl) {
+    asset buyitem(name from, const transfer_action &ad, item_control_actions *ctrl, int max_grade) {
         require_auth(from);
         system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
@@ -183,6 +183,15 @@ public:
         assert_true(saleitem->player != from, "it's your item");
         if (ad.seller.value > 0) {
             //assert_true(saleitem->player == ad.seller, "seller not matching");
+        }
+
+        // grade check
+        assert_true(max_grade > ig_none, "can not buy item this mode");
+        if (max_grade != ig_count) {
+            ritem_table rule_table(self, self);
+            auto rule = rule_table.find(saleitem->code);
+            assert_true(rule != rule_table.cend(), "could not find material rule");
+            assert_true(rule->grade <= max_grade, "can not buy this item");
         }
 
         auto &players = player_controller.get_players();
@@ -305,7 +314,7 @@ public:
         set_sell_factor(from);
     }
 
-    asset buymat(name from, const transfer_action &ad, material_control_actions *ctrl) {
+    asset buymat(name from, const transfer_action &ad, material_control_actions *ctrl, int max_grade) {
         require_auth(from);
         system_controller.checksum_gateway(from, ad.block, ad.checksum);
 
@@ -335,6 +344,15 @@ public:
         assert_true(salemat->player != from, "it's your mat");
         if (ad.seller.value > 0) {
             //assert_true(salemat->player == ad.seller, "seller not matching");
+        }
+
+        // grade check
+        assert_true(max_grade > ig_none, "can not buy item this mode");
+        if (max_grade != ig_count) {
+            rmaterial_table rule_table(self, self);
+            auto rule = rule_table.find(salemat->code);
+            assert_true(rule != rule_table.cend(), "could not find material rule");
+            assert_true(rule->grade <= max_grade, "can not buy this item");
         }
 
         // remove from normal mode

@@ -202,8 +202,7 @@ public:
         if (checksum & 0x80000000) {
             test_checksum_v2(from, block, checksum);
         } else {
-            assert_true(false, "deprecated checksum");
-            //test_checksum(from, block, checksum);
+            test_checksum_v3(from, block, checksum);
         }
     }
 
@@ -219,18 +218,14 @@ public:
         save_checksum(from, block, checksum, v0);
     }
 
-    void test_checksum(name from, uint32_t block, uint32_t checksum) {
-        int32_t k = (checksum_mask & 0xFFFF);
+    void test_checksum_v3(name from, uint32_t block, uint32_t checksum) {
         int32_t num = time_util::now_shifted();
-
         int32_t v0 = block ^ get_checksum_key(from);
-        int32_t v1 = (v0 % k);
-        int32_t v2 = (checksum >> 16) & 0x7FFF;
-        int32_t v3 = get_checksum_value((checksum) & 0xFFFF);
-        assert_true(v1 == v2, "checksum failure 1");
-        assert_true(v2 == v3, "checksum failure 2");
+        int32_t hash = calculate_trx_hash3(block) & 0x7FFFFFFF;
+
         assert_true((num + 60) > v0, "check your system time. it's too fast. (checksum failure)");
         assert_true((num - v0) < 90, "check your system time it's too slow. (checksum failure)");
+        assert_true(hash == checksum, "invalid checksum");
 
         save_checksum(from, block, checksum, v0);
     }

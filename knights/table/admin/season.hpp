@@ -22,9 +22,15 @@ struct seasoninfo {
     uint8_t rankcnt = 0;
     uint8_t min_reward_powder = 0;
     uint16_t max_reward_powder = 0;
-    uint32_t v1 = 0;
-    uint64_t v2 = 0;
-    uint64_t v3 = 0;
+    uint8_t force_skin = 0;
+    bool opt_no_dmw = false;
+    bool opt_no_pet = false;
+    uint8_t opt_mat_shop = 0;
+    uint8_t opt_item_shop = 0;
+    uint8_t v1 = 0;
+    uint16_t v2 = 0;
+    uint32_t v3 = 0;
+    uint64_t v4 = 0;
     std::vector<seasonsp> sponsors;
 
     uint64_t get_end() const {
