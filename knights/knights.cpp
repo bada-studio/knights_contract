@@ -67,7 +67,7 @@ using eosio::name;
 #include "table/admin/gift.hpp"
 #include "table/admin/cquest.hpp"
 //#include "table/admin/dquest.hpp"
-#include "table/admin/season.hpp"
+//#include "table/admin/season.hpp"
 #include "table/admin/globalvar.hpp"
 #include "table/admin/itemevt.hpp"
 #include "util/time_util.hpp"
@@ -76,20 +76,20 @@ using eosio::name;
 #include "contract/rule_controller.hpp"
 #include "contract/saleslog_control.hpp"
 #include "contract/player_control.hpp"
-#include "contract/season/splayer_control.hpp"
+//#include "contract/season/splayer_control.hpp"
 #include "contract/system_control.hpp"
 #include "contract/material_control.hpp"
-#include "contract/season/smaterial_control.hpp"
+//#include "contract/season/smaterial_control.hpp"
 #include "contract/item_control.hpp"
-#include "contract/season/sitem_control.hpp"
+//#include "contract/season/sitem_control.hpp"
 #include "contract/pet_control.hpp"
-#include "contract/season/spet_control.hpp"
+//#include "contract/season/spet_control.hpp"
 #include "contract/knight_control.hpp"
-#include "contract/season/sknight_control.hpp"
+//#include "contract/season/sknight_control.hpp"
 #include "contract/market_control.hpp"
 #include "contract/cquest_control.hpp"
 //#include "contract/dquest_control.hpp"
-#include "contract/season/season_control.hpp"
+//#include "contract/season/season_control.hpp"
 #include "contract/system_control.cpp"
 #include "contract/dungeon_control.hpp"
 //#include "contract/itemevt_control.hpp"
@@ -104,21 +104,21 @@ private:
     // controls
     system_control system_controller;
     player_control player_controller;
-    splayer_control splayer_controller;
+    //splayer_control splayer_controller;
     material_control material_controller;
     pet_control pet_controller;
     knight_control knight_controller;
-    sknight_control sknight_controller;
+    //sknight_control sknight_controller;
     item_control item_controller;
-    sitem_control sitem_controller;
+    //sitem_control sitem_controller;
     market_control market_controller;
     admin_control admin_controller;
     saleslog_control saleslog_controller;
     cquest_control cquest_controller;
 //    dquest_control dquest_controller;
-    season_control season_controller;
-    smaterial_control smaterial_controller;
-    spet_control spet_controller;
+    // season_control season_controller;
+    // smaterial_control smaterial_controller;
+    // spet_control spet_controller;
     dungeon_control dungeon_controller;
     //itemevt_control itemevt_controller; 
     skin_control skin_controller;
@@ -144,20 +144,20 @@ public:
     , admin_controller(s)
     , saleslog_controller(s)
     , player_controller(s, saleslog_controller)
-    , splayer_controller(s, saleslog_controller)
+    //, splayer_controller(s, saleslog_controller)
     , system_controller(s, player_controller, saleslog_controller, admin_controller)
     , material_controller(s, system_controller, player_controller)
-    , smaterial_controller(s, system_controller, splayer_controller)
+//    , smaterial_controller(s, system_controller, splayer_controller)
     , item_controller(s, system_controller, player_controller, material_controller)
-    , sitem_controller(s, system_controller, splayer_controller, smaterial_controller)
+  //  , sitem_controller(s, system_controller, splayer_controller, smaterial_controller)
     , pet_controller(s, system_controller, player_controller, material_controller)
-    , spet_controller(s, system_controller, splayer_controller, smaterial_controller)
+    //, spet_controller(s, system_controller, splayer_controller, smaterial_controller)
     , knight_controller(s, system_controller, player_controller, material_controller, item_controller, pet_controller, saleslog_controller)
-    , sknight_controller(s, system_controller, splayer_controller, smaterial_controller, sitem_controller, spet_controller)
+    //, sknight_controller(s, system_controller, splayer_controller, smaterial_controller, sitem_controller, spet_controller)
     , market_controller(s, system_controller, player_controller, material_controller, item_controller, saleslog_controller, knight_controller)
     , cquest_controller(s, item_controller, system_controller, admin_controller)
 //    , dquest_controller(s, item_controller, system_controller, admin_controller)
-    , season_controller(s, system_controller, admin_controller, sknight_controller, sitem_controller)
+//    , season_controller(s, system_controller, admin_controller, sknight_controller, sitem_controller)
     , dungeon_controller(s, system_controller, player_controller, material_controller, knight_controller/*, dquest_controller*/)
     //, itemevt_controller(s, system_controller, player_controller, item_controller)
     , skin_controller(s, system_controller, saleslog_controller) {
@@ -209,6 +209,7 @@ public:
         system_controller.addblackcmt(to);
     }
 
+/*
     // season related actions
     //-------------------------------------------------------------------------
     [[eosio::action]]
@@ -253,7 +254,7 @@ public:
         assert_true(iter->info.is_in(now), "not in season period");
         return iter->info;
     }
-
+*/
     // cquest related actions
     //-------------------------------------------------------------------------
     [[eosio::action]]
@@ -314,8 +315,9 @@ public:
             return &knight_controller;
         }
 
-        require_season(season);
-        return &sknight_controller;
+        //require_season(season);
+        //return &sknight_controller;
+        return &knight_controller;
     }
 
     [[eosio::action]]
@@ -367,8 +369,9 @@ public:
             return &material_controller;
         }
 
-        require_season(season);
-        return &smaterial_controller;
+        //require_season(season);
+        //return &smaterial_controller;
+        return &material_controller;
     }
 
     [[eosio::action]]
@@ -396,8 +399,9 @@ public:
             return &item_controller;
         }
 
-        require_season(season);
-        return &sitem_controller;
+        //require_season(season);
+        //return &sitem_controller;
+        return &item_controller;
     }
 
     [[eosio::action]]
@@ -447,9 +451,10 @@ public:
             return &pet_controller;
         }
 
-        auto info = require_season(season);
-        assert_true(info.opt_no_pet == false, "can not use pet this mode");
-        return &spet_controller;
+        //auto info = require_season(season);
+        //assert_true(info.opt_no_pet == false, "can not use pet this mode");
+        //return &spet_controller;
+        return &pet_controller;
     }
 
     [[eosio::action]]
@@ -829,6 +834,8 @@ public:
                 int pid = atoi(ad.param.c_str());
                 player_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_mp);
+            
+            /*
             } else if (ad.action == ta_dmw) {
                 auto info = require_season_open();
                 assert_true(info.opt_no_dmw == false, "can not buy dmw this mode");
@@ -836,24 +843,29 @@ public:
                 splayer_controller.buymp(ad.from, pid, ad.quantity);
                 admin_controller.add_revenue(ad.quantity, rv_dmw);
                 season_controller.add_revenue(ad.quantity);
+            */
             } else if (ad.action == ta_item) {
                 asset tax = market_controller.buyitem(ad.from, ad, &item_controller, ig_count);
                 admin_controller.add_revenue(tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
+            /*
             } else if (ad.action == ta_item_season) {
                 auto info = require_season_open();
                 asset tax = market_controller.buyitem(ad.from, ad, &sitem_controller, info.opt_item_shop);
                 admin_controller.add_revenue(tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
+            */
             } else if (ad.action == ta_mat) {
                 asset tax = market_controller.buymat(ad.from, ad, &material_controller, ig_count);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
+            /*
             } else if (ad.action == ta_mat_season) {
                 auto info = require_season_open();
                 asset tax = market_controller.buymat(ad.from, ad, &smaterial_controller, info.opt_mat_shop);
                 admin_controller.add_revenue(tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
+            */
             } else if (ad.action == ta_skin) {
                 asset tax = skin_controller.skbuy(ad.from, ad);
                 admin_controller.add_revenue(tax, rv_skin);
