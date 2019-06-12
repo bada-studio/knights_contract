@@ -3,15 +3,14 @@ struct dividendto {
     asset amount;
 };
 
-//@abi table dividendlog i64
-struct dividendlog {
+struct [[eosio::table]] dividendlog {
     uint64_t no;
     uint32_t at;
     asset amount;
     std::vector<dividendto> to;
 
     dividendlog() 
-        : amount(0, S(4, EOS)) {
+        : amount(0, eosio::symbol("EOS", 4)) {
     }
 
     uint64_t primary_key() const {
@@ -27,4 +26,4 @@ struct dividendlog {
     )
 };
 
-typedef eosio::multi_index< N(dividendlog), dividendlog> dividendlog_table;
+typedef eosio::multi_index< "dividendlog"_n, dividendlog> dividendlog_table;

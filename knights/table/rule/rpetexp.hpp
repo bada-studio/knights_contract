@@ -1,5 +1,4 @@
-//@abi table rpetexp i64
-struct rpetexp {
+struct [[eosio::table]] rpetexp {
     uint64_t level = 0;
     uint16_t mw1 = 0;
     uint16_t mw2 = 0;
@@ -55,4 +54,4 @@ struct rpetexp {
     )
 };
 
-typedef eosio::multi_index< N(rpetexp), rpetexp> rpetexp_table;
+typedef eosio::multi_index< "rpetexp"_n, rpetexp> rpetexp_table;

@@ -21,8 +21,7 @@ struct csubquest {
     std::vector<cquestrecord> records; // each player's submit record
 };
 
-//@abi table cquest i64
-struct cquest {
+struct [[eosio::table]] cquest {
     uint64_t id = 0; // quest id
     uint16_t sponsor = 0; // sponsor code
     uint32_t start = 0; // start from
@@ -52,4 +51,4 @@ struct cquest {
 };
 
 
-typedef eosio::multi_index<N(cquest), cquest> cquest_table;
+typedef eosio::multi_index<"cquest"_n, cquest> cquest_table;

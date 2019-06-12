@@ -15,8 +15,7 @@ enum pet_gacha_type {
     pgt_count,
 };
 
-//@abi table rpet i64
-struct rpet {
+struct [[eosio::table]] rpet {
     uint64_t code = 0;
     uint8_t grade = 0;
     uint8_t stat1_type = 0;
@@ -54,4 +53,4 @@ struct rpet {
     )
 };
 
-typedef eosio::multi_index< N(rpet), rpet> rpet_table;
+typedef eosio::multi_index< "rpet"_n, rpet> rpet_table;

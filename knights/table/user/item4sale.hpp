@@ -1,6 +1,4 @@
-//@abi table item4sale i64
-// 40 bytes
-struct item4sale {
+struct [[eosio::table]] item4sale {
     uint64_t cid = 0;
     name player;
     asset price;
@@ -14,7 +12,7 @@ struct item4sale {
     }
 
     item4sale()
-        : price(0, S(4, EOS)) {
+        : price(0, eosio::symbol("EOS", 4)) {
     }
 
     EOSLIB_SERIALIZE(
@@ -29,4 +27,4 @@ struct item4sale {
     )
 };
 
-typedef eosio::multi_index< N(item4sale), item4sale> item4sale_table;
+typedef eosio::multi_index< "item4sale"_n, item4sale> item4sale_table;

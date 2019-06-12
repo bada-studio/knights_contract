@@ -9,15 +9,16 @@ struct itemrow {
     uint32_t saleid = 0;
 };
 
-//@abi table item i64
-//@abi table sitem i64
-struct item {
+// todo is it working????????
+//table item i64
+//table sitem i64
+struct [[eosio::table]] item {
     name owner;
     uint32_t last_id;
     std::vector<itemrow> rows;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -28,5 +29,5 @@ struct item {
     )
 };
 
-typedef eosio::multi_index< N(item), item > item_table;
-typedef eosio::multi_index< N(sitem), item > sitem_table;
+typedef eosio::multi_index< "item"_n, item > item_table;
+typedef eosio::multi_index< "sitem"_n, item > sitem_table;

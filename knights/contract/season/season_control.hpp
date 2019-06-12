@@ -2,7 +2,7 @@
 
 class season_control : public control_base {
 private:
-    account_name self;
+    name self;
     system_control &system_controller;
     admin_control &admin_controller;
     sknight_control &knight_controller;
@@ -11,7 +11,7 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    season_control(account_name _self,
+    season_control(name _self,
                    system_control &_system_controller,
                    admin_control &_admin_controller,
                    sknight_control &_knight_controller, 
@@ -36,7 +36,7 @@ public:
     /// Season info
     void addseason(bool add, const seasoninfo &info) {
         system_controller.require_coo_auth();
-        season_table table(self, self);
+        season_table table(self, self.value);
 
         // new one
         if (add) {
@@ -58,15 +58,15 @@ public:
             });
 
             // add version to rule
-            rversion_table rtable(self, self);
-            auto ver = rtable.find(N(season));
+            rversion_table rtable(self, self.value);
+            auto ver = rtable.find("season"_n.value);
             if (ver != rtable.cend()) {
                 rtable.modify(ver, self, [&](auto &target) {
                     target.version = id;
                 });
             } else {
                 rtable.emplace(self, [&](auto &target) {
-                    target.rule = to_name(N(season));
+                    target.rule = "season"_n;
                     target.version = id;
                 });
             }
@@ -92,24 +92,24 @@ public:
         require_auth(from);
 
         // check season
-        season_table table(self, self);
+        season_table table(self, self.value);
         assert_true(table.cbegin() != table.cend(), "no season yet");
         auto now = time_util::now();
         auto season = --table.cend();
         assert_true(season->info.is_in(now), "no season period");
 
         // check full party
-        knight_table ktable(self, self);
-        auto iknt = ktable.find(from);
+        knight_table ktable(self, self.value);
+        auto iknt = ktable.find(from.value);
         assert_true(iknt != ktable.cend(), "no knights");
         assert_true(iknt->rows.size() == kt_count - 1, "you need all of knights");
 
         // check last season closing
-        playerv2_table pvtable(self, self);
-        auto pvi = pvtable.find(from);
+        playerv2_table pvtable(self, self.value);
+        auto pvi = pvtable.find(from.value);
         if (pvi == pvtable.cend()) {
             system_controller.new_playervs(from, 0, 0);
-            pvi = pvtable.find(from);
+            pvi = pvtable.find(from.value);
         }
 
         assert_true(pvi->last_start_season != season->id, "already in season");
@@ -139,7 +139,7 @@ public:
     /// season id
     void seasonreward(name from, int32_t id) {
         require_auth(from);
-        season_table stable(self, self);
+        season_table stable(self, self.value);
         auto season = stable.find(id);
         assert_true(season != stable.cend(), "invalid season id");
         auto &info = season->info;
@@ -148,8 +148,8 @@ public:
         assert_true(info.get_end() < now, "season not ended");
 
         // modify season end
-        playerv2_table pvtable(self, self);
-        auto pvi = pvtable.find(from);
+        playerv2_table pvtable(self, self.value);
+        auto pvi = pvtable.find(from.value);
         assert_true(pvi != pvtable.cend(), "can not found play log");
         assert_true(pvi->last_start_season == season->id, "invalid request");
         assert_true(pvi->last_end_season != season->id, "already got reward");
@@ -157,8 +157,8 @@ public:
             target.last_end_season = season->id;
         });
 
-        splayer_table sptable(self, self);
-        auto splayer = sptable.find(from);
+        splayer_table sptable(self, self.value);
+        auto splayer = sptable.find(from.value);
         assert_true(splayer != sptable.cend(), "can not found play log");
         auto floor = splayer->maxfloor;
         auto rank = state.get_rank(from);
@@ -178,8 +178,8 @@ public:
             mw = info.max_reward_powder;
         }
 
-        player_table ptable(self, self);
-        auto player = ptable.find(from);
+        player_table ptable(self, self.value);
+        auto player = ptable.find(from.value);
         assert_true(player != ptable.cend(), "can not found player");
         ptable.modify(player, self, [&](auto &target) {
             target.powder += mw;
@@ -189,12 +189,12 @@ public:
         if (0 < rank) {
             if (rank <= info.rewardcnt) {
                 // todo send eos to player
-                action(permission_level{ self, N(active) },
-                    get_code_name(info.reward.symbol), N(transfer),
+                action(permission_level{ self, "active"_n },
+                    get_code_name(info.reward.symbol), "transfer"_n,
                     std::make_tuple(self, from, info.reward, std::string("EK. Cup reward"))
                 ).send();
 
-                admin_controller.add_expenses(info.reward, to_name(self), "EK. Cup reward");
+                admin_controller.add_expenses(info.reward, self, "EK. Cup reward");
     
                 if (rank == 1) {
                     give_medal(from, k_medal_gold);
@@ -214,17 +214,17 @@ public:
             give_medal(from, k_medal_death);
 
             // todo send eos to player
-            action(permission_level{ self, N(active) },
-                get_code_name(info.quest.reward.symbol), N(transfer),
+            action(permission_level{ self, "active"_n },
+                get_code_name(info.quest.reward.symbol), "transfer"_n,
                 std::make_tuple(self, from, info.quest.reward, std::string("EK. Cup reward"))
             ).send();
-            admin_controller.add_expenses(info.quest.reward, to_name(self), "EK. Cup reward");
+            admin_controller.add_expenses(info.quest.reward, self, "EK. Cup reward");
         }
     }
 
     void give_medal(name from, int8_t id) {
-        medal_table table(self, self);
-        auto iter = table.find(from);
+        medal_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter == table.cend()) {
             table.emplace(self, [&](auto &target) {
                 medalrow medal;
@@ -266,13 +266,13 @@ public:
     uint8_t submitsq(name from, int32_t id) {
         require_auth(from);
 
-        season_table table(self, self);
+        season_table table(self, self.value);
         auto iter = --table.cend();
         auto &info = iter->info;
         auto &state = iter->state;
 
         // validate item
-        assert_true(state.cqwinner == 0, "already has winner");
+        assert_true(state.cqwinner.value == 0, "already has winner");
         auto &items = item_controller.get_items(from);
         auto item = item_controller.get_item(items, id);
         auto knt = item.knight;
@@ -293,7 +293,7 @@ public:
     }
 
     void add_revenue(asset quantity) {
-        season_table table(self, self);
+        season_table table(self, self.value);
         auto iter = --table.cend();
 
         table.modify(iter, self, [&](auto& target) {
@@ -303,7 +303,7 @@ public:
 
 private:
     void ready_player(name from, uint32_t sid, const seasoninfo &info) {
-        splayer_table table(self, self);
+        splayer_table table(self, self.value);
         table.emplace(self, [&](auto &target) {
             target.owner = from;
             target.powder = info.init_powder;
@@ -313,7 +313,7 @@ private:
     }
 
     void ready_knight(name from, uint32_t sid) {
-        sknight_table table(self, self);
+        sknight_table table(self, self.value);
         table.emplace(self, [&](auto &target) {
             target.owner = from;
 
@@ -324,40 +324,40 @@ private:
     }
 
     void remove_player(name from) {
-        splayer_table table(self, self);
-        auto iter = table.find(from);
+        splayer_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter != table.cend()) {
             table.erase(iter);
         }
     }
 
     void remove_knight(name from) {
-        sknight_table table(self, self);
-        auto iter = table.find(from);
+        sknight_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter != table.cend()) {
             table.erase(iter);
         }
     }
 
     void remove_item(name from) {
-        sitem_table table(self, self);
-        auto iter = table.find(from);
+        sitem_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter != table.cend()) {
             table.erase(iter);
         }
     }
 
     void remove_material(name from) {
-        smaterial_table table(self, self);
-        auto iter = table.find(from);
+        smaterial_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter != table.cend()) {
             table.erase(iter);
         }
     }
 
     void remove_pet(name from) {
-        spet_table table(self, self);
-        auto iter = table.find(from);
+        spet_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter != table.cend()) {
             table.erase(iter);
         }

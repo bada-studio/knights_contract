@@ -1,5 +1,4 @@
-//@abi table ritemlv i64
-struct ritemlv {
+struct [[eosio::table]] ritemlv {
     uint64_t level = 0;
     uint16_t count = 0;
     uint16_t bonus = 0;
@@ -35,4 +34,4 @@ struct ritemlv {
     )
 };
 
-typedef eosio::multi_index< N(ritemlv), ritemlv> ritemlv_table;
+typedef eosio::multi_index< "ritemlv"_n, ritemlv> ritemlv_table;

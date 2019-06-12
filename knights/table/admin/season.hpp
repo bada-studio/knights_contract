@@ -68,8 +68,7 @@ struct seasonstate {
     }
 };
 
-//@abi table season i64
-struct season {
+struct [[eosio::table]] season {
     uint64_t id = 0; // season id
     seasoninfo info;
     seasonstate state;
@@ -90,4 +89,4 @@ struct season {
     )
 };
 
-typedef eosio::multi_index<N(season), season> season_table;
+typedef eosio::multi_index<"season"_n, season> season_table;

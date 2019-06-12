@@ -1,5 +1,4 @@
-//@abi table rivnprice i64
-struct rivnprice {
+struct [[eosio::table]] rivnprice {
     uint64_t count;
     asset price;
 
@@ -17,4 +16,4 @@ struct rivnprice {
     )
 };
 
-typedef eosio::multi_index< N(rivnprice), rivnprice> rivnprice_table;
+typedef eosio::multi_index< "rivnprice"_n, rivnprice> rivnprice_table;

@@ -55,8 +55,7 @@ struct dgticket {
     }
 };
 
-//@abi table dungeons i64
-struct dungeons {
+struct [[eosio::table]] dungeons {
     name owner;
     std::vector<dgticket> tickets;
     std::vector<dgdata> rows;
@@ -65,7 +64,7 @@ struct dungeons {
     uint64_t v2 = 0;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     int find_ticket(int code) const {
@@ -106,4 +105,4 @@ struct dungeons {
     )
 };
 
-typedef eosio::multi_index< N(dungeons), dungeons> dungeons_table;
+typedef eosio::multi_index< "dungeons"_n, dungeons> dungeons_table;

@@ -2,7 +2,7 @@
 
 class system_control : public control_base {
 private:
-    account_name self;
+    name self;
     player_table players;
     playerv_table playervs_old;
     playerv2_table playervs;
@@ -11,27 +11,20 @@ private:
     saleslog_control &saleslog_controller;
     admin_control &admin_controller;
 
-    struct st_transfer {
-        account_name from;
-        account_name to;
-        asset        quantity;
-        std::string  memo;
-    };
-
     uint32_t last_checksum;
     uint32_t last_trx_hash;
 
 public:
     // constructor
     //-------------------------------------------------------------------------
-    system_control(account_name _self,
+    system_control(name _self,
                    player_control &_player_controller,
                    saleslog_control &_saleslog_controller,
                    admin_control &_admin_controller)
         : self(_self)
-        , players(_self, _self)
-        , playervs_old(_self, _self)
-        , playervs(_self, _self)
+        , players(_self, _self.value)
+        , playervs_old(_self, _self.value)
+        , playervs(_self, _self.value)
         , player_controller(_player_controller)
         , saleslog_controller(_saleslog_controller)
         , admin_controller(_admin_controller)
@@ -54,41 +47,37 @@ public:
     }
 
     template<typename T>
-    void eosiotoken_transfer(uint64_t sender, uint64_t receiver, T func) {
-        auto transfer_data = eosio::unpack_action_data<st_transfer>();
-        eosio_assert(transfer_data.quantity.symbol == S(4, EOS), "only accepts EOS for deposits");
-        eosio_assert(transfer_data.quantity.is_valid(), "Invalid token transfer");
-        eosio_assert(transfer_data.quantity.amount > 0, "Quantity must be positive");
+    void eosiotoken_transfer(name from, name to, asset quantity, std::string memo, T func) {
+        eosio::check(quantity.symbol == eosio::symbol("EOS", 4), "only accepts EOS for deposits");
+        eosio::check(quantity.is_valid(), "Invalid token transfer");
+        eosio::check(quantity.amount > 0, "Quantity must be positive");
 
-        if (transfer_data.from == self) {
-            auto to = to_name(transfer_data.to);
-            auto to_player = players.find(to);
+        if (from == self) {
+            auto to_player = players.find(to.value);
             check_blacklist(to);
 
             // stockholder could be stockholder. so separate withdraw and dividend by message
             if (admin_controller.is_stock_holder(to) && 
-                transfer_data.memo.compare(admin_controller.dividend_message) == 0) {
+                memo.compare(admin_controller.dividend_message) == 0) {
                 // stock share
-                admin_controller.add_dividend(transfer_data.quantity);
+                admin_controller.add_dividend(quantity);
             } else if (to_player != players.cend()) {
                 // player withdraw
                 return;
             } else {
                 // expense
-                admin_controller.add_expenses(transfer_data.quantity, to, transfer_data.memo);
+                admin_controller.add_expenses(quantity, to, memo);
             }
-        } else if (transfer_data.to == self) {
-            auto from = to_name(transfer_data.from);
-            auto from_player = players.find(from);
-            auto &memo = transfer_data.memo;
+        } else if (to == self) {
+            auto from_player = players.find(from.value);
             check_blacklist(from);
             
             if (from_player == players.end()) {
                 // system account could transfer eos to contract
                 // eg) unstake, sellram, etc
                 // add to the revenue for these.
-                if (is_system_account(transfer_data.from)) {
-                    admin_controller.add_revenue(transfer_data.quantity, rv_system);
+                if (is_system_account(from)) {
+                    admin_controller.add_revenue(quantity, rv_system);
                 } else {
                     assert_true(false, "sign up first!");
                 }
@@ -114,31 +103,31 @@ public:
                     res.checksum = (uint32_t)atoll(memo.substr(n5 + 1).c_str());
                 }
 
-                res.quantity = transfer_data.quantity;
+                res.quantity = quantity;
                 func(res);
             }
         }
     }
 
-    bool is_system_account(account_name name) {
-        if (name == N(eosio.bpay) || 
-            name == N(eosio.msig) ||
-            name == N(eosio.names) ||
-            name == N(eosio.ram) ||
-            name == N(eosio.ramfee) ||
-            name == N(eosio.saving) ||
-            name == N(eosio.stake) || 
-            name == N(eosio.token) || 
-            name == N(eosio.vpay) ) {
+    bool is_system_account(name name) {
+        if (name == "eosio.bpay"_n || 
+            name == "eosio.msig"_n ||
+            name == "eosio.names"_n ||
+            name == "eosio.ram"_n ||
+            name == "eosio.ramfee"_n ||
+            name == "eosio.saving"_n ||
+            name == "eosio.stake"_n || 
+            name == "eosio.token"_n || 
+            name == "eosio.vpay"_n ) {
             return true;
         }
         return false;
     }
 
     void new_player(name from) {
-        rvariable_table rules(self, self);
+        rvariable_table rules(self, self.value);
         auto rule = rules.find(vt_init_powder);
-        eosio_assert(rule != rules.end(), "can not found powder rule" );
+        eosio::check(rule != rules.end(), "can not found powder rule" );
 
         auto itr = players.emplace(self, [&](auto& target) {
             target.owner = from;
@@ -171,7 +160,7 @@ public:
         int strength2 = (last_checksum % 11) + (last_trx_hash % 13) + (hash2 % 7);
         seed = shuffle_bit(seed, strength1);
         seed ^= shuffle_bit(last_trx_hash, strength2);
-        seed ^= tapos_block_prefix();
+        seed ^= eosio::tapos_block_prefix();
         seed ^= hash2;
 
         auto rval = random_val(seed, 0);
@@ -231,14 +220,14 @@ public:
     }
 
     void save_checksum(name from, uint32_t block, uint32_t checksum, uint32_t v0) {
-        auto iter = playervs.find(from);
+        auto iter = playervs.find(from.value);
         if (iter == playervs.cend()) {
             iter = migrate_playerv(from);
         }
 
         if (iter == playervs.cend()) {
             new_playervs(from, 0, 0);
-            iter = playervs.find(from);
+            iter = playervs.find(from.value);
         }
 
         auto v0_old = 0;
@@ -256,12 +245,12 @@ public:
 
     void require_action_count(int count) {
         char buffer[512];
-        int actual_size = read_transaction(buffer, 512);
+        int actual_size = eosio::read_transaction(buffer, 512);
         eosio::datastream<const char *> ds(buffer, actual_size);
         eosio::transaction tx;
         ds >> tx;
-        eosio_assert((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
-        eosio_assert(tx.actions[count-1].account == self, "wrong action recipient"); 
+        eosio::check((tx.actions.end() - tx.actions.begin()) == count, "wrong number of actions in transaction");
+        eosio::check(tx.actions[count-1].account == self, "wrong action recipient"); 
         last_trx_hash = calculate_trx_hash(buffer, actual_size);
     }
 
@@ -316,11 +305,11 @@ public:
     }
 
     playerv2_table::const_iterator get_playervs(name from, bool create_when_empty = false) {
-        auto res = playervs.find(from);
+        auto res = playervs.find(from.value);
         if (res == playervs.cend()) {
             if (create_when_empty) {
                 new_playervs(from, 0, 0);
-                return playervs.find(from);
+                return playervs.find(from.value);
             }
         }
 
@@ -328,8 +317,8 @@ public:
     }
 
     playerv2_table::const_iterator migrate_playerv(name from) {
-        auto oldv = playervs_old.find(from);
-        auto newv = playervs.find(from);
+        auto oldv = playervs_old.find(from.value);
+        auto newv = playervs.find(from.value);
         if (oldv != playervs_old.cend() && newv == playervs.cend()) {
             auto itr = playervs.emplace(self, [&](auto& target) {
                 target.owner = oldv->owner;
@@ -342,11 +331,11 @@ public:
             playervs_old.erase(oldv);
         }
         
-        return playervs.find(from);
+        return playervs.find(from.value);
     }
 
     double get_global_avg_floor() {
-        globalvar_table table(self, self);
+        globalvar_table table(self, self.value);
         if (table.cbegin() == table.cend()) {
             return 1000;
         }
@@ -387,8 +376,8 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void signup(name from) {
-        auto iter = players.find(from);
-        eosio_assert(iter == players.end(), "already signed up" );
+        auto iter = players.find(from.value);
+        eosio::check(iter == players.end(), "already signed up" );
         new_player(from);
     }
 
@@ -397,15 +386,15 @@ public:
 
         assert_true(from != to, "wrong recipient");
 
-        auto fplayer = players.find(from);
-        auto tplayer = players.find(to);
+        auto fplayer = players.find(from.value);
+        auto tplayer = players.find(to.value);
         assert_true(fplayer != players.end(), "could not find player");
         assert_true(tplayer != players.end(), "could not find player");
         assert_true(fplayer->last_rebirth > 0, "one or more knight required.");
         assert_true(tplayer->last_rebirth > 0, "one or more knight required for the recipient.");
 
-        auto fplayerv = playervs.find(from);
-        auto tplayerv = playervs.find(to);
+        auto fplayerv = playervs.find(from.value);
+        auto tplayerv = playervs.find(to.value);
 
         // migration
         if (fplayerv == playervs.cend()) {
@@ -455,7 +444,7 @@ public:
     void addgift(uint16_t no, uint8_t type, uint16_t amount, uint32_t to) {
         require_auth(self);
 
-        gift_table gifts(self, self);
+        gift_table gifts(self, self.value);
         if (gifts.begin() == gifts.cend()) {
             gifts.emplace(self, [&](auto& target) {
                 target.key = 1;
@@ -479,12 +468,12 @@ public:
         require_auth(from);
 
         auto current = time_util::now_shifted();
-        gift_table gifts(self, self);
+        gift_table gifts(self, self.value);
         assert_true(gifts.cbegin() != gifts.cend(), "invalid gift");
         assert_true(gifts.cbegin()->no == no, "invalid gift");
         assert_true(gifts.cbegin()->to >= current, "the gift is over");
 
-        auto playerv = playervs.find(from);
+        auto playerv = playervs.find(from.value);
 
         // migration
         if (playerv == playervs.cend()) {
@@ -513,20 +502,19 @@ public:
 
     void itemivnup(name from, const asset &quantity) {
         require_auth(from);
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(player != players.end(), "could not find player");
 
 
         uint8_t ts = player->item_ivn_up + 1;
         assert_true(ts <= kv_max_item_inventory_up, "can not exceed max size");
 
-        rivnprice_table ivnprice_table(self, self);
+        rivnprice_table ivnprice_table(self, self.value);
         auto price = ivnprice_table.find((uint64_t)ts);
         assert_true(price != ivnprice_table.end(), "no price rule");
         assert_true(quantity.amount == price->price.amount, "ivn price does not match");
 
-        name seller;
-        seller.value = self;
+        name seller = self;
 
         buylog blog;
         blog.seller = seller;
@@ -548,19 +536,18 @@ public:
 
     void mativnup(name from, const asset &quantity) {
         require_auth(from);
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(player != players.end(), "could not find player");
 
         uint8_t ts = player->mat_ivn_up + 1;
         assert_true(ts <= kv_max_material_inventory_up, "can not exceed max size");
 
-        rivnprice_table ivnprice_table(self, self);
+        rivnprice_table ivnprice_table(self, self.value);
         auto price = ivnprice_table.find((uint64_t)ts);
         assert_true(price != ivnprice_table.end(), "no price rule");
         assert_true(quantity.amount == price->price.amount, "ivn price does not match");
 
-        name seller;
-        seller.value = self;
+        name seller = self;
 
         buylog blog;
         blog.seller = seller;
@@ -583,16 +570,16 @@ public:
     void addblackcmt(name to) {
         require_coo_auth();
 
-        comment_table table(self, self);
-        auto iter = table.find(to);
+        comment_table table(self, self.value);
+        auto iter = table.find(to.value);
         assert_true(iter != table.cend(), "can not found comment");
 
         table.modify(iter, self, [&](auto &target) {
             target.black = true;
         });
 
-        rcomment_table rtable(self, self);
-        auto riter = rtable.find(to);
+        rcomment_table rtable(self, self.value);
+        auto riter = rtable.find(to.value);
         if (riter == rtable.cend()) {
             rtable.emplace(self, [&](auto &target) {
                 target.owner = to;
@@ -614,8 +601,8 @@ public:
         auto player = player_controller.get_player(from);
         assert_true(!player_controller.is_empty_player(player), "sign up first!");
 
-        comment_table table(self, self);
-        auto iter = table.find(from);
+        comment_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter == table.cend()) {
             table.emplace(self, [&](auto &target) {
                 target.owner = from;
@@ -627,8 +614,8 @@ public:
             auto black = iter->black;
             if (black) {
                 player_controller.decrease_powder(player, kv_comment_cost);
-                rcomment_table rtable(self, self);
-                auto riter = rtable.find(from);
+                rcomment_table rtable(self, self.value);
+                auto riter = rtable.find(from.value);
                 if (riter != rtable.cend()) {
                     rtable.erase(riter);
                 }
@@ -649,15 +636,15 @@ public:
     void reportofs(name from, name to) {
         require_auth(from);
 
-        comment_table table(self, self);
-        auto iter = table.find(to);
+        comment_table table(self, self.value);
+        auto iter = table.find(to.value);
         assert_true(iter != table.cend(), "can not found comment");
         table.modify(iter, self, [&](auto &target) {
             target.report++;
         });
 
-        rcomment_table rtable(self, self);
-        auto riter = rtable.find(to);
+        rcomment_table rtable(self, self.value);
+        auto riter = rtable.find(to.value);
         if (riter == rtable.cend()) {
             rtable.emplace(self, [&](auto &target) {
                 target.owner = to;

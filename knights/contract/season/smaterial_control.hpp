@@ -12,7 +12,7 @@ class smaterial_control : public material_control_base<
 public:
     // constructor
     //-------------------------------------------------------------------------
-    smaterial_control(account_name _self,
+    smaterial_control(name _self,
                      system_control &_system_controller,
                      splayer_control &_player_controller)
             : material_control_base(_self, _system_controller, _player_controller) {

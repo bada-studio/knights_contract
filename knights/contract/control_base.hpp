@@ -3,28 +3,35 @@
 class control_base {
 protected:
     void assert_true(bool test, const char* cstr) {
-        eosio_assert(test ? 1 : 0, cstr);
+        eosio::check(test, cstr);
     }
 
-    name to_name(account_name target) {
+    name to_name(uint64_t target) {
         name res;
         res.value = target;
         return res;
     }
 
-    uint64_t get_code_name(eosio::symbol_type symbol) {
+    name get_code_name(eosio::symbol symbol) {
+        if (eosio::symbol("EOS", 4) == symbol) {
+            return ("eosio.token"_n);
+        }
+
+        /*
         switch (symbol) {
-            case S(4, EOS): return N(eosio.token);
-            case S(4, BADA): return N(thebadatoken);
-            case S(4, TRYBE): return N(trybenetwork);
-            case S(4, MEETONE): return N(eosiomeetone);
+            case eosio::symbol("EOS", 4): return "eosio.token"_n;
+            case eosio::symbol("BADA", 4): return "thebadatoken"_n;
+            case eosio::symbol("TRYBE", 4): return "trybenetwork"_n;
+            case eosio::symbol("MEETONE", 4): return "eosiomeetone"_n;
         }
 
         return 0;
+        */
+        return ("eosio.token"_n);
     }
 
     void validate_price(asset price, int grade) {
-        assert_true(price.symbol == S(4,EOS) , "only EOS token allowed");
+        assert_true(price.symbol == eosio::symbol("EOS", 4), "only EOS token allowed");
         assert_true(price.is_valid(), "invalid price");
         assert_true(price.amount > 0, "must price positive quantity");
 

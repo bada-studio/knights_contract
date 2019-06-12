@@ -111,7 +111,7 @@ template<typename knight_table_name,
 class knight_control_base : public control_base, 
                             public knight_control_actions {
 protected:
-    account_name self;
+    name self;
     knight_table_name knights;
 
     system_control &system_controller;
@@ -125,14 +125,14 @@ protected:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    knight_control_base(account_name _self,
+    knight_control_base(name _self,
                    system_control &_system_controller,
                    player_control_name &_player_controller,
                    material_control_name &_material_controller,
                    item_control_name &_item_controller,
                    pet_control_name &_pet_controller)
             : self(_self)
-            , knights(_self, _self)
+            , knights(_self, _self.value)
             , system_controller(_system_controller)
             , player_controller(_player_controller)
             , material_controller(_material_controller)
@@ -143,7 +143,7 @@ public:
     // internal apis
     //-------------------------------------------------------------------------
     knight_stats calculate_stat(name from, const knightrow &knight) {
-        rknt_table rules(self, self);
+        rknt_table rules(self, self.value);
         auto rule = rules.find(knight.type);
         assert_true(rule != rules.cend(), "no knight rule");
 
@@ -159,7 +159,7 @@ public:
     }
 
     void refresh_stat(name from, uint8_t type) {
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         assert_true(iter != knights.cend(), "can not found knight");
         
         auto &knight = get_knight(iter, type);
@@ -179,7 +179,7 @@ public:
     }
 
     const std::vector<knightrow>& get_knights(name from) {
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         return get_knights(iter);
     }
 
@@ -215,7 +215,7 @@ public:
     }
 
     void new_free_knight(name from) {
-        rknt_table rules(self, self);
+        rknt_table rules(self, self.value);
         auto rule = rules.find(kt_knight);
         assert_true(rule != rules.cend(), "no knight rule");
 
@@ -228,7 +228,7 @@ public:
         knight.luck = rule->luck;
 
         int count = 1;
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         knights.emplace(self, [&](auto &target) {
             target.owner = from;
             target.rows.push_back(knight);
@@ -236,7 +236,7 @@ public:
     }
 
     knightrow new_knight(uint8_t type) {
-        rknt_table rules(self, self);
+        rknt_table rules(self, self.value);
         auto rule = rules.find(type);
         assert_true(rule != rules.cend(), "no knight rule");
 
@@ -262,7 +262,7 @@ public:
         require_auth(from);
         assert_true(type > 0 && type < kt_count, "invalid knight type");
 
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         assert_true(iter != knights.cend(), "could not found knight");
         auto &knight = get_knight(iter, type);
 
@@ -272,7 +272,7 @@ public:
         uint64_t level = knight.level + 1;
         assert_true(level <= kv_max_knight_level, "already max level");
 
-        rkntlv_table rule_table(self, self);
+        rkntlv_table rule_table(self, self.value);
         auto rule = rule_table.find(level);
         assert_true(rule != rule_table.cend(), "there is no level rule");
 
@@ -308,7 +308,7 @@ public:
     /// To prevent bots
     void rebirth(name from, uint32_t season, uint32_t checksum, bool delay) {
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "could not find player");
         auto pvsi = system_controller.get_playervs(from);
 
@@ -319,8 +319,8 @@ public:
             if (do_rebirth(from, player, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
-                    permission_level{ self, N(active) }, 
-                    self, N(rebirth3i), 
+                    permission_level{ self, "active"_n }, 
+                    self, "rebirth3i"_n, 
                     std::make_tuple(from, season, checksum)
                 );
                 out.delay_sec = 1;
@@ -352,12 +352,12 @@ public:
         auto &item = item_controller.get_item(rows, id);
         assert_true(item.saleid == 0, "item is on sale");
 
-        ritem_table rule_table(self, self);
+        ritem_table rule_table(self, self.value);
         auto rule = rule_table.find(item.code);
         assert_true(rule != rule_table.cend(), "could not find rule");
         assert_true(is_valid_for((knight_type)to, (item_sub_type)rule->sub_type), "it's invalid knight to attach");
 
-        auto knt_iter = knights.find(from);
+        auto knt_iter = knights.find(from.value);
         assert_true(knt_iter != knights.cend(), "could not found knight");
         auto &knight = get_knight(knt_iter, to);
         assert_true(rule->min_level <= knight.level, "not enough knight level to equip item");
@@ -402,7 +402,7 @@ protected:
         system_controller.require_action_count(1);
         playerv2 variable = *pvsi;
 
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         assert_true(iter != knights.cend(), "can not found knight");
         auto &rows = iter->rows;
 
@@ -412,11 +412,11 @@ protected:
         int max_mat_count = material_controller.get_max_inventory_size(player->mat_ivn_up);
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
-        rstage_table rules(self, self);
+        rstage_table rules(self, self.value);
         auto stagerule = rules.find(player->current_stage);
         assert_true(stagerule != rules.cend(), "no stage rule");
 
-        time current = time_util::now_shifted();
+        auto current = time_util::now_shifted();
         int elapsed_sec = (int)(current - player->last_rebirth);
         
         uint16_t new_rebirth_factor = do_check_rebirth_factor(player, rows, variable);
@@ -545,7 +545,7 @@ protected:
     int calc_rebirth_factor(player_table_const_iter_name player, 
                             const std::vector<knightrow> &knights,
                             int prev_factor) {
-        time current = time_util::now_shifted();
+        auto current = time_util::now_shifted();
         double rebrith_factor = prev_factor / 100.0;
         rebrith_factor = std::max(1.0, rebrith_factor);
         rebrith_factor = std::min(15.0, rebrith_factor);
@@ -596,7 +596,7 @@ protected:
         }
 
         if (new_floor > 0) {
-            globalvar_table table(self, self);
+            globalvar_table table(self, self.value);
             if (table.cbegin() == table.cend()) {
                 table.emplace(self, [&](auto &target) {
                     target.id = 0;
@@ -613,7 +613,7 @@ protected:
     }
 
     int get_botties(const player_name& from, int floor, int luck, int kill_count, const rstage& stagerule, random_val &rval, int pet_code, double gdr) {
-        rmaterial_table mat_rules(self, self);
+        rmaterial_table mat_rules(self, self.value);
         double drop_rate = get_drop_rate_with_luck(stagerule.drop_rate, luck);
         int bonus_grade = pet_controller.get_pet_grade(pet_code);
 
@@ -686,7 +686,7 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    knight_control(account_name _self,
+    knight_control(name _self,
                    system_control &_system_controller,
                    player_control &_player_controller,
                    material_control &_material_controller,
@@ -701,14 +701,14 @@ public:
                 _item_controller,
                 _pet_controller)
             , saleslog_controller(_saleslog_controller)                
-            , skills(_self, _self) {
+            , skills(_self, _self.value) {
         use_gdr = true;
     }
 
     // internal apis
     //-------------------------------------------------------------------------
     const std::vector<kntskill>& get_knight_skills(name from, int knt) {
-        auto iter = skills.find(from);
+        auto iter = skills.find(from.value);
         return get_knight_skills(iter, knt);
     }
 
@@ -735,7 +735,7 @@ public:
         knightrow knight = new_knight(type);
 
         int count = 1;
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         if (iter == knights.cend()) {
             knights.emplace(self, [&](auto &target) {
                 target.owner = from;
@@ -758,7 +758,7 @@ public:
             assert_true(found == false, "you have already same knight");
         }
 
-        rkntprice_table prices(self, self);
+        rkntprice_table prices(self, self.value);
         auto price_itr = prices.find(count);
         assert_true(price_itr != prices.cend(), "could not find price rule");
 
@@ -766,8 +766,7 @@ public:
         asset price = price_itr->price;
         assert_true(quantity.amount == price.amount, "knight price does not match");
 
-        name seller;
-        seller.value = self;
+        name seller = self;
 
         buylog blog;
         blog.seller = seller;
@@ -782,10 +781,10 @@ public:
         saleslog_controller.add_buylog(blog, from);
 
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(player != players.cend(), "could not find player");
 
-        time current = time_util::now_shifted();
+        auto current = time_util::now_shifted();
         players.modify(player, self, [&](auto& target) {
             target.last_rebirth = current;
         });
@@ -802,7 +801,7 @@ public:
     void skillup(name from, uint8_t knt, uint16_t id) {
         require_auth(from);
 
-        auto knt_iter = knights.find(from);
+        auto knt_iter = knights.find(from.value);
         assert_true(knt_iter != knights.cend(), "could not found knight");
         auto &knight = get_knight(knt_iter, knt);
         int total_point = knight.level - 1;
@@ -812,13 +811,13 @@ public:
         bool is_first_skill = ((id % 10) == 1);
 
         // remain point check
-        rkntskills_table rules(self, self);
+        rkntskills_table rules(self, self.value);
         const auto &rule = rules.begin()->get_rule(id);
 
         // required level check
         assert_true(rule.requiredlv <= knight.level, "not enough knight level");
 
-        auto iter = skills.find(from);
+        auto iter = skills.find(from.value);
         if (iter == skills.end()) {
             // check first skill
             assert_true(is_first_skill, "required previous skill first");
@@ -889,14 +888,14 @@ public:
     void setkntstage(name from, uint8_t stage) {
         require_auth(from);
 
-        rstage_table rules(self, self);
+        rstage_table rules(self, self.value);
         auto stagerule = rules.find(stage);
         assert_true(stagerule != rules.cend(), "no stage rule");
 
         int minlv = stagerule->lvfrom;
         bool pass = false;
         
-        auto iter = knights.find(from);
+        auto iter = knights.find(from.value);
         assert_true(iter != knights.cend(), "could not found knight");
         auto &rows = iter->rows;
 
@@ -910,7 +909,7 @@ public:
 
         assert_true(pass, "no one exceed stage minmium level");
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
 
         players.modify(player, self, [&](auto& target) {
             target.current_stage = stage;
@@ -924,7 +923,7 @@ public:
     /// @param knt
     /// target knight
     void skillreset(name from, uint8_t knt) {
-        auto iter = skills.find(from);
+        auto iter = skills.find(from.value);
         assert_true(iter != skills.end(), "can not found skill set");
 
         // clear stat

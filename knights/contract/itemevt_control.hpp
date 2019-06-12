@@ -2,7 +2,7 @@
 
 class itemevt_control : public control_base {
 private:
-    account_name self;
+    name self;
     system_control &system_controller;
     player_control &player_controller;
     item_control &item_controller;
@@ -10,7 +10,7 @@ private:
 public:
     /// @brief
     /// Constructor
-    itemevt_control(account_name _self,
+    itemevt_control(name _self,
                     system_control &_system_controller,
                     player_control &_player_controller,
                     item_control &_item_controller)
@@ -23,7 +23,7 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void getevtitem(name from) {
-        require_auth(N(bastetbastet));
+        require_auth("bastetbastet"_n);
 
         // get player info
         auto player = player_controller.get_player(from);
@@ -33,7 +33,7 @@ public:
         auto variable = *pvsi;
 
         // get event
-        itemevt_table table(self, self);
+        itemevt_table table(self, self.value);
         auto iter = table.cbegin();
         assert_true(iter != table.cend(), "no item event");
 
@@ -43,7 +43,7 @@ public:
         assert_true(iter->key != variable.itemevt, "you've already got event item");
 
         // get rule
-        ritem_table rule_table(self, self);
+        ritem_table rule_table(self, self.value);
         auto recipe = rule_table.find(iter->code);
         assert_true(recipe != rule_table.cend(), "can not found item");
 
@@ -60,11 +60,11 @@ public:
         system_controller.require_coo_auth();
         auto now = time_util::now();
         
-        ritem_table rule_table(self, self);
+        ritem_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "can not found item");
 
-        itemevt_table table(self, self);
+        itemevt_table table(self, self.value);
         auto iter = table.cbegin();
         if (iter == table.cend()) {
             table.emplace(self, [&](auto &target) {

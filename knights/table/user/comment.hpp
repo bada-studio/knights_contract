@@ -1,5 +1,4 @@
-//@abi table comment i64
-struct comment {
+struct [[eosio::table]] comment {
     name owner;
     std::string message;
     std::string link;
@@ -9,7 +8,7 @@ struct comment {
     uint64_t v1 = 0;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
     
     EOSLIB_SERIALIZE(
@@ -24,18 +23,16 @@ struct comment {
                      )
 };
 
-typedef eosio::multi_index< N(comment), comment> comment_table;
+typedef eosio::multi_index< "comment"_n, comment> comment_table;
 
-
-//@abi table rcomment i64
-struct rcomment {
+struct [[eosio::table]] rcomment {
     name owner;
     uint32_t report = 0;
     bool black = false;
     uint64_t v1 = 0;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
     
     EOSLIB_SERIALIZE(
@@ -47,4 +44,4 @@ struct rcomment {
                      )
 };
 
-typedef eosio::multi_index< N(rcomment), rcomment> rcomment_table;
+typedef eosio::multi_index< "rcomment"_n, rcomment> rcomment_table;

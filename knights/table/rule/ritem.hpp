@@ -38,8 +38,7 @@ enum item_grade {
     ig_count
 };
 
-//@abi table ritem i64
-struct ritem {
+struct [[eosio::table]] ritem {
     uint64_t code;
     uint8_t type;
     uint8_t sub_type;
@@ -115,4 +114,4 @@ struct ritem {
     )
 };
 
-typedef eosio::multi_index<N(ritem), ritem> ritem_table;
+typedef eosio::multi_index<"ritem"_n, ritem> ritem_table;

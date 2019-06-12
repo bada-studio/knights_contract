@@ -2,7 +2,7 @@
 
 class market_control : public control_base {
 private:
-    account_name self;
+    name self;
     item4sale_table items;
     mat4sale_table materials;
 
@@ -16,7 +16,7 @@ private:
     // modifiers
     //-------------------------------------------------------------------------
     uint64_t next_pid(marketpid_type type) {
-        marketpid_table table(self, self);
+        marketpid_table table(self, self.value);
         auto iter = table.find(type);
         uint64_t pid = 1;
         
@@ -38,7 +38,7 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    market_control(account_name _self,
+    market_control(name _self,
                    system_control &_system_controller,
                    player_control &_player_controller,
                    material_control &_material_controller,
@@ -46,8 +46,8 @@ public:
                    saleslog_control &_saleslog_controller,
                    knight_control &_knight_controller)
             : self(_self)
-            , items(_self, _self)
-            , materials(_self, _self)
+            , items(_self, _self.value)
+            , materials(_self, _self.value)
             , system_controller(_system_controller)
             , player_controller(_player_controller)
             , material_controller(_material_controller)
@@ -64,7 +64,7 @@ public:
             id = 1;
         }
 
-        rmaterial_table rule_table(self, self);
+        rmaterial_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "could not find material rule");
 
@@ -90,7 +90,7 @@ public:
         assert_true(item.saleid == 0, "already on sale");
         assert_true(item.knight == 0, "equipped item can not be sold");
 
-        ritem_table item_rules(self, self);
+        ritem_table item_rules(self, self.value);
         auto item_rule = item_rules.find(item.code);
         assert_true(item_rule != item_rules.cend(), "can not found item grade");
         validate_price(price, item_rule->grade);
@@ -139,7 +139,7 @@ public:
     void require_sell_cooltime(name from) {
         auto pvsi = system_controller.get_playervs(from);
         uint32_t next = pvsi->last_sell_time + (int)(10 * (pvsi->sell_factor / 100.0));
-        time current = time_util::now_shifted();
+        int32_t current = time_util::now_shifted();
         assert_true(current >= next, "too short to sell");
     }
 
@@ -147,7 +147,7 @@ public:
         auto pvsi = system_controller.get_playervs(from);
         auto variable = *pvsi;
 
-        time current = time_util::now_shifted();
+        int32_t current = time_util::now_shifted();
         uint32_t last_sell_time = variable.last_sell_time;
         double sell_factor = variable.sell_factor / 100.0;
         sell_factor = std::max(1.0, sell_factor);
@@ -188,14 +188,14 @@ public:
         // grade check
         assert_true(max_grade > ig_none, "can not buy item this mode");
         if (max_grade != ig_count) {
-            ritem_table rule_table(self, self);
+            ritem_table rule_table(self, self.value);
             auto rule = rule_table.find(saleitem->code);
             assert_true(rule != rule_table.cend(), "could not find material rule");
             assert_true(rule->grade <= max_grade, "can not buy this item");
         }
 
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "can not found player info");
 
         auto &knights = knight_controller.get_knights(from);
@@ -248,7 +248,7 @@ public:
         saleslog_controller.add_buylog(blog, from);
 
         // calculate tax
-        asset tax(0, S(4, EOS));
+        asset tax(0, eosio::symbol("EOS", 4));
         if (tax_rate > 0) {
             tax = price * tax_rate / 100;
             if (tax.amount == 0) {
@@ -261,8 +261,8 @@ public:
                        std::to_string(saleitem->code) + ":" + 
                        std::to_string(saleitem->cid) + ":" + 
                        from.to_string();
-        action(permission_level{ self, N(active) },
-               N(eosio.token), N(transfer),
+        action(permission_level{ self, "active"_n },
+               "eosio.token"_n, "transfer"_n,
                std::make_tuple(self, saleitem->player, price, message)
         ).send();
 
@@ -274,15 +274,15 @@ public:
         system_controller.check_blacklist(from);
         require_sell_cooltime(from);
 
-        material_table materials(self, self);
-        auto imat = materials.find(from);
+        material_table materials(self, self.value);
+        auto imat = materials.find(from.value);
         assert_true(imat != materials.cend(), "no materials");
         auto &rows = imat->rows;
         auto &mat = imat->get_material(matid);
 
         assert_true(mat.saleid == 0, "already on sale");
 
-        rmaterial_table mat_rules(self, self);
+        rmaterial_table mat_rules(self, self.value);
         auto mat_rule = mat_rules.find(mat.code);
         assert_true(mat_rule != mat_rules.cend(), "can not found material grade");
         validate_price(price, mat_rule->grade);
@@ -322,14 +322,14 @@ public:
         const asset &quantity = ad.quantity;
 
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "can not found player info");
 
         auto &knights = knight_controller.get_knights(from);
         assert_true(knights.size() > 0, "there is no knight");
 
-        material_table mats(self, self);
-        auto imat = mats.find(from);
+        material_table mats(self, self.value);
+        auto imat = mats.find(from.value);
         auto current_inventory_size = 0;
         if (imat != mats.cend()) {
             current_inventory_size = imat->rows.size();
@@ -349,7 +349,7 @@ public:
         // grade check
         assert_true(max_grade > ig_none, "can not buy item this mode");
         if (max_grade != ig_count) {
-            rmaterial_table rule_table(self, self);
+            rmaterial_table rule_table(self, self.value);
             auto rule = rule_table.find(salemat->code);
             assert_true(rule != rule_table.cend(), "could not find material rule");
             assert_true(rule->grade <= max_grade, "can not buy this item");
@@ -396,7 +396,7 @@ public:
         saleslog_controller.add_buylog(blog, from);
 
         // calculate tax
-        asset tax(0, S(4, EOS));
+        asset tax(0, eosio::symbol("EOS", 4));
         if (tax_rate > 0) {
             tax = price * tax_rate / 100;
             if (tax.amount == 0) {
@@ -410,8 +410,8 @@ public:
                        std::to_string(salemat->cid) + ":" + 
                        from.to_string();
 
-        action(permission_level{ self, N(active) },
-               N(eosio.token), N(transfer),
+        action(permission_level{ self, "active"_n },
+               "eosio.token"_n, "transfer"_n,
                std::make_tuple(self, salemat->player, price, message)
         ).send();
 

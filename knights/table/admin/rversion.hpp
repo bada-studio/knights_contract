@@ -1,5 +1,4 @@
-//@abi table rversion i64
-struct rversion {
+struct [[eosio::table]] rversion {
     name rule;
     uint16_t version = 0;
 
@@ -7,7 +6,7 @@ struct rversion {
     }
 
     uint64_t primary_key() const {
-        return rule;
+        return rule.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -17,4 +16,4 @@ struct rversion {
     )
 };
 
-typedef eosio::multi_index< N(rversion), rversion> rversion_table;
+typedef eosio::multi_index< "rversion"_n, rversion> rversion_table;

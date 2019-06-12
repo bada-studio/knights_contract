@@ -11,8 +11,7 @@ struct kntskill {
     }
 };
 
-//@abi table kntskills i64
-struct kntskills {
+struct [[eosio::table]] kntskills {
     name owner;
     std::vector<kntskill> knight_skill;
     std::vector<kntskill> archer_skill;
@@ -54,7 +53,7 @@ struct kntskills {
     }
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -66,4 +65,4 @@ struct kntskills {
     )
 };
 
-typedef eosio::multi_index< N(kntskills), kntskills> kntskills_table;
+typedef eosio::multi_index< "kntskills"_n, kntskills> kntskills_table;

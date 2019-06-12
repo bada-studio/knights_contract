@@ -38,9 +38,7 @@ struct buylog {
     asset price;
 };
 
-// 58 + logs
-//@abi table revenue i64
-struct revenue {
+struct [[eosio::table]] revenue {
     name owner;
     asset selling;
     asset spending;
@@ -52,13 +50,13 @@ struct revenue {
     std::vector<buylog> buylogs;
 
     revenue() 
-        : selling(0, S(4, EOS))
-        , spending(0, S(4, EOS))
-        , buying(0, S(4, EOS)) {
+        : selling(0, eosio::symbol("EOS", 4))
+        , spending(0, eosio::symbol("EOS", 4))
+        , buying(0, eosio::symbol("EOS", 4)) {
     }
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -75,4 +73,4 @@ struct revenue {
     )
 };
 
-typedef eosio::multi_index< N(revenue), revenue> revenue_table;
+typedef eosio::multi_index< "revenue"_n, revenue> revenue_table;

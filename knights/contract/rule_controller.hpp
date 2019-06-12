@@ -4,14 +4,14 @@ template <class DataType, class TableType>
 class rule_controller {
 protected:
     TableType table;
-    account_name self;
+    name self;
     name rule_name;
 
 public:
-    rule_controller(account_name _self, table_name _rule_name)
-            : table(_self, _self)
+    rule_controller(name _self, name _rule_name)
+            : table(_self, _self.value)
             , self(_self) {
-        rule_name.value = _rule_name;
+        rule_name = _rule_name;
     }
 
     void create_rules(const std::vector<DataType> &data, bool truncate) {
@@ -34,8 +34,8 @@ public:
             }
         }
 
-        rversion_table table(self, self);
-        auto iter = table.find(rule_name);
+        rversion_table table(self, self.value);
+        auto iter = table.find(rule_name.value);
         if (iter != table.cend()) {
             table.modify(iter, self, [&](auto &target) {
                 target.version++;

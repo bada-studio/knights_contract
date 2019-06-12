@@ -1,5 +1,4 @@
-//@abi table globalvar i64
-struct globalvar {
+struct [[eosio::table]] globalvar {
     uint64_t id = 0;
     uint64_t floor_sum = 0;
     uint32_t floor_submit_count = 0;
@@ -29,6 +28,6 @@ struct globalvar {
     )
 };
 
-typedef eosio::multi_index< N(globalvar), globalvar> globalvar_table;
+typedef eosio::multi_index< "globalvar"_n, globalvar> globalvar_table;
 
 

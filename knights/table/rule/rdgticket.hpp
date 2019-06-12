@@ -1,7 +1,6 @@
 #pragma once
 
-//@abi table rdgticket i64
-struct rdgticket {
+struct [[eosio::table]] rdgticket {
     uint64_t code = 0;
     uint16_t mat1 = 0;
     uint8_t cnt1 = 0;
@@ -29,4 +28,4 @@ struct rdgticket {
     )
 };
 
-typedef eosio::multi_index< N(rdgticket), rdgticket> rdgticket_table;
+typedef eosio::multi_index< "rdgticket"_n, rdgticket> rdgticket_table;

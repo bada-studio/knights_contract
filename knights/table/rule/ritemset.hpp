@@ -3,8 +3,7 @@ struct ritemsetrow {
     uint16_t stat;
 };
 
-//@abi table ritemset i64
-struct ritemset {
+struct [[eosio::table]] ritemset {
     uint64_t setid;
 
     // element1
@@ -83,4 +82,4 @@ struct ritemset {
     )
 };
 
-typedef eosio::multi_index< N(ritemset), ritemset > ritemset_table;
+typedef eosio::multi_index< "ritemset"_n, ritemset > ritemset_table;

@@ -2,7 +2,7 @@
 
 class admin_control : public control_base {
 private:
-    account_name self;
+    name self;
     adminstate_table adminvalues;
     stockholder_table stockholders;
     dividendlog_table dividendlogs;
@@ -14,12 +14,12 @@ public:
 public:
     /// @brief
     /// Constructor
-    admin_control(account_name _self)
+    admin_control(name _self)
             : self(_self)
-            , adminvalues(_self, _self)
-            , stockholders(_self, _self)
-            , dividendlogs(_self, _self)
-            , expenseslogs(_self, _self) {
+            , adminvalues(_self, _self.value)
+            , stockholders(_self, _self.value)
+            , dividendlogs(_self, _self.value)
+            , expenseslogs(_self, _self.value) {
     }
 
     // internal apis
@@ -53,10 +53,10 @@ public:
             target.revenue += revenue;
         });
 
-        revenuedt2_table revenues(self, self);
+        revenuedt2_table revenues(self, self.value);
         if (revenues.cbegin() == revenues.cend()) {
             // migration
-            revenuedt_table oldtable(self, self);
+            revenuedt_table oldtable(self, self.value);
             if (oldtable.cbegin() == oldtable.cend()) {
                 revenues.emplace(self, [&](auto &target) {});
             } else {
@@ -121,7 +121,7 @@ public:
     }
 
     bool is_stock_holder(name owner) {
-        auto sh = stockholders.find(owner);
+        auto sh = stockholders.find(owner.value);
         return sh != stockholders.cend();
     }
 
@@ -131,7 +131,7 @@ public:
         }
 
         if (adminvalues.cbegin()->revenue.amount > 1100'0000) {
-            asset amount(100'0000, S(4, EOS));
+            asset amount(100'0000, eosio::symbol("EOS", 4));
             dividend(amount);
         }
     }
@@ -185,7 +185,7 @@ public:
     void regsholder(name holder, uint16_t share) {
         require_auth(self);
 
-        auto sh = stockholders.find(holder);
+        auto sh = stockholders.find(holder.value);
         if (sh != stockholders.cend()) {
             if (share == 0) {
                 stockholders.erase(sh);
@@ -210,12 +210,12 @@ public:
         assert_true(adminvalues.cbegin() != adminvalues.cend(), "no revenue yet");
 
         std::vector<dividendto> logs;
-        asset total(0, S(4, EOS));
+        asset total(0, eosio::symbol("EOS", 4));
         for (auto sh = stockholders.cbegin(); sh != stockholders.end(); ++sh) {
             asset price = amount * sh->share / 1000;
             total += price;
-            action(permission_level{self, N(active) },
-                   N(eosio.token), N(transfer),
+            action(permission_level{self, "active"_n },
+                   "eosio.token"_n, "transfer"_n,
                    std::make_tuple(self, sh->holder, price, std::string(dividend_message)) 
             ).send();
 

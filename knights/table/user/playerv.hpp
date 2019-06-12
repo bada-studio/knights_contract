@@ -1,6 +1,4 @@
-// deprecated
-//@abi table playerv i64
-struct playerv {
+struct [[eosio::table]] playerv {
     name owner;
     uint32_t from = 0;
     uint32_t to = 0;
@@ -18,7 +16,7 @@ struct playerv {
     }
     
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
     
     EOSLIB_SERIALIZE(
@@ -37,10 +35,9 @@ struct playerv {
                      )
 };
 
-typedef eosio::multi_index< N(playerv), playerv> playerv_table;
+typedef eosio::multi_index< "playerv"_n, playerv> playerv_table;
 
-//@abi table playerv2 i64
-struct playerv2 {
+struct [[eosio::table]] playerv2 {
     name owner;
     uint32_t seed = 0;
     uint32_t next_deferred_time = 0;
@@ -70,7 +67,7 @@ struct playerv2 {
     }
     
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     void migrate0to2() {
@@ -119,7 +116,7 @@ struct playerv2 {
             case 3: dq_p3 = point; break;
             case 4: dq_p4 = point; break;
             case 5: dq_p5 = point; break;
-            default: eosio_assert(0, "can not set to un-defined mode");
+            default: eosio::check(false, "can not set to un-defined mode");
         }
     }
 
@@ -132,7 +129,7 @@ struct playerv2 {
             case 5: return dq_p5;
         }
 
-        eosio_assert(0, "can not read from un-defined mode");
+        eosio::check(false, "can not read from un-defined mode");
         return 0;
     }
 
@@ -164,4 +161,4 @@ struct playerv2 {
                      )
 };
 
-typedef eosio::multi_index< N(playerv2), playerv2> playerv2_table;
+typedef eosio::multi_index< "playerv2"_n, playerv2> playerv2_table;

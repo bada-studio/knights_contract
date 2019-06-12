@@ -3,8 +3,7 @@ enum marketpid_type {
     mpidt_item = 2,
 };
 
-//@abi table marketpid i64
-struct marketpid {
+struct [[eosio::table]] marketpid {
     uint64_t type = 0;
     uint64_t pid = 0;
     
@@ -22,4 +21,4 @@ struct marketpid {
     )
 };
 
-typedef eosio::multi_index< N(marketpid), marketpid> marketpid_table;
+typedef eosio::multi_index< "marketpid"_n, marketpid> marketpid_table;

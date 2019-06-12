@@ -42,7 +42,7 @@ template<typename item_table_name,
 class item_control_base : public control_base
                         , public item_control_actions {
 protected:
-    account_name self;
+    name self;
     item_table_name items;
 
     system_control &system_controller;
@@ -55,12 +55,12 @@ protected:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    item_control_base(account_name _self,
+    item_control_base(name _self,
                  system_control &_system_controller,
                  player_control_name &_player_controller,
                  material_control_name &_material_controller)
             : self(_self)
-            , items(_self, _self)
+            , items(_self, _self.value)
             , system_controller(_system_controller) 
             , player_controller(_player_controller)
             , material_controller(_material_controller) {
@@ -79,8 +79,8 @@ public:
     }
 
     void apply_equip_stats(knight_stats &stat, name from, uint64_t knight) {
-        ritem_table rule_table(self, self);
-        ritemlv_table lvrules(self, self);
+        ritem_table rule_table(self, self.value);
+        ritemlv_table lvrules(self, self.value);
 
         auto &rows = get_items(from);
         int32_t setid = 0;
@@ -139,7 +139,7 @@ public:
 
         // apply set item stat
         if (setid > 0 && setcount == 3) {
-            ritemset_table table(self, self);
+            ritemset_table table(self, self.value);
 
             auto iter = table.find(setid);
             if (iter == table.cend()) {
@@ -164,7 +164,7 @@ public:
         row.level = level;
         row.exp = exp;
 
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         if (iter == items.cend()) {
             items.emplace(self, [&](auto& item){
                 row.id = 1;
@@ -183,11 +183,11 @@ public:
     }
 
     item_table_const_iter_name find(name from) {
-        return items.find(from);
+        return items.find(from.value);
     }
 
     const std::vector<itemrow>& get_items(name from) {
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         return get_items(iter);
     }
 
@@ -220,8 +220,8 @@ public:
     }
 
     uint32_t remove_items(name from, const std::vector<uint32_t> &item_ids) {
-        ritem_table item_rule(self, self);
-        auto iter = items.find(from);
+        ritem_table item_rule(self, self.value);
+        auto iter = items.find(from.value);
         assert_true(iter != items.cend(), "could not found item");
 
         uint32_t powder = 0;
@@ -286,7 +286,7 @@ public:
     }
 
     int calculate_item_score(uint16_t code, uint32_t dna) {
-        ritem_table rule_table(self, self);
+        ritem_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "could not find rule");
 
@@ -340,7 +340,7 @@ public:
         assert_true(mat_ids.size() > 0, "needs material for the crafting!");
 
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "could not find player");
         auto pvsi = system_controller.get_playervs(from);
 
@@ -351,8 +351,8 @@ public:
             if (do_craft(player, code, mat_ids, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
-                    permission_level{ self, N(active) }, 
-                    self, N(craft3i), 
+                    permission_level{ self, "active"_n }, 
+                    self, "craft3i"_n, 
                     std::make_tuple(from, season, code, mat_ids, checksum)
                 );
                 out.delay_sec = 1;
@@ -381,7 +381,7 @@ public:
         int powder = remove_items(from, item_ids);
 
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(player != players.cend(), "can not found player");
 
         players.modify(player, self, [&](auto& target) {
@@ -400,12 +400,12 @@ public:
     void itemmerge(name from, uint32_t id, const std::vector<uint32_t> &ingredient) {
         require_auth(from);
 
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         auto &rows = get_items(iter);
         auto &item = get_item(rows, id);
         assert_true(item.saleid == 0, "item is on sale");
 
-        ritemlv_table rtable(self, self);
+        ritemlv_table rtable(self, self.value);
         auto &last = *--rtable.cend();
         assert_true(item.exp < last.count, "already full exp");
 
@@ -450,8 +450,8 @@ public:
             if (do_itemlvup(from, id, delay, &knt_id, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
-                    permission_level{ self, N(active) }, 
-                    self, N(itemlvup3i), 
+                    permission_level{ self, "active"_n }, 
+                    self, "itemlvup3i"_n, 
                     std::make_tuple(from, season, id, checksum)
                 );
                 out.delay_sec = 1;
@@ -474,13 +474,13 @@ public:
     bool do_itemlvup(name from, uint32_t id, bool only_check, int8_t *knt_id, playerv2_table::const_iterator pvsi) {
         system_controller.require_action_count(1);
 
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         auto &rows = get_items(iter);
         auto &item = get_item(rows, id);
         assert_true(item.saleid == 0, "item is on sale");
         int8_t knight = item.knight;
 
-        ritemlv_table lvtable(self, self);
+        ritemlv_table lvtable(self, self.value);
         auto lvrulec = lvtable.find(item.level);
         auto lvrule = lvtable.find(item.level + 1);
         assert_true(lvrulec != lvtable.cend(), "can not found next level rule");
@@ -488,7 +488,7 @@ public:
         assert_true(item.exp >= lvrule->count, "insufficient item exp");
         auto required = lvrule->count - lvrulec->count;
 
-        ritem_table rtable(self, self);
+        ritem_table rtable(self, self.value);
         auto rule = rtable.find(item.code);
         assert_true(rule != rtable.end(), "no item rule");
 
@@ -557,7 +557,7 @@ protected:
         name from = player->owner;
         system_controller.require_action_count(1);
 
-        ritem_table rule_table(self, self);
+        ritem_table rule_table(self, self.value);
         auto recipe = rule_table.find(code);
         assert_true(recipe != rule_table.cend(), "could not find recipe");
         if (only_check && recipe->grade < ig_unique) {
@@ -573,8 +573,8 @@ protected:
         int mat4_count = recipe->mat4_count;
         int total_mat_count = mat1_count + mat2_count + mat3_count + mat4_count;
 
-        material_table_name materials(self, self);
-        auto imat = materials.find(from);
+        material_table_name materials(self, self.value);
+        auto imat = materials.find(from.value);
         assert_true(imat != materials.cend(), "no materials");
 
         for (int index = 0; index < mat_ids.size(); index++) {
@@ -673,7 +673,7 @@ class item_control : public item_control_base<
 public:
     // constructor
     //-------------------------------------------------------------------------
-    item_control(account_name _self,
+    item_control(name _self,
                  system_control &_system_controller,
                  player_control &_player_controller,
                  material_control &_material_controller)
@@ -685,7 +685,7 @@ public:
     }
 
     void make_item_forsale(name from, uint64_t itemid, uint64_t saleid) {
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         assert_true(iter != items.end(), "could not find item");
 
         bool found = false;
@@ -703,7 +703,7 @@ public:
     }
 
     void cancel_sale(name from, uint64_t saleid) {
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         assert_true(iter != items.end(), "could not find item");
 
         bool found = false;
@@ -721,7 +721,7 @@ public:
     }
 
     void remove_saleitem(name from, uint64_t saleid) {
-        auto iter = items.find(from);
+        auto iter = items.find(from.value);
         assert_true(iter != items.end(), "could not find item");
 
         int found = -1;

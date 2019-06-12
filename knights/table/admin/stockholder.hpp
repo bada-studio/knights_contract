@@ -1,10 +1,9 @@
-//@abi table stockholder i64
-struct stockholder {
+struct [[eosio::table]] stockholder {
     name holder;
     uint16_t share = 0;
 
     uint64_t primary_key() const {
-        return holder;
+        return holder.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -14,4 +13,4 @@ struct stockholder {
     )
 };
 
-typedef eosio::multi_index< N(stockholder), stockholder> stockholder_table;
+typedef eosio::multi_index< "stockholder"_n, stockholder> stockholder_table;

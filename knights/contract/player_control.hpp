@@ -6,7 +6,7 @@
 template<typename tplayer_table, typename tplayer_cit>
 class player_control_base : public control_base {
 protected:
-    account_name self;
+    name self;
     tplayer_table players;
     saleslog_control &saleslog_controller;
     int mw_type;
@@ -14,11 +14,11 @@ protected:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    player_control_base(account_name _self, 
+    player_control_base(name _self, 
                         saleslog_control &_saleslog_controller,
                         int _mw_type)
         : self(_self)
-        , players(self, self)
+        , players(self, self.value)
         , saleslog_controller(_saleslog_controller)
         , mw_type(_mw_type) {
     }
@@ -30,7 +30,7 @@ public:
     }
 
     tplayer_cit get_player(name player_name) {
-        return players.find(player_name);
+        return players.find(player_name.value);
     }
     
     bool is_empty_player(tplayer_cit player) {
@@ -66,7 +66,7 @@ public:
     void buymp(name from, uint8_t pid, const asset &quantity) {
         require_auth(from);
 
-        rmpgoods_table rule_table(self, self);
+        rmpgoods_table rule_table(self, self.value);
         auto rule = rule_table.find(pid);
         assert_true(rule != rule_table.cend(), "could not find goods rule");
 
@@ -78,8 +78,7 @@ public:
         assert_true(quantity.amount == price.amount, "mw price does not match");
         increase_powder(player, rule->powder);
 
-        name seller;
-        seller.value = self;
+        name seller = self;
 
         buylog blog;
         blog.seller = seller;
@@ -101,7 +100,7 @@ public:
  */
 class player_control : public player_control_base<player_table, player_table::const_iterator> {
 public:
-    player_control(account_name _self, saleslog_control &_saleslog_controller)
+    player_control(name _self, saleslog_control &_saleslog_controller)
     : player_control_base(_self, _saleslog_controller, ct_mp) {
     }
 };

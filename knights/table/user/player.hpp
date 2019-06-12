@@ -1,6 +1,4 @@
-// 37 bytes
-//@abi table player i64
-struct player {
+struct [[eosio::table]] player {
     name owner;  // 8
     uint8_t mat_ivn_up = 0;
     uint8_t item_ivn_up = 0;
@@ -14,7 +12,7 @@ struct player {
     }
     
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
     
     EOSLIB_SERIALIZE(
@@ -29,13 +27,9 @@ struct player {
                      )
 };
 
-typedef eosio::multi_index< N(player), player> player_table;
+typedef eosio::multi_index< "player"_n, player> player_table;
 
-
-
-// 37 bytes
-//@abi table splayer i64
-struct splayer {
+struct [[eosio::table]] splayer {
     name owner;  // 8
     uint8_t mat_ivn_up = 0;
     uint8_t item_ivn_up = 0;
@@ -53,7 +47,7 @@ struct splayer {
     }
     
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
     
     EOSLIB_SERIALIZE(
@@ -71,4 +65,4 @@ struct splayer {
                      )
 };
 
-typedef eosio::multi_index< N(splayer), splayer> splayer_table;
+typedef eosio::multi_index< "splayer"_n, splayer> splayer_table;

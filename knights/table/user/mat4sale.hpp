@@ -1,13 +1,11 @@
-// 34 bytes
-//@abi table mat4sale i64
-struct mat4sale {
+struct [[eosio::table]] mat4sale {
     uint64_t cid = 0;
     name player;
     asset price;
     uint16_t code = 0;
 
     mat4sale()
-        : price(0, S(4, EOS)) {
+        : price(0, eosio::symbol("EOS", 4)) {
     }
 
     uint64_t primary_key() const {
@@ -23,4 +21,4 @@ struct mat4sale {
     )
 };
 
-typedef eosio::multi_index< N(mat4sale), mat4sale> mat4sale_table;
+typedef eosio::multi_index< "mat4sale"_n, mat4sale> mat4sale_table;

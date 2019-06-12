@@ -2,8 +2,7 @@ enum gift_type {
     gt_magic_water = 0,
 };
 
-//@abi table gift i64
-struct gift {
+struct [[eosio::table]] gift {
     uint64_t key = 0;
     uint16_t no = 0;
     uint8_t type = 0;
@@ -27,4 +26,4 @@ struct gift {
     )
 };
 
-typedef eosio::multi_index< N(gift), gift> gift_table;
+typedef eosio::multi_index< "gift"_n, gift> gift_table;

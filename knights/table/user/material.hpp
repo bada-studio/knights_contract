@@ -5,15 +5,16 @@ struct matrow {
     uint32_t saleid = 0;
 };
 
-//@abi table material i64
-//@abi table smaterial i64
-struct material {
+// todo check
+// table material i64
+// table smaterial i64
+struct [[eosio::table]] material {
     name owner;
     uint32_t last_id;
     std::vector<matrow> rows;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     const matrow& get_material(int id) const {
@@ -31,7 +32,7 @@ struct material {
             }
         }
         
-        eosio_assert(0, "can not found material");
+        eosio::check(false, "can not found material");
         return rows[0]; // never happen
     }
 
@@ -43,5 +44,5 @@ struct material {
     )
 };
 
-typedef eosio::multi_index< N(material), material> material_table;
-typedef eosio::multi_index< N(smaterial), material> smaterial_table;
+typedef eosio::multi_index< "material"_n, material> material_table;
+typedef eosio::multi_index< "smaterial"_n, material> smaterial_table;

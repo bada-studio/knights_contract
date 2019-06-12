@@ -47,7 +47,7 @@ public:
                 stat.luck += value;
                 break;
             default:
-                eosio_assert(0, "invalid stat type");
+                eosio::check(false, "invalid stat type");
         }
     }
 
@@ -88,7 +88,7 @@ template<typename pet_table_name,
 class pet_control_base : public drop_control_base
                        , public pet_control_actions {
 protected:
-    account_name self;
+    name self;
     system_control &system_controller;
     player_control_name &player_controller;
     material_control_name &material_controller;
@@ -98,7 +98,7 @@ public:
     //-------------------------------------------------------------------------
     /// @brief
     /// Constructor
-    pet_control_base(account_name _self,
+    pet_control_base(name _self,
                 system_control &_system_controller,
                 player_control_name &_player_controller,
                 material_control_name &_material_controller)
@@ -111,8 +111,8 @@ public:
     // internal apis
     //-------------------------------------------------------------------------
     int get_pet_for(name from, int knt) {
-        pet_table_name pets(self, self);
-        auto iter = pets.find(from);
+        pet_table_name pets(self, self.value);
+        auto iter = pets.find(from.value);
         if (iter != pets.cend()) {
             auto &rows = iter->rows;
             for (int index = 0; index < rows.size(); index++) {
@@ -131,8 +131,8 @@ public:
         row.level = 1;
         row.count = 1;
 
-        pet_table_name pets(self, self);
-        auto iter = pets.find(from);
+        pet_table_name pets(self, self.value);
+        auto iter = pets.find(from.value);
         if (iter == pets.cend()) {
             pets.emplace(self, [&](auto& pet){
                 pet.owner = from;
@@ -167,9 +167,9 @@ public:
     /// @param knight
     /// Target to be calculated
     void apply_pet_stats(knight_stats &stat, name from, uint64_t knight) {
-        rpet_table pet_rule(self, self);
-        pet_table_name pet_table(self, self);
-        auto ipet = pet_table.find(from);
+        rpet_table pet_rule(self, self.value);
+        pet_table_name pet_table(self, self.value);
+        auto ipet = pet_table.find(from.value);
         if (ipet == pet_table.cend()) {
             return;
         }
@@ -215,7 +215,7 @@ public:
     /// To prevent bots
     void petgacha(name from, uint32_t season, uint16_t type, uint8_t count, uint32_t checksum, bool delay) {
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(player != players.cend(), "could not find player");
         auto pvsi = system_controller.get_playervs(from);
 
@@ -226,8 +226,8 @@ public:
             if (do_petgacha(player, type, count, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
-                    permission_level{ self, N(active) }, 
-                    self, N(petgacha3i), 
+                    permission_level{ self, "active"_n }, 
+                    self, "petgacha3i"_n, 
                     std::make_tuple(from, season, type, count, checksum)
                 );
                 out.delay_sec = 1;
@@ -254,8 +254,8 @@ public:
     int8_t petlvup(name from, uint16_t code) {
         require_auth(from);
 
-        pet_table_name pets(self, self);
-        auto iter = pets.find(from);
+        pet_table_name pets(self, self.value);
+        auto iter = pets.find(from.value);
         assert_true(iter != pets.cend(), "could not find pet");
         auto &rows = iter->rows;
 
@@ -270,12 +270,12 @@ public:
         auto &pet = rows[index];
         
         int8_t knight = pet.knight;
-        rpetlv_table petlv_rule(self, self);
+        rpetlv_table petlv_rule(self, self.value);
         auto lvrule = petlv_rule.find(pet.level + 1);
         assert_true(lvrule != petlv_rule.cend(), "could not find pet level rule");
         assert_true(pet.count >= lvrule->count, "not enough pet count");
 
-        rpet_table pet_rule(self, self);
+        rpet_table pet_rule(self, self.value);
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
 
@@ -319,8 +319,8 @@ public:
         require_auth(from);
         on_pre_pattach(from, code, knight);
 
-        pet_table_name pets(self, self);
-        auto iter = pets.find(from);
+        pet_table_name pets(self, self.value);
+        auto iter = pets.find(from.value);
         assert_true(iter != pets.cend(), "can not found pet");
         
         pets.modify(iter, self, [&](auto& pet){
@@ -463,7 +463,7 @@ public:
     //-------------------------------------------------------------------------
     /// @brief
     /// Constructor
-    pet_control(account_name _self,
+    pet_control(name _self,
                 system_control &_system_controller,
                 player_control &_player_controller,
                 material_control &_material_controller)
@@ -476,10 +476,10 @@ public:
     void pexpstart(name from, uint16_t code, int knight_max_level) {
         require_auth(from);
 
-        pet_table pets(self, self);
-        petexp_table petexps(self, self);
-        auto exp_iter = petexps.find(from);
-        auto pet_iter = pets.find(from);
+        pet_table pets(self, self.value);
+        petexp_table petexps(self, self.value);
+        auto exp_iter = petexps.find(from.value);
+        auto pet_iter = pets.find(from.value);
         assert_true(pet_iter != pets.cend(), "no pets");
         auto &pet_rows = pet_iter->rows;
 
@@ -496,7 +496,7 @@ public:
         }
 
         assert_true(found, "can not found pet");
-        rpet_table pet_rule(self, self);
+        rpet_table pet_rule(self, self.value);
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
         auto duration = get_pet_exp_duration(rule->grade);
@@ -552,8 +552,8 @@ public:
             if (do_pexpreturn(from, code, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
-                    permission_level{ self, N(active) }, 
-                    self, N(pexpreturn2i), 
+                    permission_level{ self, "active"_n }, 
+                    self, "pexpreturn2i"_n, 
                     std::make_tuple(from, code, checksum)
                 );
                 out.delay_sec = 1;
@@ -574,11 +574,11 @@ public:
         system_controller.require_action_count(1);
         auto gdr = system_controller.get_global_drop_factor();
 
-        petexp_table petexps(self, self);
-        auto exp_iter = petexps.find(from);
+        petexp_table petexps(self, self.value);
+        auto exp_iter = petexps.find(from.value);
         assert_true(exp_iter != petexps.cend(), "could not find pet expedition data");
 
-        rpet_table pet_rule(self, self);
+        rpet_table pet_rule(self, self.value);
         auto rule = pet_rule.find(code);
         assert_true(rule != pet_rule.cend(), "could not find pet rule");
         auto duration = get_pet_exp_duration(rule->grade);
@@ -608,8 +608,8 @@ public:
 
         assert_true(found, "can not found pet exp data");
 
-        pet_table pet_table(self, self);
-        auto ipet = pet_table.find(from);
+        pet_table pet_table(self, self.value);
+        auto ipet = pet_table.find(from.value);
         assert_true(ipet != pet_table.cend(), "can not found pet data");
         auto &pets = ipet->rows;
 
@@ -625,12 +625,12 @@ public:
         }
 
         assert_true(found, "can not found pet data");
-        rpetexp_table exp_rules(self, self);
+        rpetexp_table exp_rules(self, self.value);
         auto exp_rule = exp_rules.find(level);
         assert_true(exp_rule != exp_rules.cend(), "could not find pet rule");
 
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(player != players.cend(), "could not find player");
 
         // check inventory size
@@ -681,8 +681,8 @@ public:
     }
 
     bool is_pet_free(name from, int16_t code) {
-        petexp_table petexps(self, self);
-        auto exp_iter = petexps.find(from);
+        petexp_table petexps(self, self.value);
+        auto exp_iter = petexps.find(from.value);
         if(exp_iter == petexps.cend()) {
             return true;
         }

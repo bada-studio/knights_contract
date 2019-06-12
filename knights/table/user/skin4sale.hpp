@@ -6,8 +6,7 @@ struct skin4salerow {
     asset price;
 };
 
-//@abi table skin4sale i64
-struct skin4sale {
+struct [[eosio::table]] skin4sale {
     uint64_t code = 0;
     uint64_t last_mid = 0;
     std::vector<skin4salerow> rows;
@@ -45,4 +44,4 @@ struct skin4sale {
     )
 };
 
-typedef eosio::multi_index< N(skin4sale), skin4sale > skin4sale_table;
+typedef eosio::multi_index< "skin4sale"_n, skin4sale > skin4sale_table;

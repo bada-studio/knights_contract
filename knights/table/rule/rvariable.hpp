@@ -74,8 +74,7 @@ enum variable_type {
     vt_required_floor_for_ancient,
 };
 
-//@abi table rvariable i64
-struct rvariable {
+struct [[eosio::table]] rvariable {
     uint64_t key;
     uint32_t value;
 
@@ -93,4 +92,4 @@ struct rvariable {
     )
 };
 
-typedef eosio::multi_index< N(rvariable), rvariable> rvariable_table;
+typedef eosio::multi_index< "rvariable"_n, rvariable> rvariable_table;

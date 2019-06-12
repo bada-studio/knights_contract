@@ -10,8 +10,7 @@ enum rv_type {
     rv_dmw, 
 };
 
-//@abi table revenuedt i64
-struct revenuedt {
+struct [[eosio::table]] revenuedt {
     uint64_t id = 0;
     asset knight;
     asset material_tax;
@@ -23,14 +22,14 @@ struct revenuedt {
     asset system;
 
     revenuedt()
-        : knight(0, S(4, EOS))
-        , material_tax(0, S(4, EOS))
-        , item_tax(0, S(4, EOS))
-        , mp(0, S(4, EOS))
-        , mat_iventory_up(0, S(4, EOS))
-        , item_iventory_up(0, S(4, EOS))
-        , coo_mat(0, S(4, EOS))
-        , system(0, S(4, EOS)) {
+        : knight(0, eosio::symbol("EOS", 4))
+        , material_tax(0, eosio::symbol("EOS", 4))
+        , item_tax(0, eosio::symbol("EOS", 4))
+        , mp(0, eosio::symbol("EOS", 4))
+        , mat_iventory_up(0, eosio::symbol("EOS", 4))
+        , item_iventory_up(0, eosio::symbol("EOS", 4))
+        , coo_mat(0, eosio::symbol("EOS", 4))
+        , system(0, eosio::symbol("EOS", 4)) {
     }
 
     uint64_t primary_key() const {
@@ -51,7 +50,7 @@ struct revenuedt {
     )
 };
 
-typedef eosio::multi_index< N(revenuedt), revenuedt> revenuedt_table;
+typedef eosio::multi_index<"tablename"_n, revenuedt> revenuedt_table;
 
 //@abi table revenuedt2 i64
 struct revenuedt2 {
@@ -71,19 +70,19 @@ struct revenuedt2 {
     asset v4;
 
     revenuedt2()
-        : knight(0, S(4, EOS))
-        , material_tax(0, S(4, EOS))
-        , item_tax(0, S(4, EOS))
-        , mp(0, S(4, EOS))
-        , mat_iventory_up(0, S(4, EOS))
-        , item_iventory_up(0, S(4, EOS))
-        , coo_mat(0, S(4, EOS))
-        , system(0, S(4, EOS)) 
-        , dmw(0, S(4, EOS)) 
-        , v1(0, S(4, EOS)) 
-        , v2(0, S(4, EOS)) 
-        , v3(0, S(4, EOS)) 
-        , v4(0, S(4, EOS)) {
+        : knight(0, eosio::symbol("EOS", 4))
+        , material_tax(0, eosio::symbol("EOS", 4))
+        , item_tax(0, eosio::symbol("EOS", 4))
+        , mp(0, eosio::symbol("EOS", 4))
+        , mat_iventory_up(0, eosio::symbol("EOS", 4))
+        , item_iventory_up(0, eosio::symbol("EOS", 4))
+        , coo_mat(0, eosio::symbol("EOS", 4))
+        , system(0, eosio::symbol("EOS", 4)) 
+        , dmw(0, eosio::symbol("EOS", 4)) 
+        , v1(0, eosio::symbol("EOS", 4)) 
+        , v2(0, eosio::symbol("EOS", 4)) 
+        , v3(0, eosio::symbol("EOS", 4)) 
+        , v4(0, eosio::symbol("EOS", 4)) {
     }
 
     uint64_t primary_key() const {
@@ -109,4 +108,4 @@ struct revenuedt2 {
     )
 };
 
-typedef eosio::multi_index< N(revenuedt2), revenuedt2> revenuedt2_table;
+typedef eosio::multi_index< "revenuedt2"_n, revenuedt2> revenuedt2_table;

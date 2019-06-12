@@ -15,7 +15,7 @@ class sitem_control : public item_control_base<
 public:
     // constructor
     //-------------------------------------------------------------------------
-    sitem_control(account_name _self,
+    sitem_control(name _self,
                  system_control &_system_controller,
                  splayer_control &_player_controller,
                  smaterial_control &_material_controller)
@@ -36,7 +36,7 @@ protected:
         int mat_price_scaler = kv_season_mat_factor & 0xFF;
         assert_true(total_mat_count >= help_from, "can not craft");
         
-        rmaterial_table mat_rule(self, self);
+        rmaterial_table mat_rule(self, self.value);
         auto rule = mat_rule.find(code);
         assert_true(rule != mat_rule.cend(), "can not found material rule");
         

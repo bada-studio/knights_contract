@@ -6,14 +6,15 @@ struct petrow {
     uint8_t knight = 0;
 };
 
-//@abi table pet i64
-//@abi table spet i64
-struct pet {
+// todo check
+// table pet i64
+// table spet i64
+struct [[eosio::table]] pet {
     name owner;
     std::vector<petrow> rows;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -23,5 +24,5 @@ struct pet {
     )
 };
 
-typedef eosio::multi_index< N(pet), pet > pet_table;
-typedef eosio::multi_index< N(spet), pet > spet_table;
+typedef eosio::multi_index< "pet"_n, pet > pet_table;
+typedef eosio::multi_index< "spet"_n, pet > spet_table;

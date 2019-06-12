@@ -2,7 +2,7 @@
 
 class dungeon_control : public drop_control_base {
 private:
-    account_name self;
+    name self;
     material_control &material_controller;
     system_control &system_controller;
     player_control &player_controller;
@@ -12,7 +12,7 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    dungeon_control(account_name _self,
+    dungeon_control(name _self,
                     system_control &_system_controller,
                     player_control &_player_controller,
                     material_control &_material_controller,
@@ -33,7 +33,7 @@ public:
         require_auth(from);
 
         // get rule
-        rdgticket_table rule_table(self, self);
+        rdgticket_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
 
@@ -42,8 +42,8 @@ public:
         int cnt3 = rule->cnt3;
 
         // check recipe
-        material_table materials(self, self);
-        auto imat = materials.find(from);
+        material_table materials(self, self.value);
+        auto imat = materials.find(from.value);
         assert_true(imat != materials.cend(), "no materials");
         auto &mats = imat->rows;
 
@@ -68,8 +68,8 @@ public:
         material_controller.remove_mats(from, mat_ids);
 
         // add ticket
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
+        dungeons_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter == table.cend()) {
             table.emplace(self, [&](auto& target) {
                 dgticket ticket;
@@ -100,7 +100,7 @@ public:
 
         // get player
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
 
@@ -109,8 +109,8 @@ public:
         auto max_free_count = kv_dungeon_free_ticket & 0xFF;
         
         // add ticket
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
+        dungeons_table table(self, self.value);
+        auto iter = table.find(from.value);
         if (iter == table.cend()) {
             table.emplace(self, [&](auto& target) {
                 dgticket ticket;
@@ -148,19 +148,19 @@ public:
     void dgenter(name from, uint16_t code) {
         require_auth(from);
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
 
         // required floor check
-        rdungeon_table rule_table(self, self);
+        rdungeon_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
         assert_true(rule->required_floor <= player->maxfloor, "need more maxfloor");
 
         // get dungeon table
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
+        dungeons_table table(self, self.value);
+        auto iter = table.find(from.value);
         assert_true(table.cend() != iter, "to dungeon data");
 
         // check ticket
@@ -230,7 +230,7 @@ public:
 
             // set seed
             auto key = system_controller.get_checksum_key(from);
-            data.seed = (uint32_t)((from + time_now) ^ key);
+            data.seed = (uint32_t)((from.value + time_now) ^ key);
             data.seed ^= system_controller.get_key(from);
 
             // add dungeon
@@ -241,13 +241,13 @@ public:
     void dgleave(name from, uint16_t code) {
         require_auth(from);
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
 
         // get dungeon table
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
+        dungeons_table table(self, self.value);
+        auto iter = table.find(from.value);
         assert_true(table.cend() != iter, "to dungeon data");
 
         int rpos = iter->find_record(code);
@@ -256,7 +256,7 @@ public:
         assert_true(pos >= 0, "there is no dungeon");
 
         // get rule
-        rdungeon_table rule_table(self, self);
+        rdungeon_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule != rule_table.cend(), "there is no dungeon rule");
 
@@ -286,8 +286,8 @@ public:
             if (do_dgclear(from, code, orders, delay, pvsi)) {
                 eosio::transaction out{};
                 out.actions.emplace_back(
-                    permission_level{ self, N(active) }, 
-                    self, N(dgcleari), 
+                    permission_level{ self, "active"_n }, 
+                    self, "dgcleari"_n, 
                     std::make_tuple(from, code, orders, checksum)
                 );
                 out.delay_sec = 1;
@@ -309,13 +309,13 @@ public:
 
         // get player
         auto &players = player_controller.get_players();
-        auto player = players.find(from);
+        auto player = players.find(from.value);
         assert_true(players.cend() != player, "could not find player");
         auto time_now = time_util::now_shifted();
 
         // check inventory size;
-        material_table materials(self, self);
-        auto imat = materials.find(from);
+        material_table materials(self, self.value);
+        auto imat = materials.find(from.value);
         assert_true(imat != materials.cend(), "no materials");
         auto &mats = imat->rows;
         
@@ -324,8 +324,8 @@ public:
         assert_true(exp_mat_count <= max_mat_count, "insufficient inventory");
 
         // get dungeon table
-        dungeons_table table(self, self);
-        auto iter = table.find(from);
+        dungeons_table table(self, self.value);
+        auto iter = table.find(from.value);
         assert_true(table.cend() != iter, "to dungeon data");
         auto pos = iter->find_data(code);
         assert_true(pos >= 0, "can not find dungeon");
@@ -334,7 +334,7 @@ public:
         validate_orders(from, iter->rows[pos], orders);
         
         // get rule
-        rdungeon_table rule_table(self, self);
+        rdungeon_table rule_table(self, self.value);
         auto rule = rule_table.find(code);
         assert_true(rule_table.cend() != rule, "could not dungeon rule");
 
@@ -396,12 +396,12 @@ private:
         assert_true(origin_orders.size() >= 5, "validation failed 1");
 
         // dungeon rule
-        rdungeon_table dgrule_table(self, self);
+        rdungeon_table dgrule_table(self, self.value);
         auto dgrule = dgrule_table.find(code);
         assert_true(dgrule_table.cend() != dgrule, "could not find dungeon rule");
 
         // mob rule
-        rmobs_table mobrule_table(self, self);
+        rmobs_table mobrule_table(self, self.value);
         auto mobrule = mobrule_table.find(code);
         assert_true(mobrule_table.cend() != mobrule, "could not find dungeon rule");
 

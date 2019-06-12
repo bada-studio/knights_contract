@@ -15,8 +15,7 @@ struct rmob {
     uint64_t v2 = 0;
 };
 
-//@abi table rmobs i64
-struct rmobs {
+struct [[eosio::table]] rmobs {
     uint64_t code = 0;
     std::vector<rmob> mob;
     std::vector<rmob> mboss;
@@ -38,4 +37,4 @@ struct rmobs {
     )
 };
 
-typedef eosio::multi_index< N(rmobs), rmobs> rmobs_table;
+typedef eosio::multi_index< "rmobs"_n, rmobs> rmobs_table;

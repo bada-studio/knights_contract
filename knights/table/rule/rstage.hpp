@@ -1,5 +1,4 @@
-//@abi table rstage i64
-struct rstage {
+struct [[eosio::table]] rstage {
     uint64_t id = 0;
     uint8_t lvfrom = 0;
     uint8_t drop_rate = 0;
@@ -29,4 +28,4 @@ struct rstage {
     )
 };
 
-typedef eosio::multi_index< N(rstage), rstage> rstage_table;
+typedef eosio::multi_index< "rstage"_n, rstage> rstage_table;

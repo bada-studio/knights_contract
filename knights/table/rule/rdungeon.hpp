@@ -1,7 +1,6 @@
 #pragma once
 
-//@abi table rdungeon i64
-struct rdungeon {
+struct [[eosio::table]] rdungeon {
     uint64_t code = 0;
     uint8_t wave = 0;
     uint8_t tkcode = 0;
@@ -55,4 +54,4 @@ struct rdungeon {
     )
 };
 
-typedef eosio::multi_index< N(rdungeon), rdungeon> rdungeon_table;
+typedef eosio::multi_index< "rdungeon"_n, rdungeon> rdungeon_table;

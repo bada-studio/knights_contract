@@ -39,8 +39,7 @@ enum material_type {
     mt_mineral, // 5
 };
 
-//@abi table rmaterial i64
-struct rmaterial {
+struct [[eosio::table]] rmaterial {
     uint64_t code = 0;
     uint8_t type = 0;
     uint8_t grade = 0;
@@ -64,4 +63,4 @@ struct rmaterial {
     )
 };
 
-typedef eosio::multi_index<N(rmaterial), rmaterial> rmaterial_table;
+typedef eosio::multi_index<"rmaterial"_n, rmaterial> rmaterial_table;

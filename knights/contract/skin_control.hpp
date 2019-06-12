@@ -2,7 +2,7 @@
 
 class skin_control : public control_base {
 private:
-    account_name self;
+    name self;
     system_control &system_controller;
     saleslog_control &saleslog_controller;
 
@@ -11,7 +11,7 @@ public:
     //-------------------------------------------------------------------------
     /// @brief
     /// Constructor
-    skin_control(account_name _self,
+    skin_control(name _self,
                 system_control &_system_controller,
                 saleslog_control &_saleslog_controller)
             : self(_self)
@@ -30,7 +30,7 @@ public:
         // get info
         uint32_t base_cid = (uint32_t)code * 10000;
         uint32_t cid = base_cid + 1;
-        skininfo_table itable(self, self);
+        skininfo_table itable(self, self.value);
         auto iiter = itable.find(code);
         if (iiter != itable.cend()) {
             cid = base_cid + iiter->count + 1;
@@ -45,8 +45,8 @@ public:
         }
 
         // issue skin
-        skin_table table(self, self);
-        auto iter = table.find(self);
+        skin_table table(self, self.value);
+        auto iter = table.find(self.value);
         if (iter != table.cend()) {
             table.modify(iter, self, [&](auto &target) {
                 for (int index = 0; index < count; index++) {
@@ -64,13 +64,13 @@ public:
                     row.cid = cid + index;
                     row.code = code;
                     row.state = ss_selling;
-                    target.owner = to_name(self);
+                    target.owner = self;
                     target.rows.push_back(row);
                 }
             });
         }
 
-        skin4sale_table mtable(self, self);
+        skin4sale_table mtable(self, self.value);
         auto miter = mtable.find(code);
         if (miter != mtable.cend()) {
             mtable.modify(miter, self, [&](auto &target) {
@@ -79,7 +79,7 @@ public:
                     row.mid = ++target.last_mid;
                     row.cid = cid + index;
                     row.code = code;
-                    row.seller = to_name(self);
+                    row.seller = self;
                     row.price = price;
                     target.rows.push_back(row);
                 }
@@ -93,7 +93,7 @@ public:
                     row.mid = ++target.last_mid;
                     row.cid = cid + index;
                     row.code = code;
-                    row.seller = to_name(self);
+                    row.seller = self;
                     row.price = price;
                     target.rows.push_back(row);
                 }
@@ -102,8 +102,8 @@ public:
     }
 
     void sksell(name from, uint32_t cid, asset price) {
-        skin_table table(self, self);
-        auto iter = table.find(from);
+        skin_table table(self, self.value);
+        auto iter = table.find(from.value);
         auto pos = iter->get_skin(cid);
         assert_true(pos >= 0, "can not found skin");
         validate_price(price, ig_ancient);
@@ -116,7 +116,7 @@ public:
         });
 
         uint16_t code = skin.code;
-        skin4sale_table mtable(self, self);
+        skin4sale_table mtable(self, self.value);
         auto miter = mtable.find(code);
         if (miter != mtable.cend()) {
             auto mpos = miter->get_skin_by_cid(cid);
@@ -146,8 +146,8 @@ public:
     }
 
     void skcsell(name from, uint32_t cid) {
-        skin_table table(self, self);
-        auto iter = table.find(from);
+        skin_table table(self, self.value);
+        auto iter = table.find(from.value);
         auto pos = iter->get_skin(cid);
         assert_true(pos >= 0, "can not found skin");
 
@@ -160,7 +160,7 @@ public:
         });
         
         // remove form market table
-        skin4sale_table mtable(self, self);
+        skin4sale_table mtable(self, self.value);
         auto miter = mtable.find(skin.code);
         assert_true(miter != mtable.cend(), "can not found skin");
 
@@ -176,7 +176,7 @@ public:
         require_auth(from);
 
         // find skin in market 
-        skin4sale_table mtable(self, self);
+        skin4sale_table mtable(self, self.value);
         auto miter = mtable.find(ad.type);
         assert_true(miter != mtable.cend(), "can not found skin");
 
@@ -188,8 +188,8 @@ public:
         assert_true(ad.quantity == mskin.price, "price not matching");
 
         // add to buyer
-        skin_table table(self, self);
-        auto iter2 = table.find(from);
+        skin_table table(self, self.value);
+        auto iter2 = table.find(from.value);
         if (iter2 != table.cend()) {
             int pos2 = iter2->get_skin_by_code(mskin.code);
             assert_true(pos2 < 0, "already have same skin");
@@ -213,7 +213,7 @@ public:
         }
 
         // move skin
-        auto iter = table.find(mskin.seller);
+        auto iter = table.find(mskin.seller.value);
         assert_true(iter != table.cend(), "can not found skin");
 
         auto pos = iter->get_skin(mskin.cid);
@@ -233,7 +233,7 @@ public:
             tax_rate = 0;
         }
 
-        asset tax(0, S(4, EOS));
+        asset tax(0, eosio::symbol("EOS", 4));
         asset price = ad.quantity;
         if (tax_rate > 0) {
             tax = price * tax_rate / 100;
@@ -249,8 +249,8 @@ public:
                         std::to_string(mskin.code) + ":" + 
                         std::to_string(mskin.cid) + ":" + 
                         from.to_string();
-            action(permission_level{ self, N(active) },
-                N(eosio.token), N(transfer),
+            action(permission_level{ self, "active"_n },
+                "eosio.token"_n, "transfer"_n,
                 std::make_tuple(self, mskin.seller, price, message)
             ).send();
         }
@@ -296,8 +296,8 @@ public:
     }
 
     void skwear(name from, uint32_t knt, uint32_t cid) {
-        skin_table table(self, self);
-        auto iter = table.find(from);
+        skin_table table(self, self.value);
+        auto iter = table.find(from.value);
         assert_true(iter != table.cend(), "can not found skin");
 
         int pos = -1;

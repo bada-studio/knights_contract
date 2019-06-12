@@ -45,7 +45,7 @@ uint32_t player_control::shuffle_bit(uint32_t v, uint32_t n) {
 }
 
 uint32_t player_control::seed_identity(name from) {
-    return (tapos_block_prefix() ^ (from & 0xffffffff)) + (from >> 32);
+    return (eosio::tapos_block_prefix() ^ (from & 0xffffffff)) + (from >> 32);
 }
 
 uint32_t player_control::get_key(name from) {
@@ -132,55 +132,55 @@ uint32_t player_control::calculate_trx_hash2() {
 }
 
 void player_control::check_blacklist(name from) {
-    if (from == N(valuenetwork) || 
-        from == N(ramcollector) || 
-        from == N(mrnumberzero) || 
-        from == N(siuhangmeiyu) || 
-        from == N(amazinggamer) || 
-        from == N(mantikmantik) || 
-        from == N(meiyusiuhang) ||
-        from == N(gameplayer11) ||
-        from == N(gameplayer12) ||
-        from == N(gameplayer13) ||
-        from == N(gameplayer14) ||
-        from == N(gameplayer15) ||
-        from == N(eos4chatting) ||
-        from == N(gi4temzqhege) ||
-        from == N(messcomposer) ||
-        from == N(pvtmessenger) ||
-        from == N(eospromoter1) ||
+    if (from == "valuenetwork"_n || 
+        from == "ramcollector"_n || 
+        from == "mrnumberzero"_n || 
+        from == "siuhangmeiyu"_n || 
+        from == "amazinggamer"_n || 
+        from == "mantikmantik"_n || 
+        from == "meiyusiuhang"_n ||
+        from == "gameplayer11"_n ||
+        from == "gameplayer12"_n ||
+        from == "gameplayer13"_n ||
+        from == "gameplayer14"_n ||
+        from == "gameplayer15"_n ||
+        from == "eos4chatting"_n ||
+        from == "gi4temzqhege"_n ||
+        from == "messcomposer"_n ||
+        from == "pvtmessenger"_n ||
+        from == "eospromoter1"_n ||
 
-        from == N(burjuiburjui) ||
-        from == N(cashnotfound) ||
-        from == N(pimpmyknight) ||
-        from == N(singularityx) ||
-        from == N(chessxplayer) ||
-        from == N(margincallxx) ||
-        from == N(eosexcalibur) ||
-        from == N(kingofrandom) ||
-        from == N(dadarkknight) ||
-        from == N(triplesevenx) ||
-        from == N(xluckygamerx) ||
-        from == N(gamingmaster) ||
-        from == N(gaminglegend) ||
-        from == N(eostokenizer) ||
+        from == "burjuiburjui"_n ||
+        from == "cashnotfound"_n ||
+        from == "pimpmyknight"_n ||
+        from == "singularityx"_n ||
+        from == "chessxplayer"_n ||
+        from == "margincallxx"_n ||
+        from == "eosexcalibur"_n ||
+        from == "kingofrandom"_n ||
+        from == "dadarkknight"_n ||
+        from == "triplesevenx"_n ||
+        from == "xluckygamerx"_n ||
+        from == "gamingmaster"_n ||
+        from == "gaminglegend"_n ||
+        from == "eostokenizer"_n ||
 
-        from == N(aidanjackso2) ||
+        from == "aidanjackso2"_n ||
 
-        from == N(v.io) ||
+        from == "v.io"_n ||
 
-        from == N(xtigerlegend) ||
-        from == N(xtigershadow) ||
-        from == N(xtigergalaxy) ||
-        from == N(xtigermoment) ||
-        from == N(xtigerrrrrrr) ||
-        from == N(xtiger.game) ||
-        from == N(tiger.x) ||
-        from == N(oi.io) ||
-        from == N(greedysogood) ||
+        from == "xtigerlegend"_n ||
+        from == "xtigershadow"_n ||
+        from == "xtigergalaxy"_n ||
+        from == "xtigermoment"_n ||
+        from == "xtigerrrrrrr"_n ||
+        from == "xtiger.game"_n ||
+        from == "tiger.x"_n ||
+        from == "oi.io"_n ||
+        from == "greedysogood"_n ||
         
         // buy bot
-        from == N(g5rzmqruqygd) 
+        from == "g5rzmqruqygd"_n 
     ) {
         assert_true(false, "blacklist rejected");
     }

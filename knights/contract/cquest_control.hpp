@@ -2,7 +2,7 @@
 
 class cquest_control : public control_base {
 private:
-    account_name self;
+    name self;
     item_control &item_controller;
     admin_control &admin_controller;
     system_control &system_controller;
@@ -10,10 +10,10 @@ private:
 public:
     // constructor
     //-------------------------------------------------------------------------
-    cquest_control(account_name _self,
-                    item_control &_item_controller,
-                    system_control &_system_controller,
-                    admin_control &_admin_controller)
+    cquest_control(name _self,
+                   item_control &_item_controller,
+                   system_control &_system_controller,
+                   admin_control &_admin_controller)
         : self(_self)
         , item_controller(_item_controller)
         , system_controller(_system_controller)
@@ -25,7 +25,7 @@ public:
     void addcquest(uint32_t id, uint16_t sponsor, uint32_t start, uint32_t duration) {
         system_controller.require_coo_auth();
 
-        cquest_table table(self, self);
+        cquest_table table(self, self.value);
         auto iter = table.find(id);
 
         // new one
@@ -50,15 +50,15 @@ public:
             });
 
             // add version to rule
-            rversion_table rtable(self, self);
-            auto ver = rtable.find(N(cquest));
+            rversion_table rtable(self, self.value);
+            auto ver = rtable.find("cquest"_n.value);
             if (ver != rtable.cend()) {
                 rtable.modify(ver, self, [&](auto &target) {
                     target.version = id;
                 });
             } else {
                 rtable.emplace(self, [&](auto &target) {
-                    target.rule = to_name(N(cquest));
+                    target.rule = "cquest"_n;
                     target.version = id;
                 });
             }
@@ -76,7 +76,7 @@ public:
     void removecquest(uint32_t id, bool force) {
         system_controller.require_coo_auth();
 
-        cquest_table table(self, self);
+        cquest_table table(self, self.value);
         auto iter = table.find(id);
         assert_true(iter != table.cend(), "there is no event");
 
@@ -93,7 +93,7 @@ public:
     void updatesubq(uint32_t id, const std::vector<cquestdetail>& details) {
         system_controller.require_coo_auth();
 
-        cquest_table table(self, self);
+        cquest_table table(self, self.value);
         auto iter = table.find(id);
         assert_true(iter != table.cend(), "there is no event");
         
@@ -119,7 +119,7 @@ public:
     void submitcquest(name from, uint32_t cquest_id, uint8_t no, uint32_t item_id) {
         require_auth(from);
 
-        cquest_table table(self, self);
+        cquest_table table(self, self.value);
         assert_true(table.cbegin() != table.cend(), "no cquest exist");
         auto cquest = --table.cend();
 
@@ -183,7 +183,7 @@ public:
     void divcquest(uint32_t id, uint8_t no, int16_t from, int16_t count) {
         system_controller.require_coo_auth();
 
-        cquest_table table(self, self);
+        cquest_table table(self, self.value);
         auto cquest = table.find(id);
         assert_true(cquest != table.cend(), "no cquest exist");
 
@@ -223,16 +223,16 @@ public:
 
             // reward transfer
             if (reward.amount > 0) {
-                action(permission_level{ self, N(active) },
-                    get_code_name(reward.symbol), N(transfer),
+                eosio::action(permission_level{ self, "active"_n },
+                    get_code_name(reward.symbol), "transfer"_n,
                     std::make_tuple(self, record.owner, reward, message)
                 ).send();
             }
 
             // reward2 transfer
             if (reward2.amount > 0) {
-                action(permission_level{ self, N(active) },
-                    get_code_name(reward2.symbol), N(transfer),
+                eosio::action(permission_level{ self, "active"_n },
+                    get_code_name(reward2.symbol), "transfer"_n,
                     std::make_tuple(self, record.owner, reward2, message)
                 ).send();
             }
@@ -243,11 +243,11 @@ public:
         }
 
         // write expenses log
-        if (quantity1.symbol == S(4, EOS) && quantity1.amount > 0) {
-            admin_controller.add_expenses(quantity1, to_name(self), "craft contest dividend to players");
+        if (quantity1.symbol == eosio::symbol("EOS", 4) && quantity1.amount > 0) {
+            admin_controller.add_expenses(quantity1, self, "craft contest dividend to players");
         }
-        if (quantity2.symbol == S(4, EOS) && quantity2.amount > 0) {
-            admin_controller.add_expenses(quantity2, to_name(self), "craft contest dividend to players");
+        if (quantity2.symbol == eosio::symbol("EOS", 4) && quantity2.amount > 0) {
+            admin_controller.add_expenses(quantity2, self, "craft contest dividend to players");
         }
 
         // set paid flag

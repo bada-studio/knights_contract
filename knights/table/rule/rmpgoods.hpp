@@ -1,5 +1,4 @@
-//@abi table rmpgoods i64
-struct rmpgoods {
+struct [[eosio::table]] rmpgoods {
     uint64_t pid;
     uint32_t powder;
     asset price;
@@ -19,4 +18,4 @@ struct rmpgoods {
     )
 };
 
-typedef eosio::multi_index< N(rmpgoods), rmpgoods> rmpgoods_table;
+typedef eosio::multi_index< "rmpgoods"_n, rmpgoods> rmpgoods_table;

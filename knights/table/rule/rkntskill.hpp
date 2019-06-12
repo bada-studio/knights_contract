@@ -26,8 +26,7 @@ struct rkntskill {
     uint16_t stat3lvbonus;
 };
 
-//@abi table rkntskills i64
-struct rkntskills {
+struct [[eosio::table]] rkntskills {
     uint64_t no = 0;
     std::vector<rkntskill> skills;
 
@@ -45,7 +44,7 @@ struct rkntskills {
             }
         }
 
-        eosio_assert(0, "can not found skill rule");
+        eosio::check(false, "can not found skill rule");
         return skills[0];
     }
 
@@ -56,4 +55,4 @@ struct rkntskills {
     )
 };
 
-typedef eosio::multi_index< N(rkntskills), rkntskills> rkntskills_table;
+typedef eosio::multi_index< "rkntskills"_n, rkntskills> rkntskills_table;

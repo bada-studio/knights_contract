@@ -16,7 +16,7 @@ public:
     //-------------------------------------------------------------------------
     /// @brief
     /// Constructor
-    spet_control(account_name _self,
+    spet_control(name _self,
                  system_control &_system_controller,
                  splayer_control &_player_controller,
                  smaterial_control &_material_controller)

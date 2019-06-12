@@ -6,8 +6,7 @@ enum knight_type {
     kt_count
 };
 
-//@abi table rknt i64
-struct rknt {
+struct [[eosio::table]] rknt {
     uint64_t type = 0;
     uint16_t attack = 0;
     uint16_t hp = 0;
@@ -37,4 +36,4 @@ struct rknt {
     )
 };
 
-typedef eosio::multi_index< N(rknt), rknt> rknt_table;
+typedef eosio::multi_index< "rknt"_n, rknt> rknt_table;

@@ -6,15 +6,14 @@ struct petexprow {
     bool isback = false;
 };
 
-//@abi table petexp i64
-struct petexp {
+struct [[eosio::table]] petexp {
     name owner;
     uint32_t v1 = 0;
     uint32_t v2 = 0;
     std::vector<petexprow> rows;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -26,4 +25,4 @@ struct petexp {
     )
 };
 
-typedef eosio::multi_index< N(petexp), petexp > petexp_table;
+typedef eosio::multi_index< "petexp"_n, petexp > petexp_table;

@@ -1,5 +1,4 @@
-//@abi table novaevt i64
-struct novaevt {
+struct [[eosio::table]] novaevt {
     uint64_t id = 0;
     uint32_t total = 0;
     uint32_t remain = 0;
@@ -21,4 +20,4 @@ struct novaevt {
     )
 };
 
-typedef eosio::multi_index< N(novaevt), novaevt> novaevt_table;
+typedef eosio::multi_index< "novaevt"_n, novaevt> novaevt_table;

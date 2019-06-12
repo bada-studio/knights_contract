@@ -1,5 +1,4 @@
-//@abi table itemevt i64
-struct itemevt {
+struct [[eosio::table]] itemevt {
     uint32_t id = 0;
     uint32_t key = 0;
     uint32_t code = 0;
@@ -31,4 +30,4 @@ struct itemevt {
     )
 };
 
-typedef eosio::multi_index< N(itemevt), itemevt> itemevt_table;
+typedef eosio::multi_index< "itemevt"_n, itemevt> itemevt_table;

@@ -1,5 +1,4 @@
-//@abi table skininfo i64
-struct skininfo {
+struct [[eosio::table]] skininfo {
     uint64_t code = 0;
     uint16_t count = 0;
     uint64_t v1 = 0;
@@ -18,4 +17,4 @@ struct skininfo {
     )
 };
 
-typedef eosio::multi_index< N(skininfo), skininfo > skininfo_table;
+typedef eosio::multi_index< "skininfo"_n, skininfo > skininfo_table;

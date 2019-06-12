@@ -9,14 +9,15 @@ struct knightrow {
     uint16_t luck;
 };
 
-//@abi table knight i64
-//@abi table sknight i64
-struct knight {
+// todo is it working ???????????
+// table knight i64
+// table sknight i64
+struct [[eosio::table]] knight {
     name owner;
     std::vector<knightrow> rows;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -26,5 +27,5 @@ struct knight {
     )
 };
 
-typedef eosio::multi_index<N(knight), knight> knight_table;
-typedef eosio::multi_index<N(sknight), knight> sknight_table;
+typedef eosio::multi_index<"knight"_n, knight> knight_table;
+typedef eosio::multi_index<"sknight"_n, knight> sknight_table;

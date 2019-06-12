@@ -11,13 +11,12 @@ struct skinrow {
     uint8_t state = 0; // 0: normal, 1: wear, 2: selling
 };
 
-//@abi table skin i64
-struct skin {
+struct [[eosio::table]] skin {
     name owner;
     std::vector<skinrow> rows;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     int get_skin(uint32_t cid) const {
@@ -47,4 +46,4 @@ struct skin {
     )
 };
 
-typedef eosio::multi_index< N(skin), skin > skin_table;
+typedef eosio::multi_index< "skin"_n, skin > skin_table;

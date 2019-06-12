@@ -16,7 +16,7 @@ class sknight_control : public knight_control_base<
 public:
     // constructor
     //-------------------------------------------------------------------------
-    sknight_control(account_name _self,
+    sknight_control(name _self,
                     system_control &_system_controller,
                     splayer_control &_player_controller,
                     smaterial_control &_material_controller,
@@ -34,7 +34,7 @@ public:
     
     // speed boost
     virtual int filter_enemy_hp(int hp) {
-        season_table table(self, self);
+        season_table table(self, self.value);
         auto season = --table.cend();
         return hp / season->info.speed;
     }
@@ -59,7 +59,7 @@ public:
             return;
         }
 
-        season_table table(self, self);
+        season_table table(self, self.value);
         if (table.cbegin() == table.cend()) {
             return;
         }

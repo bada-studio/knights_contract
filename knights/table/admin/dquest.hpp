@@ -16,8 +16,7 @@ struct dsubquest {
     std::vector<dquestrecord> records;
 };
 
-//@abi table dquest i64
-struct dquest {
+struct [[eosio::table]] dquest {
     uint64_t id = 0; // quest id
     uint16_t sponsor = 0; // sponsor code
     uint32_t start = 0; // start from
@@ -46,4 +45,4 @@ struct dquest {
     )
 };
 
-typedef eosio::multi_index<N(dquest), dquest> dquest_table;
+typedef eosio::multi_index<"dquest"_n, dquest> dquest_table;

@@ -10,13 +10,12 @@ struct medalrow {
     uint16_t count; 
 };
 
-//@abi table medal i64
-struct medal {
+struct [[eosio::table]] medal {
     name owner;
     std::vector<medalrow> medals;
 
     uint64_t primary_key() const {
-        return owner;
+        return owner.value;
     }
 
     EOSLIB_SERIALIZE(
@@ -26,4 +25,4 @@ struct medal {
     )
 };
 
-typedef eosio::multi_index<N(medal), medal> medal_table;
+typedef eosio::multi_index<"medal"_n, medal> medal_table;

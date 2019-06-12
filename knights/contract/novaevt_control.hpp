@@ -2,14 +2,14 @@
 
 class novaevt_control : public control_base {
 private:
-    account_name self;
+    name self;
     system_control &system_controller;
     player_control &player_controller;
 
 public:
     /// @brief
     /// Constructor
-    novaevt_control(account_name _self,
+    novaevt_control(name _self,
                   system_control &_system_controller,
                   player_control &_player_controller)
             : self(_self)
@@ -20,7 +20,7 @@ public:
     // actions
     //-------------------------------------------------------------------------
     void getnova(name from, const std::string &memo) {
-        require_auth(N(novapromote1));
+        require_auth("novapromote1"_n);
 
         auto player = player_controller.get_player(from);
         if (system_controller.is_empty_player(player)) {
@@ -28,7 +28,7 @@ public:
             player = player_controller.get_player(from);
         }
 
-        novaevt_table table(self, self);
+        novaevt_table table(self, self.value);
         assert_true(table.cbegin() != table.cend(), "#EOSNIGHTSERROR# No nova data yet");
         
         auto iter = --table.cend();
@@ -44,7 +44,7 @@ public:
     void addnova(uint64_t id, uint32_t total, uint32_t remain, uint32_t amount) {
         require_auth(self);
         
-        novaevt_table table(self, self);
+        novaevt_table table(self, self.value);
         auto iter = table.find(id);
         if (iter == table.cend()) {
             if (table.cbegin() != table.cend()) {

@@ -2,17 +2,17 @@
 
 class saleslog_control : public control_base {
 private:
-    account_name self;
+    name self;
     revenue_table revenues;
     
 public:
-    saleslog_control(account_name _self) 
+    saleslog_control(name _self) 
         : self(_self)
-        , revenues(_self, _self) {
+        , revenues(_self, _self.value) {
     }
     
     void remove_selling(name from, asset amount) {
-        auto iter = revenues.find(from);
+        auto iter = revenues.find(from.value);
         assert_true(iter != revenues.cend(), "Can not found");
 
         revenues.modify(iter, self, [&](auto& target) {
@@ -21,7 +21,7 @@ public:
     }
 
     void add_saleslog(selllog log, name from) {
-        auto iter = revenues.find(from);
+        auto iter = revenues.find(from.value);
         if (iter == revenues.cend()) {
             revenues.emplace(self, [&](auto& target) {
                 target.owner = from;
@@ -42,7 +42,7 @@ public:
     }
 
     void add_buylog(buylog log, name from) {
-        auto iter = revenues.find(from);
+        auto iter = revenues.find(from.value);
         if (iter == revenues.cend()) {
             revenues.emplace(self, [&](auto& target) {
                 target.owner = from;
