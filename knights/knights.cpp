@@ -36,7 +36,6 @@ using eosio::name;
 #include "table/rule/rdgticket.hpp"
 #include "table/rule/rmob.hpp"
 #include "table/rule/rmobskill.hpp"
-#include "table/rule/rbdrecipe.hpp"
 #include "table/user/player.hpp"
 #include "table/user/playerv.hpp"
 #include "table/user/comment.hpp"
@@ -54,7 +53,6 @@ using eosio::name;
 #include "table/user/skin4sale.hpp"
 #include "table/user/skininfo.hpp"
 #include "table/user/medal.hpp"
-#include "table/user/village.hpp"
 #include "table/outchain/knight_stats.hpp"
 #include "table/outchain/transfer_action.hpp"
 #include "table/outchain/random_val.hpp"
@@ -96,7 +94,6 @@ using eosio::name;
 #include "contract/dungeon_control.hpp"
 #include "contract/itemevt_control.hpp"
 #include "contract/skin_control.hpp"
-#include "contract/village_control.hpp"
 //#include "table/admin/novaevt.hpp"
 //#include "contract/novaevt_control.hpp"
 
@@ -123,7 +120,6 @@ private:
     dungeon_control dungeon_controller;
     itemevt_control itemevt_controller; 
     skin_control skin_controller;
-    village_control village_controller;
 
     const char* ta_knt = "knt";
     const char* ta_mw = "mw";
@@ -161,8 +157,7 @@ public:
     , season_controller(_self, system_controller, admin_controller, sknight_controller, sitem_controller)
     , dungeon_controller(_self, system_controller, player_controller, material_controller, knight_controller/*, dquest_controller*/)
     , itemevt_controller(_self, system_controller, player_controller, item_controller)
-    , skin_controller(_self, system_controller, saleslog_controller) 
-    , village_controller(_self, player_controller, material_controller, item_controller) {
+    , skin_controller(_self, system_controller, saleslog_controller) {
     }
 
     // player related actions
@@ -210,6 +205,14 @@ public:
     void addblackcmt(name to) {
         system_controller.addblackcmt(to);
     }
+
+    /// @abi action
+    void vmw(name from, int32_t mw) {
+        require_auth(N(eosknightsvg));
+        auto player = player_controller.get_player(from);
+        player_controller.increase_powder(player, mw);
+    }
+
 
     // season related actions
     //-------------------------------------------------------------------------
@@ -440,6 +443,12 @@ public:
     /// @abi action
     void itemmerge3(name from, uint32_t season, uint32_t id, const std::vector<uint32_t> &ingredient) {
         get_item_ctl(season)->itemmerge(from, id, ingredient);
+    }
+
+    /// @abi action
+    void vrmitem(name from, const std::vector<uint32_t> &item_ids) {
+        require_auth(N(eosknightsvg));
+        item_controller.remove_items(from, item_ids);
     }
 
     // pet related actions
@@ -707,11 +716,6 @@ public:
     }
     */
    
-    void cbdrecipe(const std::vector<rbdrecipe> &rules, bool truncate) {
-        rule_controller<rbdrecipe, rbdrecipe_table> controller(_self, N(bdrecipe));
-        controller.create_rules(rules, truncate);
-    }
-
     /// @abi action
     void trule(name table, uint16_t size) {
         if (table == N(ivnprice)) {
@@ -771,9 +775,6 @@ public:
         } else if (table == N(mobskills)) {
             //rule_controller<rmobskills, rmobskills_table> controller(_self, N(mobskills));
             //controller.truncate_rules(size);
-        } else if (table == N(bdrecipe)) {
-            rule_controller<rbdrecipe, rbdrecipe_table> controller(_self, N(bdrecipe));
-            controller.truncate_rules(size);
         } else {
             eosio_assert(0, "could not find table");
         }
@@ -948,7 +949,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (cbdrecipe) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
 // (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 
