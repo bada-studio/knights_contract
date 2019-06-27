@@ -8,6 +8,7 @@
 
 #define MAINTENANCE 0
 #define USE_DEFERRED 1
+#define TEST_ENABLE 1
 
 using eosio::key256;
 using eosio::indexed_by;
@@ -392,6 +393,12 @@ public:
     void alchemisti(name from, uint32_t grade, const std::vector<uint32_t>& mat_ids, uint32_t checksum) {
         system_controller.set_last_checksum(checksum);
         material_controller.alchemist(from, grade, mat_ids, checksum, false);
+    }
+
+    /// @abi action
+    void vrmmat(name from, const std::vector<uint32_t> &mat_ids) {
+        require_auth(N(eosknightsvg));
+        material_controller.remove_mats(from, mat_ids);
     }
 
     // item related actions
@@ -918,6 +925,22 @@ public:
         }
     }
     */
+
+#ifdef TEST_ENABLE
+    /// @abi action
+    void titem(name from, const std::vector<uint16_t> codes) {
+        for (int index = 0; index < codes.size(); index++) {
+            item_controller.add_item(from, codes[index], 100, 1, 16);
+        }
+    }
+
+    /// @abi action
+    void tmat(name from, const std::vector<uint16_t> codes) {
+        for (int index = 0; index < codes.size(); index++) {
+            material_controller.add_material(from, codes[index]);
+        }
+    }
+#endif
 };
 
 #undef EOSIO_ABI
