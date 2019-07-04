@@ -1,8 +1,13 @@
 #pragma once
 
+enum play_mode {
+    pm_normal = 0,
+    pm_season,
+};
+
 class knight_control_actions {
 protected:
-    bool use_gdr;
+    play_mode pmode;
 
 public:
     virtual void lvupknight(name from, uint8_t type) = 0;
@@ -155,6 +160,22 @@ public:
 
         item_controller.apply_equip_stats(res, from, knight.type);
         pet_controller.apply_pet_stats(res, from, knight.type);
+
+        // apply building stat
+        if (pmode == pm_normal) {
+            playerv2_table vtable(self, self);
+            auto variable = vtable.find(from);
+            if (variable != vtable.cend()) {
+                if (knight.type == kt_knight) {
+                    res.attack += variable->ak1;
+                } else if (knight.type == kt_archer) {
+                    res.attack += variable->ak2;
+                } else if (knight.type == kt_mage) {
+                    res.attack += variable->ak3;
+                }
+            }
+        }
+
         return res;
     }
 
@@ -463,7 +484,7 @@ protected:
 
         auto avg_floor = 1000;
         auto gdr = 1.0;
-        if (use_gdr) {
+        if (pmode == pm_normal) {
             avg_floor = system_controller.get_global_avg_floor();
             system_controller.get_global_drop_factor(avg_floor);
         }
@@ -510,7 +531,7 @@ protected:
         });
 
         variable.clear_deferred_time();
-        if (use_gdr) {
+        if (pmode == pm_normal) {
             // submit floor to calculate global average floor
             if (rows.size() == kt_count-1 && floor > 10) {
                 submit_floor(variable, old_max_floor, floor);
@@ -702,7 +723,7 @@ public:
                 _pet_controller)
             , saleslog_controller(_saleslog_controller)                
             , skills(_self, _self) {
-        use_gdr = true;
+        pmode = pm_normal;
     }
 
     // internal apis

@@ -207,14 +207,6 @@ public:
         system_controller.addblackcmt(to);
     }
 
-    /// @abi action
-    void vmw(name from, int32_t mw) {
-        require_auth(N(eosknightsvg));
-        auto player = player_controller.get_player(from);
-        player_controller.increase_powder(player, mw);
-    }
-
-
     // season related actions
     //-------------------------------------------------------------------------
     /// @abi action
@@ -395,12 +387,6 @@ public:
         material_controller.alchemist(from, grade, mat_ids, checksum, false);
     }
 
-    /// @abi action
-    void vrmmat(name from, const std::vector<uint32_t> &mat_ids) {
-        require_auth(N(eosknightsvg));
-        material_controller.remove_mats(from, mat_ids);
-    }
-
     // item related actions
     //-------------------------------------------------------------------------
     item_control_actions* get_item_ctl(uint32_t season) {
@@ -452,10 +438,51 @@ public:
         get_item_ctl(season)->itemmerge(from, id, ingredient);
     }
 
+    // village related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void vmw(name from, int32_t mw) {
+        require_auth(N(eosknightsvg));
+        auto player = player_controller.get_player(from);
+        player_controller.increase_powder(player, mw);
+    }
+
+    /// @abi action
+    void vstat(name from, int8_t knt, int8_t stype, int16_t svalue) {
+        require_auth(N(eosknightsvg));
+
+        auto pvsi = system_controller.get_playervs(from, true);
+        auto variable = *pvsi;
+        if (knt == kt_knight) {
+            if (variable.ak1 < svalue) {
+                variable.ak1 = svalue;
+            }
+        } else if (knt == kt_archer) {
+            if (variable.ak2 < svalue) {
+                variable.ak2 = svalue;
+            }
+        } else if (knt == kt_mage) {
+            if (variable.ak3 < svalue) {
+                variable.ak3 = svalue;
+            }
+        } else {
+            assert_true(false, "invalid knt");
+        }
+
+        knight_controller.refresh_stat(from, knt);
+        system_controller.update_playerv(pvsi, variable);
+    }
+
     /// @abi action
     void vrmitem(name from, const std::vector<uint32_t> &item_ids) {
         require_auth(N(eosknightsvg));
         item_controller.remove_items(from, item_ids);
+    }
+
+    /// @abi action
+    void vrmmat(name from, const std::vector<uint32_t> &mat_ids) {
+        require_auth(N(eosknightsvg));
+        material_controller.remove_mats(from, mat_ids);
     }
 
     // pet related actions
@@ -973,7 +1000,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) (tmat) (titem) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vstat) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) (tmat) (titem) ) // (clrall)
 // (getevtitem) (addevtitem) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 

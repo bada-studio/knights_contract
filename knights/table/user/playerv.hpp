@@ -47,8 +47,10 @@ struct playerv2 {
     uint8_t referral = 0;
     uint8_t migrated = 2;
     uint16_t gift = 0;
-    uint32_t v1 = 0;
-    uint32_t v2 = 0;
+    uint16_t ak1 = 0;
+    uint16_t ak2 = 0;
+    uint16_t ak3 = 0;
+    uint16_t v1 = 0;
     uint16_t last_start_season = 0;
     uint16_t last_end_season = 0;
     uint32_t last_sell_time = 0;
@@ -76,7 +78,6 @@ struct playerv2 {
     void migrate0to2() {
         next_deferred_time = 0;
         v1 = 0;
-        v2 = 0;
         v5 = 0;
         last_sell_time = 0;
         sell_factor = 0;
@@ -94,7 +95,6 @@ struct playerv2 {
 
     void migrate1to2() {
         v1 = 0;
-        v2 = 0;
         v5 = 0;
         migrated = 2;
         itemevt = 0;
@@ -144,8 +144,10 @@ struct playerv2 {
                      (referral)
                      (migrated)
                      (gift)
+                     (ak1)
+                     (ak2)
+                     (ak3)
                      (v1)
-                     (v2)
                      (last_start_season)
                      (last_end_season)
                      (last_sell_time)
