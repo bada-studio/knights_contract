@@ -70,7 +70,7 @@ using eosio::name;
 //#include "table/admin/dquest.hpp"
 #include "table/admin/season.hpp"
 #include "table/admin/globalvar.hpp"
-#include "table/admin/itemevt.hpp"
+//#include "table/admin/itemevt.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -93,7 +93,7 @@ using eosio::name;
 #include "contract/season/season_control.hpp"
 #include "contract/system_control.cpp"
 #include "contract/dungeon_control.hpp"
-#include "contract/itemevt_control.hpp"
+//#include "contract/itemevt_control.hpp"
 #include "contract/skin_control.hpp"
 //#include "table/admin/novaevt.hpp"
 //#include "contract/novaevt_control.hpp"
@@ -119,7 +119,7 @@ private:
     smaterial_control smaterial_controller;
     spet_control spet_controller;
     dungeon_control dungeon_controller;
-    itemevt_control itemevt_controller; 
+    //itemevt_control itemevt_controller; 
     skin_control skin_controller;
 
     const char* ta_knt = "knt";
@@ -157,7 +157,7 @@ public:
 //    , dquest_controller(_self, item_controller, system_controller, admin_controller)
     , season_controller(_self, system_controller, admin_controller, sknight_controller, sitem_controller)
     , dungeon_controller(_self, system_controller, player_controller, material_controller, knight_controller/*, dquest_controller*/)
-    , itemevt_controller(_self, system_controller, player_controller, item_controller)
+    //, itemevt_controller(_self, system_controller, player_controller, item_controller)
     , skin_controller(_self, system_controller, saleslog_controller) {
     }
 
@@ -810,6 +810,7 @@ public:
 
     // etc actions
     //-------------------------------------------------------------------------
+    /*
     void getevtitem(name from) {
         itemevt_controller.getevtitem(from);
     }
@@ -818,6 +819,7 @@ public:
         require_auth(_self);
         itemevt_controller.addevtitem(key, code, from, day);
     }
+    */
 
     // eosio.token recipient
     // memo description spec
@@ -972,7 +974,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
-// (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
+// (getevtitem) (addevtitem) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 
