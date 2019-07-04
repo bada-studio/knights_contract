@@ -606,13 +606,6 @@ public:
     //-------------------------------------------------------------------------
     /*
     /// @abi action
-    void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
-        rule_controller<rivnprice, rivnprice_table> controller(_self, N(ivnprice));
-        controller.create_rules(rules, truncate);
-    }
-    /*/
-    /// @abi action
-    /*
     void cknt(const std::vector<rknt> &rules, bool truncate) {
         rule_controller<rknt, rknt_table> controller(_self, N(knt));
         controller.create_rules(rules, truncate);
@@ -623,8 +616,7 @@ public:
         rule_controller<rkntlv, rkntlv_table> controller(_self, N(kntlv));
         controller.create_rules(rules, truncate);
     }
-    */
-    /*
+
     /// @abi action
     void ckntprice(const std::vector<rkntprice> &rules, bool truncate) {
         rule_controller<rkntprice, rkntprice_table> controller(_self, N(kntprice));
@@ -638,11 +630,18 @@ public:
     }
 
     /// @abi action
+    void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
+        rule_controller<rivnprice, rivnprice_table> controller(_self, N(ivnprice));
+        controller.create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void cstage(const std::vector<rstage> &rules, bool truncate) {
         rule_controller<rstage, rstage_table> controller(_self, N(stage));
         controller.create_rules(rules, truncate);
     }
     */
+
     /// @abi action
     void cvariable(const std::vector<rvariable> &rules, bool truncate) {
         rule_controller<rvariable, rvariable_table> controller(_self, N(variable));
@@ -656,6 +655,12 @@ public:
     }
 
     /*
+    /// @abi action
+    void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
+        rule_controller<rmpgoods, rmpgoods_table> controller(_self, N(mpgoods));
+        controller.create_rules(rules, truncate);
+    }
+
     /// @abi action
     void citemlv(const std::vector<ritemlv> &rules, bool truncate) {
         rule_controller<ritemlv, ritemlv_table> controller(_self, N(itemlv));
@@ -693,12 +698,6 @@ public:
     }
 
     /// @abi action
-    void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
-        rule_controller<rmpgoods, rmpgoods_table> controller(_self, N(mpgoods));
-        controller.create_rules(rules, truncate);
-    }
-
-    /// @abi action
     void cdungeon(const std::vector<rdungeon> &rules, bool truncate) {
         rule_controller<rdungeon, rdungeon_table> controller(_self, N(dungeon));
         controller.create_rules(rules, truncate);
@@ -706,7 +705,7 @@ public:
 
     /// @abi action
     void cdgticket(const std::vector<rdgticket> &rules, bool truncate) {
-        rule_controller<rdgticket, rdgticket_table> controller;(_self, N(dgticket));
+        rule_controller<rdgticket, rdgticket_table> controller(_self, N(dgticket));
         controller.create_rules(rules, truncate);
     }
 
@@ -744,11 +743,11 @@ public:
             //rule_controller<rstage, rstage_table> controller(_self, N(stage));
             //controller.truncate_rules(size);
         } else if (table == N(variable)) {
-            rule_controller<rvariable, rvariable_table> controller(_self, N(variable));
-            controller.truncate_rules(size);
+            //rule_controller<rvariable, rvariable_table> controller(_self, N(variable));
+            //controller.truncate_rules(size);
         } else if (table == N(item)) {
-            rule_controller<ritem, ritem_table> controller(_self, N(item));
-            controller.truncate_rules(size);
+            //rule_controller<ritem, ritem_table> controller(_self, N(item));
+            //controller.truncate_rules(size);
         } else if (table == N(itemlv)) {
             //rule_controller<ritemlv, ritemlv_table> controller(_self, N(itemlv));
             //controller.truncate_rules(size);
@@ -974,7 +973,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (transfer) ) // (clrall)
-// (getevtitem) (addevtitem) (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
+EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) (tmat) (titem) ) // (clrall)
+// (getevtitem) (addevtitem) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 

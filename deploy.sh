@@ -4,7 +4,7 @@ then
   contract=eosknightsio
 elif [ "$1" = "beta" ]
 then
-  url=http://jungle2.cryptolions.io
+  url=https://api-kylin.eoslaomao.com
   contract=eosknightsio
 elif [ "$1" = "local" ]
 then
