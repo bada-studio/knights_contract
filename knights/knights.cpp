@@ -167,14 +167,21 @@ public:
     void signup(name from) {
         require_auth(from);
         system_controller.signup(from);
-        knight_controller.new_free_knight(from);
+        knight_controller.add_knight(from, kt_knight);
     }
 
     /// @abi action
-    void signupbt(name from) {
-        require_auth(N(bastetbastet));
+    void signupw(name from, uint8_t wallet) {
         system_controller.signup(from);
-        knight_controller.new_free_knight(from);
+        system_controller.set_wallet(from, wallet);
+        knight_controller.add_knight(from, kt_knight);
+        knight_controller.add_knight(from, kt_archer);
+        knight_controller.add_knight(from, kt_mage);
+    }
+
+    /// @abi action
+    void setwifo(uint8_t id, name wname, name waccount) {
+        admin_controller.setwifo(id, wname, waccount);
     }
 
     /// @abi action
@@ -448,7 +455,7 @@ public:
     }
 
     /// @abi action
-    void vstat(name from, int8_t knt, int8_t stype, int16_t svalue) {
+    void vstat(name from, uint8_t knt, uint32_t stype, uint32_t svalue) {
         require_auth(N(eosknightsvg));
 
         auto pvsi = system_controller.get_playervs(from, true);
@@ -469,8 +476,10 @@ public:
             assert_true(false, "invalid knt");
         }
 
-        knight_controller.refresh_stat(from, knt);
         system_controller.update_playerv(pvsi, variable);
+        if (knight_controller.has_knight(from, knt)) {
+            knight_controller.refresh_stat(from, knt);
+        }
     }
 
     /// @abi action
@@ -866,47 +875,47 @@ public:
             if (ad.action == ta_knt) {
                 int type = atoi(ad.param.c_str());
                 knight_controller.hireknight(ad.from, type, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_knight);
+                admin_controller.add_revenue(ad.from, ad.quantity, rv_knight);
             } else if (ad.action == ta_mw) {
                 int pid = atoi(ad.param.c_str());
                 player_controller.buymp(ad.from, pid, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_mp);
+                admin_controller.add_revenue(ad.from, ad.quantity, rv_mp);
             } else if (ad.action == ta_dmw) {
                 auto info = require_season_open();
                 assert_true(info.opt_no_dmw == false, "can not buy dmw this mode");
                 int pid = atoi(ad.param.c_str());
                 splayer_controller.buymp(ad.from, pid, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_dmw);
+                admin_controller.add_revenue(ad.from, ad.quantity, rv_dmw);
                 season_controller.add_revenue(ad.quantity);
             } else if (ad.action == ta_item) {
                 asset tax = market_controller.buyitem(ad.from, ad, &item_controller, ig_count);
-                admin_controller.add_revenue(tax, rv_item_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_item_season) {
                 auto info = require_season_open();
                 asset tax = market_controller.buyitem(ad.from, ad, &sitem_controller, info.opt_item_shop);
-                admin_controller.add_revenue(tax, rv_item_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat) {
                 asset tax = market_controller.buymat(ad.from, ad, &material_controller, ig_count);
-                admin_controller.add_revenue(tax, rv_material_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat_season) {
                 auto info = require_season_open();
                 asset tax = market_controller.buymat(ad.from, ad, &smaterial_controller, info.opt_mat_shop);
-                admin_controller.add_revenue(tax, rv_material_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_skin) {
                 asset tax = skin_controller.skbuy(ad.from, ad);
-                admin_controller.add_revenue(tax, rv_skin);
+                admin_controller.add_revenue(ad.from, tax, rv_skin);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_ivn) {
                 if (ad.param == tp_item) {
                     system_controller.itemivnup(ad.from, ad.quantity);
-                    admin_controller.add_revenue(ad.quantity, rv_item_iventory_up);
+                    admin_controller.add_revenue(ad.from, ad.quantity, rv_item_iventory_up);
                 } else if (ad.param == tp_mat) {
                     system_controller.mativnup(ad.from, ad.quantity);
-                    admin_controller.add_revenue(ad.quantity, rv_mat_iventory_up);
+                    admin_controller.add_revenue(ad.from, ad.quantity, rv_mat_iventory_up);
                 } else {
                     assert_true(false, "invalid inventory");
                 }
@@ -1000,7 +1009,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vstat) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) (tmat) (titem) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupw) (setwifo) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vstat) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) (tmat) (titem) ) // (clrall)
 // (getevtitem) (addevtitem) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 

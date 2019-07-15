@@ -43,7 +43,7 @@ public:
         });
     }
 
-    void add_revenue(const asset& revenue, rv_type type) {
+    void add_revenue(name from, const asset& revenue, rv_type type) {
         if (revenue.amount == 0) {
             return;
         }
@@ -55,24 +55,7 @@ public:
 
         revenuedt2_table revenues(self, self);
         if (revenues.cbegin() == revenues.cend()) {
-            // migration
-            revenuedt_table oldtable(self, self);
-            if (oldtable.cbegin() == oldtable.cend()) {
-                revenues.emplace(self, [&](auto &target) {});
-            } else {
-                // migration
-                auto iter = oldtable.cbegin();
-                revenues.emplace(self, [&](auto &target) {
-                    target.knight = iter->knight;
-                    target.material_tax = iter->material_tax;
-                    target.item_tax = iter->item_tax;
-                    target.mp = iter->mp;
-                    target.mat_iventory_up = iter->mat_iventory_up;
-                    target.item_iventory_up = iter->item_iventory_up;
-                    target.coo_mat = iter->coo_mat;
-                    target.system = iter->system;
-                });
-            }
+            revenues.emplace(self, [&](auto &target) {});
         }
 
         revenues.modify(revenues.begin(), self, [&](auto &target) {
@@ -88,6 +71,56 @@ public:
                 case rv_dmw: target.dmw += revenue; break;
             }
         });
+
+        add_wallet_revenue(from, revenue);
+    }
+
+    void add_wallet_revenue(name from, const asset &revenue) {
+        if (from == to_name(self)) {
+            return;
+        }
+
+        playerv2_table v2table(self, self);
+        auto v2iter = v2table.find(from);
+        if (v2iter == v2table.cend()) {
+            return;
+        }
+
+        auto wallet = v2iter->wallet;
+        revenuewt_table wtable(self, self);
+        auto witer = wtable.find(wallet);
+        if (witer == wtable.cend()) {
+            return;
+        }
+
+        if (witer->waccount == 0) {
+            return;
+        }
+
+        auto total = witer->revenue + revenue;
+        auto deposit = total - witer->shared_for;
+        auto threshold = 100000; // 10 EOS
+
+        if (deposit.amount > threshold) {
+            auto share_rate = 40; // it could be change
+            auto share = deposit * 100 / share_rate;
+
+            // share
+            action(permission_level{self, N(active) },
+                   N(eosio.token), N(transfer),
+                   std::make_tuple(self, witer->waccount, share, std::string("share"))
+            ).send();
+
+            wtable.modify(witer, self, [&](auto &target) {
+                target.revenue = total;
+                target.shared_for = total;
+                target.shared += share;
+            });
+        } else {
+            wtable.modify(witer, self, [&](auto &target) {
+                target.revenue = total;
+            });
+        }
     }
 
     void add_expenses(const asset& amount, name to, const std::string &memo) {
@@ -155,6 +188,25 @@ public:
         } else {
             adminvalues.modify(adminvalues.cbegin(), self, [&](auto &target) {
                 target.coo = name;
+            });
+        }
+    }
+
+    void setwifo(uint8_t id, name wname, name waccount) {
+        require_auth(self);
+
+        revenuewt_table wtable(self, self);
+        auto witer = wtable.find(id);
+        if (witer != wtable.cend()) {
+            wtable.modify(witer, self, [&](auto &target) {
+                target.wname = wname;
+                target.waccount = waccount;
+            });
+        } else {
+            wtable.emplace(self, [&](auto &target) {
+                target.id = id;
+                target.wname = wname;
+                target.waccount = waccount;
             });
         }
     }

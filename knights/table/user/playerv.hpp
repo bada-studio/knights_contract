@@ -50,7 +50,8 @@ struct playerv2 {
     uint16_t ak1 = 0;
     uint16_t ak2 = 0;
     uint16_t ak3 = 0;
-    uint16_t v1 = 0;
+    uint8_t wallet = 0;
+    uint8_t v1 = 0;
     uint16_t last_start_season = 0;
     uint16_t last_end_season = 0;
     uint32_t last_sell_time = 0;
@@ -77,6 +78,7 @@ struct playerv2 {
 
     void migrate0to2() {
         next_deferred_time = 0;
+        wallet = 0;
         v1 = 0;
         v5 = 0;
         last_sell_time = 0;
@@ -94,6 +96,7 @@ struct playerv2 {
     }
 
     void migrate1to2() {
+        wallet = 0;
         v1 = 0;
         v5 = 0;
         migrated = 2;
@@ -147,6 +150,7 @@ struct playerv2 {
                      (ak1)
                      (ak2)
                      (ak3)
+                     (wallet)
                      (v1)
                      (last_start_season)
                      (last_end_season)

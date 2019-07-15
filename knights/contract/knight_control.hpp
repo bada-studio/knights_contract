@@ -15,6 +15,7 @@ public:
     virtual void equip(name from, uint8_t to, uint32_t id) = 0;
     virtual void detach(name from, uint32_t id) = 0;
     virtual void refresh_stat(name from, uint8_t type) = 0;
+    virtual bool has_knight(name from, uint8_t type) = 0;
 
 // to reduce wasm size
 protected:
@@ -235,25 +236,15 @@ public:
         return iter->rows[0];
     }
 
-    void new_free_knight(name from) {
-        rknt_table rules(self, self);
-        auto rule = rules.find(kt_knight);
-        assert_true(rule != rules.cend(), "no knight rule");
-
-        knightrow knight;
-        knight.type = kt_knight;
-        knight.level = 1;
-        knight.attack = rule->attack;
-        knight.defense = rule->defense;
-        knight.hp = rule->hp;
-        knight.luck = rule->luck;
-
-        int count = 1;
+    bool has_knight(name from, uint8_t type) {
         auto iter = knights.find(from);
-        knights.emplace(self, [&](auto &target) {
-            target.owner = from;
-            target.rows.push_back(knight);
-        });
+        for (int index = 0; index < iter->rows.size(); index++) {
+            if (iter->rows[index].type == type) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     knightrow new_knight(uint8_t type) {
@@ -741,21 +732,11 @@ public:
         return empty_kntskill;
     }
 
-    // actions
-    //-------------------------------------------------------------------------
-    /// @brief
-    /// hire new knight. player could pay the hire cost.
-    /// @param from
-    /// Player who requested hire action
-    /// @param type
-    /// knight who you want to hire
-    void hireknight(name from, uint8_t type, const asset& quantity) {
-        require_auth(from);
+    int add_knight(name from, uint8_t type) {
         assert_true(type > 0 && type < kt_count, "invalid knight type");
-
         knightrow knight = new_knight(type);
+        int count = 0;
 
-        int count = 1;
         auto iter = knights.find(from);
         if (iter == knights.cend()) {
             knights.emplace(self, [&](auto &target) {
@@ -778,6 +759,23 @@ public:
 
             assert_true(found == false, "you have already same knight");
         }
+
+        return count;
+    }
+
+    // actions
+    //-------------------------------------------------------------------------
+    /// @brief
+    /// hire new knight. player could pay the hire cost.
+    /// @param from
+    /// Player who requested hire action
+    /// @param type
+    /// knight who you want to hire
+    void hireknight(name from, uint8_t type, const asset& quantity) {
+        require_auth(from);
+        assert_true(type > 0 && type < kt_count, "invalid knight type");
+
+        int count = add_knight(from, type);
 
         rkntprice_table prices(self, self);
         auto price_itr = prices.find(count);
