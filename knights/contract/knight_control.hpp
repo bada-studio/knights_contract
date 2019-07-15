@@ -760,6 +760,7 @@ public:
             assert_true(found == false, "you have already same knight");
         }
 
+        refresh_stat(from, type);
         return count;
     }
 
