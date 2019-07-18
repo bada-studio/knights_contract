@@ -392,7 +392,7 @@ public:
         new_player(from);
     }
 
-    void set_wallet(name from, int8_t wallet) {
+    bool set_wallet(name from, int8_t wallet) {
         auto pv = get_playervs(from, true);
         playervs.modify(pv, self, [&](auto& target) {
             target.wallet = wallet;
@@ -405,11 +405,14 @@ public:
                 target.id = wallet;
                 target.count = 1;
             });
-        } else {
-            table.modify(iter, self, [&](auto& target) {
-                target.count++;
-            });
-        }
+            return false;
+        } 
+
+        table.modify(iter, self, [&](auto& target) {
+            target.count++;
+        });
+
+        return iter->waccount.value > 0;
     }
 
     void referral(name from, name to) {

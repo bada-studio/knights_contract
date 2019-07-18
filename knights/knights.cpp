@@ -173,10 +173,13 @@ public:
     /// @abi action
     void signupw(name from, uint8_t wallet) {
         system_controller.signup(from);
-        system_controller.set_wallet(from, wallet);
+        bool partner = system_controller.set_wallet(from, wallet);
         knight_controller.add_knight(from, kt_knight);
-        knight_controller.add_knight(from, kt_archer);
-        knight_controller.add_knight(from, kt_mage);
+
+        if (partner) {
+            knight_controller.add_knight(from, kt_archer);
+            knight_controller.add_knight(from, kt_mage);
+        }
     }
 
     /// @abi action
