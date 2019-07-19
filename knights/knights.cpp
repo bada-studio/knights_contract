@@ -8,7 +8,6 @@
 
 #define MAINTENANCE 0
 #define USE_DEFERRED 1
-#define TEST_ENABLE 0
 
 using eosio::key256;
 using eosio::indexed_by;
@@ -969,6 +968,7 @@ public:
 #ifdef TEST_ENABLE
     /// @abi action
     void titem(name from, const std::vector<uint16_t> codes) {
+        require_auth(_self);
         for (int index = 0; index < codes.size(); index++) {
             item_controller.add_item(from, codes[index], 100, 1, 16);
         }
@@ -976,6 +976,7 @@ public:
 
     /// @abi action
     void tmat(name from, const std::vector<uint16_t> codes) {
+        require_auth(_self);
         for (int index = 0; index < codes.size(); index++) {
             material_controller.add_material(from, codes[index]);
         }

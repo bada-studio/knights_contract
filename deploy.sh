@@ -1,6 +1,6 @@
 if [ "$1" = "real" ]
 then
-  url=https://rpc.eosys.io:443
+  url=https://api.eoseoul.io
   contract=eosknightsio
 elif [ "$1" = "beta" ]
 then
