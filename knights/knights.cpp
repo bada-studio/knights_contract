@@ -8,7 +8,7 @@
 
 #define MAINTENANCE 0
 #define USE_DEFERRED 1
-#define TEST_ENABLE 1
+#define TEST_ENABLE 0
 
 using eosio::key256;
 using eosio::indexed_by;
@@ -1012,7 +1012,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupw) (setwifo) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vstat) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) (tmat) (titem) ) // (clrall)
+EOSIO_ABI(knights, (signup) (signupw) (setwifo) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vstat) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) ) // (clrall)
 // (getevtitem) (addevtitem) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 
