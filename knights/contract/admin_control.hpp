@@ -103,7 +103,7 @@ public:
 
         if (deposit.amount > threshold) {
             auto share_rate = 40; // it could be change
-            auto share = deposit * 100 / share_rate;
+            auto share = deposit * share_rate / 100;
 
             // share
             action(permission_level{self, N(active) },
