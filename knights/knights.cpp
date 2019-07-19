@@ -69,7 +69,7 @@ using eosio::name;
 //#include "table/admin/dquest.hpp"
 #include "table/admin/season.hpp"
 #include "table/admin/globalvar.hpp"
-#include "table/admin/itemevt.hpp"
+//#include "table/admin/itemevt.hpp"
 #include "util/time_util.hpp"
 #include "contract/control_base.hpp"
 #include "contract/admin_control.hpp"
@@ -92,7 +92,7 @@ using eosio::name;
 #include "contract/season/season_control.hpp"
 #include "contract/system_control.cpp"
 #include "contract/dungeon_control.hpp"
-#include "contract/itemevt_control.hpp"
+//#include "contract/itemevt_control.hpp"
 #include "contract/skin_control.hpp"
 //#include "table/admin/novaevt.hpp"
 //#include "contract/novaevt_control.hpp"
@@ -118,7 +118,7 @@ private:
     smaterial_control smaterial_controller;
     spet_control spet_controller;
     dungeon_control dungeon_controller;
-    itemevt_control itemevt_controller; 
+    //itemevt_control itemevt_controller; 
     skin_control skin_controller;
 
     const char* ta_knt = "knt";
@@ -156,7 +156,7 @@ public:
 //    , dquest_controller(_self, item_controller, system_controller, admin_controller)
     , season_controller(_self, system_controller, admin_controller, sknight_controller, sitem_controller)
     , dungeon_controller(_self, system_controller, player_controller, material_controller, knight_controller/*, dquest_controller*/)
-    , itemevt_controller(_self, system_controller, player_controller, item_controller)
+    //, itemevt_controller(_self, system_controller, player_controller, item_controller)
     , skin_controller(_self, system_controller, saleslog_controller) {
     }
 
@@ -166,14 +166,24 @@ public:
     void signup(name from) {
         require_auth(from);
         system_controller.signup(from);
-        knight_controller.new_free_knight(from);
+        knight_controller.add_knight(from, kt_knight);
     }
 
     /// @abi action
-    void signupbt(name from) {
-        require_auth(N(bastetbastet));
+    void signupw(name from, uint8_t wallet) {
         system_controller.signup(from);
-        knight_controller.new_free_knight(from);
+        bool partner = system_controller.set_wallet(from, wallet);
+        knight_controller.add_knight(from, kt_knight);
+
+        if (partner) {
+            knight_controller.add_knight(from, kt_archer);
+            knight_controller.add_knight(from, kt_mage);
+        }
+    }
+
+    /// @abi action
+    void setwifo(uint8_t id, name wname, name waccount) {
+        admin_controller.setwifo(id, wname, waccount);
     }
 
     /// @abi action
@@ -205,14 +215,6 @@ public:
     void addblackcmt(name to) {
         system_controller.addblackcmt(to);
     }
-
-    /// @abi action
-    void vmw(name from, int32_t mw) {
-        require_auth(N(eosknightsvg));
-        auto player = player_controller.get_player(from);
-        player_controller.increase_powder(player, mw);
-    }
-
 
     // season related actions
     //-------------------------------------------------------------------------
@@ -445,10 +447,53 @@ public:
         get_item_ctl(season)->itemmerge(from, id, ingredient);
     }
 
+    // village related actions
+    //-------------------------------------------------------------------------
+    /// @abi action
+    void vmw(name from, int32_t mw) {
+        require_auth(N(eosknightsvg));
+        auto player = player_controller.get_player(from);
+        player_controller.increase_powder(player, mw);
+    }
+
+    /// @abi action
+    void vstat(name from, uint8_t knt, uint32_t stype, uint32_t svalue) {
+        require_auth(N(eosknightsvg));
+
+        auto pvsi = system_controller.get_playervs(from, true);
+        auto variable = *pvsi;
+        if (knt == kt_knight) {
+            if (variable.ak1 < svalue) {
+                variable.ak1 = svalue;
+            }
+        } else if (knt == kt_archer) {
+            if (variable.ak2 < svalue) {
+                variable.ak2 = svalue;
+            }
+        } else if (knt == kt_mage) {
+            if (variable.ak3 < svalue) {
+                variable.ak3 = svalue;
+            }
+        } else {
+            assert_true(false, "invalid knt");
+        }
+
+        system_controller.update_playerv(pvsi, variable);
+        if (knight_controller.has_knight(from, knt)) {
+            knight_controller.refresh_stat(from, knt);
+        }
+    }
+
     /// @abi action
     void vrmitem(name from, const std::vector<uint32_t> &item_ids) {
         require_auth(N(eosknightsvg));
         item_controller.remove_items(from, item_ids);
+    }
+
+    /// @abi action
+    void vrmmat(name from, const std::vector<uint32_t> &mat_ids) {
+        require_auth(N(eosknightsvg));
+        material_controller.remove_mats(from, mat_ids);
     }
 
     // pet related actions
@@ -599,13 +644,6 @@ public:
     //-------------------------------------------------------------------------
     /*
     /// @abi action
-    void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
-        rule_controller<rivnprice, rivnprice_table> controller(_self, N(ivnprice));
-        controller.create_rules(rules, truncate);
-    }
-    /*/
-    /// @abi action
-    /*
     void cknt(const std::vector<rknt> &rules, bool truncate) {
         rule_controller<rknt, rknt_table> controller(_self, N(knt));
         controller.create_rules(rules, truncate);
@@ -616,8 +654,7 @@ public:
         rule_controller<rkntlv, rkntlv_table> controller(_self, N(kntlv));
         controller.create_rules(rules, truncate);
     }
-    */
-    /*
+
     /// @abi action
     void ckntprice(const std::vector<rkntprice> &rules, bool truncate) {
         rule_controller<rkntprice, rkntprice_table> controller(_self, N(kntprice));
@@ -631,11 +668,18 @@ public:
     }
 
     /// @abi action
+    void civnprice(const std::vector<rivnprice> &rules, bool truncate) {
+        rule_controller<rivnprice, rivnprice_table> controller(_self, N(ivnprice));
+        controller.create_rules(rules, truncate);
+    }
+
+    /// @abi action
     void cstage(const std::vector<rstage> &rules, bool truncate) {
         rule_controller<rstage, rstage_table> controller(_self, N(stage));
         controller.create_rules(rules, truncate);
     }
     */
+
     /// @abi action
     void cvariable(const std::vector<rvariable> &rules, bool truncate) {
         rule_controller<rvariable, rvariable_table> controller(_self, N(variable));
@@ -649,6 +693,12 @@ public:
     }
 
     /*
+    /// @abi action
+    void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
+        rule_controller<rmpgoods, rmpgoods_table> controller(_self, N(mpgoods));
+        controller.create_rules(rules, truncate);
+    }
+
     /// @abi action
     void citemlv(const std::vector<ritemlv> &rules, bool truncate) {
         rule_controller<ritemlv, ritemlv_table> controller(_self, N(itemlv));
@@ -686,12 +736,6 @@ public:
     }
 
     /// @abi action
-    void cmpgoods(const std::vector<rmpgoods> &rules, bool truncate) {
-        rule_controller<rmpgoods, rmpgoods_table> controller(_self, N(mpgoods));
-        controller.create_rules(rules, truncate);
-    }
-
-    /// @abi action
     void cdungeon(const std::vector<rdungeon> &rules, bool truncate) {
         rule_controller<rdungeon, rdungeon_table> controller(_self, N(dungeon));
         controller.create_rules(rules, truncate);
@@ -699,7 +743,7 @@ public:
 
     /// @abi action
     void cdgticket(const std::vector<rdgticket> &rules, bool truncate) {
-        rule_controller<rdgticket, rdgticket_table> controller;(_self, N(dgticket));
+        rule_controller<rdgticket, rdgticket_table> controller(_self, N(dgticket));
         controller.create_rules(rules, truncate);
     }
 
@@ -737,11 +781,11 @@ public:
             //rule_controller<rstage, rstage_table> controller(_self, N(stage));
             //controller.truncate_rules(size);
         } else if (table == N(variable)) {
-            rule_controller<rvariable, rvariable_table> controller(_self, N(variable));
-            controller.truncate_rules(size);
+            //rule_controller<rvariable, rvariable_table> controller(_self, N(variable));
+            //controller.truncate_rules(size);
         } else if (table == N(item)) {
-            rule_controller<ritem, ritem_table> controller(_self, N(item));
-            controller.truncate_rules(size);
+            //rule_controller<ritem, ritem_table> controller(_self, N(item));
+            //controller.truncate_rules(size);
         } else if (table == N(itemlv)) {
             //rule_controller<ritemlv, ritemlv_table> controller(_self, N(itemlv));
             //controller.truncate_rules(size);
@@ -803,6 +847,7 @@ public:
 
     // etc actions
     //-------------------------------------------------------------------------
+    /*
     void getevtitem(name from) {
         itemevt_controller.getevtitem(from);
     }
@@ -811,6 +856,7 @@ public:
         require_auth(_self);
         itemevt_controller.addevtitem(key, code, from, day);
     }
+    */
 
     // eosio.token recipient
     // memo description spec
@@ -831,47 +877,47 @@ public:
             if (ad.action == ta_knt) {
                 int type = atoi(ad.param.c_str());
                 knight_controller.hireknight(ad.from, type, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_knight);
+                admin_controller.add_revenue(ad.from, ad.quantity, rv_knight);
             } else if (ad.action == ta_mw) {
                 int pid = atoi(ad.param.c_str());
                 player_controller.buymp(ad.from, pid, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_mp);
+                admin_controller.add_revenue(ad.from, ad.quantity, rv_mp);
             } else if (ad.action == ta_dmw) {
                 auto info = require_season_open();
                 assert_true(info.opt_no_dmw == false, "can not buy dmw this mode");
                 int pid = atoi(ad.param.c_str());
                 splayer_controller.buymp(ad.from, pid, ad.quantity);
-                admin_controller.add_revenue(ad.quantity, rv_dmw);
+                admin_controller.add_revenue(ad.from, ad.quantity, rv_dmw);
                 season_controller.add_revenue(ad.quantity);
             } else if (ad.action == ta_item) {
                 asset tax = market_controller.buyitem(ad.from, ad, &item_controller, ig_count);
-                admin_controller.add_revenue(tax, rv_item_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_item_season) {
                 auto info = require_season_open();
                 asset tax = market_controller.buyitem(ad.from, ad, &sitem_controller, info.opt_item_shop);
-                admin_controller.add_revenue(tax, rv_item_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_item_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat) {
                 asset tax = market_controller.buymat(ad.from, ad, &material_controller, ig_count);
-                admin_controller.add_revenue(tax, rv_material_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_mat_season) {
                 auto info = require_season_open();
                 asset tax = market_controller.buymat(ad.from, ad, &smaterial_controller, info.opt_mat_shop);
-                admin_controller.add_revenue(tax, rv_material_tax);
+                admin_controller.add_revenue(ad.from, tax, rv_material_tax);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_skin) {
                 asset tax = skin_controller.skbuy(ad.from, ad);
-                admin_controller.add_revenue(tax, rv_skin);
+                admin_controller.add_revenue(ad.from, tax, rv_skin);
                 admin_controller.add_tradingvol(ad.quantity);
             } else if (ad.action == ta_ivn) {
                 if (ad.param == tp_item) {
                     system_controller.itemivnup(ad.from, ad.quantity);
-                    admin_controller.add_revenue(ad.quantity, rv_item_iventory_up);
+                    admin_controller.add_revenue(ad.from, ad.quantity, rv_item_iventory_up);
                 } else if (ad.param == tp_mat) {
                     system_controller.mativnup(ad.from, ad.quantity);
-                    admin_controller.add_revenue(ad.quantity, rv_mat_iventory_up);
+                    admin_controller.add_revenue(ad.from, ad.quantity, rv_mat_iventory_up);
                 } else {
                     assert_true(false, "invalid inventory");
                 }
@@ -918,6 +964,24 @@ public:
         }
     }
     */
+
+#ifdef TEST_ENABLE
+    /// @abi action
+    void titem(name from, const std::vector<uint16_t> codes) {
+        require_auth(_self);
+        for (int index = 0; index < codes.size(); index++) {
+            item_controller.add_item(from, codes[index], 100, 1, 16);
+        }
+    }
+
+    /// @abi action
+    void tmat(name from, const std::vector<uint16_t> codes) {
+        require_auth(_self);
+        for (int index = 0; index < codes.size(); index++) {
+            material_controller.add_material(from, codes[index]);
+        }
+    }
+#endif
 };
 
 #undef EOSIO_ABI
@@ -949,7 +1013,7 @@ extern "C" { \
 // 
 // 
 
-EOSIO_ABI(knights, (signup) (signupbt) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vrmitem) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (cvariable) (citem) (trule) (setcoo) (regsholder) (dividend) (getevtitem) (addevtitem) (transfer) ) // (clrall)
-// (civnprice) (cknt) (ckntlv) (ckntprice) (ckntskills) (cstage) (cvariable) (citem) (citemlv) (citemset) (cmaterial) (cpet) (cpetlv) (cpetexp) (cdungeon) (cdgticket) (cmobs) (cmobskills) (cpet) (cpetlv) (cpetexp) (cmpgoods) 
+EOSIO_ABI(knights, (signup) (signupw) (setwifo) (referral) (getgift) (addcomment) (addblackcmt) (reportofs) (addseason) (joinseason) (seasonreward) (submitsq) (addgift) (addcquest) (updatesubq) (submitcquest) (divcquest) (setkntstage) (lvupknight3) (rebirth3) (rebirth3i) (equip3) (detach3) (alchemist) (alchemisti) (removemat3) (skillup) (skillreset) (craft3) (craft3i) (itemlvup3) (itemlvup3i) (removeitem3) (itemmerge3) (vmw) (vstat) (vrmitem) (vrmmat) (sellitem2) (ccsellitem2) (sellmat2) (ccsellmat2) (petgacha3) (petgacha3i) (petlvup3) (pattach3) (pexpstart2) (pexpreturn2i) (pexpreturn2) (dgtcraft) (dgfreetk2) (dgenter) (dgclear) (dgcleari) (dgleave) (skissue) (sksell) (skcsell) (skwear) (trule) (setcoo) (regsholder) (dividend) (cvariable) (citem) (transfer) ) // (clrall)
+// (getevtitem) (addevtitem) 
 // (removecquest) (removedquest) (setpause) 
 // (adddquest) (updatedsubq) (divdquest) 

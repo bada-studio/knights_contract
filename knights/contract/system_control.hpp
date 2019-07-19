@@ -88,7 +88,7 @@ public:
                 // eg) unstake, sellram, etc
                 // add to the revenue for these.
                 if (is_system_account(transfer_data.from)) {
-                    admin_controller.add_revenue(transfer_data.quantity, rv_system);
+                    admin_controller.add_revenue(to_name(self), transfer_data.quantity, rv_system);
                 } else {
                     assert_true(false, "sign up first!");
                 }
@@ -388,8 +388,31 @@ public:
     //-------------------------------------------------------------------------
     void signup(name from) {
         auto iter = players.find(from);
-        eosio_assert(iter == players.end(), "already signed up" );
+        eosio_assert(iter == players.end(), "already signed up");
         new_player(from);
+    }
+
+    bool set_wallet(name from, int8_t wallet) {
+        auto pv = get_playervs(from, true);
+        playervs.modify(pv, self, [&](auto& target) {
+            target.wallet = wallet;
+        });
+
+        revenuewt_table table(self, self);
+        auto iter = table.find(wallet);
+        if (iter == table.cend()) {
+            table.emplace(self, [&](auto& target) {
+                target.id = wallet;
+                target.count = 1;
+            });
+            return false;
+        } 
+
+        table.modify(iter, self, [&](auto& target) {
+            target.count++;
+        });
+
+        return iter->waccount.value > 0;
     }
 
     void referral(name from, name to) {

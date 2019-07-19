@@ -29,7 +29,7 @@ public:
                 _material_controller,
                 _item_controller,
                 _pet_controller) {
-        use_gdr = false;
+        pmode = pm_season;
     }
     
     // speed boost

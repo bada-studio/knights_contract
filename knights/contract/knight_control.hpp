@@ -1,8 +1,13 @@
 #pragma once
 
+enum play_mode {
+    pm_normal = 0,
+    pm_season,
+};
+
 class knight_control_actions {
 protected:
-    bool use_gdr;
+    play_mode pmode;
 
 public:
     virtual void lvupknight(name from, uint8_t type) = 0;
@@ -10,6 +15,7 @@ public:
     virtual void equip(name from, uint8_t to, uint32_t id) = 0;
     virtual void detach(name from, uint32_t id) = 0;
     virtual void refresh_stat(name from, uint8_t type) = 0;
+    virtual bool has_knight(name from, uint8_t type) = 0;
 
 // to reduce wasm size
 protected:
@@ -155,6 +161,22 @@ public:
 
         item_controller.apply_equip_stats(res, from, knight.type);
         pet_controller.apply_pet_stats(res, from, knight.type);
+
+        // apply building stat
+        if (pmode == pm_normal) {
+            playerv2_table vtable(self, self);
+            auto variable = vtable.find(from);
+            if (variable != vtable.cend()) {
+                if (knight.type == kt_knight) {
+                    res.attack += variable->ak1;
+                } else if (knight.type == kt_archer) {
+                    res.attack += variable->ak2;
+                } else if (knight.type == kt_mage) {
+                    res.attack += variable->ak3;
+                }
+            }
+        }
+
         return res;
     }
 
@@ -214,25 +236,15 @@ public:
         return iter->rows[0];
     }
 
-    void new_free_knight(name from) {
-        rknt_table rules(self, self);
-        auto rule = rules.find(kt_knight);
-        assert_true(rule != rules.cend(), "no knight rule");
-
-        knightrow knight;
-        knight.type = kt_knight;
-        knight.level = 1;
-        knight.attack = rule->attack;
-        knight.defense = rule->defense;
-        knight.hp = rule->hp;
-        knight.luck = rule->luck;
-
-        int count = 1;
+    bool has_knight(name from, uint8_t type) {
         auto iter = knights.find(from);
-        knights.emplace(self, [&](auto &target) {
-            target.owner = from;
-            target.rows.push_back(knight);
-        });
+        for (int index = 0; index < iter->rows.size(); index++) {
+            if (iter->rows[index].type == type) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     knightrow new_knight(uint8_t type) {
@@ -463,7 +475,7 @@ protected:
 
         auto avg_floor = 1000;
         auto gdr = 1.0;
-        if (use_gdr) {
+        if (pmode == pm_normal) {
             avg_floor = system_controller.get_global_avg_floor();
             system_controller.get_global_drop_factor(avg_floor);
         }
@@ -510,7 +522,7 @@ protected:
         });
 
         variable.clear_deferred_time();
-        if (use_gdr) {
+        if (pmode == pm_normal) {
             // submit floor to calculate global average floor
             if (rows.size() == kt_count-1 && floor > 10) {
                 submit_floor(variable, old_max_floor, floor);
@@ -702,7 +714,7 @@ public:
                 _pet_controller)
             , saleslog_controller(_saleslog_controller)                
             , skills(_self, _self) {
-        use_gdr = true;
+        pmode = pm_normal;
     }
 
     // internal apis
@@ -720,21 +732,11 @@ public:
         return empty_kntskill;
     }
 
-    // actions
-    //-------------------------------------------------------------------------
-    /// @brief
-    /// hire new knight. player could pay the hire cost.
-    /// @param from
-    /// Player who requested hire action
-    /// @param type
-    /// knight who you want to hire
-    void hireknight(name from, uint8_t type, const asset& quantity) {
-        require_auth(from);
+    int add_knight(name from, uint8_t type) {
         assert_true(type > 0 && type < kt_count, "invalid knight type");
-
         knightrow knight = new_knight(type);
+        int count = 0;
 
-        int count = 1;
         auto iter = knights.find(from);
         if (iter == knights.cend()) {
             knights.emplace(self, [&](auto &target) {
@@ -757,6 +759,24 @@ public:
 
             assert_true(found == false, "you have already same knight");
         }
+
+        refresh_stat(from, type);
+        return count;
+    }
+
+    // actions
+    //-------------------------------------------------------------------------
+    /// @brief
+    /// hire new knight. player could pay the hire cost.
+    /// @param from
+    /// Player who requested hire action
+    /// @param type
+    /// knight who you want to hire
+    void hireknight(name from, uint8_t type, const asset& quantity) {
+        require_auth(from);
+        assert_true(type > 0 && type < kt_count, "invalid knight type");
+
+        int count = add_knight(from, type);
 
         rkntprice_table prices(self, self);
         auto price_itr = prices.find(count);
